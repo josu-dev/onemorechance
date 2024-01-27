@@ -1,4 +1,6 @@
 <script lang="ts">
+  import HostMenu from '$cmp/room/HostMenu.svelte';
+  import PlayerMenu from '$cmp/room/PlayerMenu.svelte';
   import { room, roomUsers } from '$lib/stores/room.js';
   import { user } from '$lib/stores/user.js';
   import SuperDebug from 'sveltekit-superforms/client/SuperDebug.svelte';
@@ -7,14 +9,11 @@
 </script>
 
 {#if !$room || !$user}
+<HostMenu />
   <h1>Room not found</h1>
 {:else if data.isHost}
-  <h1>Host</h1>
-  <p>roomId: <code>{$room.id}</code></p>
 {:else}
-  <h1>Player</h1>
-  <p>roomId: <code>{$room.id}</code></p>
-  <p>name: <code>{$user.name}</code></p>
+  <PlayerMenu />
 {/if}
 
-<SuperDebug data={{room:$room, players: $roomUsers}} />
+<SuperDebug data={{ room: $room, players: $roomUsers }} />
