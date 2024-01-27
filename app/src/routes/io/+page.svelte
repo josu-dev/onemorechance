@@ -18,11 +18,11 @@
   });
 
   function createRoom() {
-    socket.emit('createRoom', { userId: userId });
+    socket.emit('create_room', { userId: userId });
   }
 
   function joinRoom() {
-    socket.emit('joinRoom', { roomId: roomId, userId: userId });
+    socket.emit('join_room', { roomId: roomId, userId: userId });
   }
   let name:string="";
   function emitName() {
@@ -30,12 +30,13 @@
   }
   const users: any[] = [];
 
-  socket.on('userJoined', (data) => {
+  socket.on('user_joiner_room', (data) => {
     users.push(data);
   });
+  
   let message:string="";
   function messageToRoom() {
-    socket.emit('messageToRoom', { roomId: roomId, message: message});
+    socket.emit('message_to_room', { roomId: roomId, message: message});
   }
   </script>
 

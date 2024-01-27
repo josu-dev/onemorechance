@@ -3,7 +3,7 @@ import { user } from '$lib/stores/user';
 import type { PageLoad } from './$types';
 
 
-export const load: PageLoad = async ({ cookies, params, locals }) => {
+export const load: PageLoad = async () => {
     const isHost = user.peek?.id === room.peek?.host.id;
 
     return {
