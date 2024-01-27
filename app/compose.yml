@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  app:
+  one_more_chance:
     container_name: onemorechance_app
     build:
       context: .
