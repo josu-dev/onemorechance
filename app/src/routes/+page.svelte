@@ -26,6 +26,7 @@
   class="text-white bg-black min-h-screen flex flex-col items-center justify-center"
 >
   <h1 class="text-4xl font-bold mb-10">ONE MORE CHANCE</h1>
+  <img src="/logo.png" alt="Logo" class="mb-6 max-w-full h-auto max-h-96" />
 
   {#if !$user}
     <form
