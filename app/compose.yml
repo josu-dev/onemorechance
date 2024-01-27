@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  app:
+    container_name: onemorechance_app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - ${PORT}:${PORT}
+    env_file:
+      - .env

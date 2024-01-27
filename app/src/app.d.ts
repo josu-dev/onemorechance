@@ -1,11 +1,15 @@
-// See https://kit.svelte.dev/docs/types#app
-// for information about these interfaces
+import type { User } from '$lib/server/users';
+import type { ExtendedWebSocketServer } from '$lib/server/webSocketUtils';
+
 declare global {
 	namespace App {
 		// interface Error {}
-		// interface Locals {}
+		interface Locals {
+			wss?: ExtendedWebSocketServer;
+            user?: User;
+            sswsId?: string;
+		}
 		// interface PageData {}
-		// interface PageState {}
 		// interface Platform {}
 	}
 }
