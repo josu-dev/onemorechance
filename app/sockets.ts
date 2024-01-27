@@ -8,7 +8,7 @@ import type {
     ServerToClientEvents,
     SocketData,
     User
-} from "./src/types";
+} from "./src/types.js";
 
 const users = new Map<string, User>();
 

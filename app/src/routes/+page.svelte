@@ -1,33 +1,31 @@
 <script lang="ts">
-  import { applyAction, enhance } from '$app/forms';
-  import { goto, invalidateAll } from '$app/navigation';
+  import { room } from '$lib/stores/room.js';
   import { user } from '$lib/stores/user.js';
-    import { socket } from '$lib/ws';
-    import {room} from '$lib/stores/room.js'
+  import { socket } from '$lib/ws/index.js';
 
   let name: string = '';
 
-  function registerUser(){
+  function registerUser() {
     socket.emit('register_user', { name: name });
   }
 
-  function create_room (){
-      socket.emit('create_room', { userId: user.peek?.id });
+  function create_room() {
+    const userId = user.peek?.id!;
+    socket.emit('create_room', { userId: userId });
   }
 
   let roomId: string = '';
 
-  function join_room (){
-      socket.emit('join_room', { roomId: roomId, userId: user.peek?.id });
+  function join_room() {
+    const userId = user.peek?.id!;
+    socket.emit('join_room', { roomId: roomId, userId: userId });
   }
 </script>
 
 <h1>One more chance</h1>
 
 {#if !$user}
-  <form
-    on:submit|preventDefault={registerUser}
-  >
+  <form on:submit|preventDefault={registerUser}>
     <label for="name">
       name<br />
       <input type="text" name="name" id="name" bind:value={name} />
