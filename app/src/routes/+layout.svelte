@@ -2,6 +2,12 @@
   import "../app.pcss";
 </script>
 
-<a href="/" class="fixed top-0 left-0 bg-red-500 text-white font-medium "><h1>Home</h1></a>
+<div class="text-white bg-black">
+  <a
+    href="/"
+    class="btn text-white bg-black rounded-lg w-48 h-10 m-2"
+    style="box-shadow: 0 0 0 2px white;"><h3>Volver al inicio</h3></a
+  >
+</div>
 
-<slot></slot>
+<slot />

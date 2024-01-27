@@ -50,7 +50,7 @@
       >
     </form>
   {:else}
-    <h2 class="text-2xl font-semibold mb-4">Hi {$user.name}!</h2>
+    <h2 class="text-2xl font-semibold mb-4">Hola! {$user.name}!</h2>
     <form on:submit|preventDefault={create_room} class="mb-4">
       <button
         type="submit"
