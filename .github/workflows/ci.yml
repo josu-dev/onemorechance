@@ -46,5 +46,5 @@ jobs:
           username: ${{ secrets.USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd /www/omc/
+            cd /home/${{ secrets.USER }}/www/omc
             docker compose -f omc.docker-compose.yml up -d
