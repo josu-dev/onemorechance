@@ -13,7 +13,7 @@ import type {
     SocketData,
     User
 } from "../src/types.js";
-import decks from '../static/decks/default.json';
+import decks from '../static/decks/default.json' with { type: "json" };
 
 
 const randomRoomId = customRandom('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz', 6, random);

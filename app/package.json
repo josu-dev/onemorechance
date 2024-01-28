@@ -8,7 +8,7 @@
     "dev": "vite dev",
     "dev:start": "vite dev --host --force",
     "start": "node .",
-    "build": "vite build && tsc ./server/index.ts ./server/sockets.ts --outDir ./server --module nodenext --resolveJsonModule",
+    "build": "vite build && tsc ./server/sockets.ts --outDir ./build --module nodenext --resolveJsonModule",
     "preview": "vite preview",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",

@@ -124,6 +124,14 @@
   function chooseOption(option: Option) {
     selectedOption = option;
   }
+
+  let copyText = "Copiar";
+  function copyRoomCode() {
+    copyText = "Copiado! 👍";
+    setTimeout(() => {
+      copyText = "Copiar";
+    }, 2000);
+  }
 </script>
 
 <svelte:head>
@@ -152,13 +160,8 @@
       <button
         class="btn variant-filled text-white bg-black rounded-lg ml-4"
         style="box-shadow: 0 0 0 2px white;"
-        on:click={(event) => {
-          event.currentTarget.textContent = 'Copiado! 👍';
-          setTimeout(() => {
-            event.currentTarget.textContent = 'Copiar';
-          }, 2000);
-        }}
-        use:clipboard={$room.id}>Copiar</button
+        on:click={copyRoomCode}
+        use:clipboard={$room.id}>{copyText}</button
       >
     </div>
 

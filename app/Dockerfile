@@ -12,5 +12,4 @@ ENV NODE_ENV production
 
 EXPOSE ${PORT}
 
-## I know this is not the best, but no time left
-CMD [ "npm", "run", "dev:start" ]
+CMD [ "npm", "run", "start" ]
