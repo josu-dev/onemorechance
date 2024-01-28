@@ -2,13 +2,13 @@
   import HostMenu from "$cmp/room/HostMenu.svelte";
   import PlayerMenu from "$cmp/room/PlayerMenu.svelte";
   import { room, roomUsers } from "$lib/stores/room.js";
-  import { players} from "$lib/stores/game.js";
+  import { players } from "$lib/stores/game.js";
   import { user } from "$lib/stores/user.js";
   import { debugData } from "$lib/components/HyperDebug.svelte";
   import { GAME } from "$lib/defaults";
   import { GAME_STATUS } from "$lib/enums.js";
   import * as r from "$lib/stores/room.js";
-  
+  import { clipboard } from "@skeletonlabs/skeleton";
 
   export let data;
   let rounds = GAME.ROUNDS;
@@ -69,7 +69,6 @@
   debugData.set(room);
 </script>
 
-
 <div
   class="text-white bg-black min-h-screen flex flex-col items-center justify-center"
 >
@@ -79,7 +78,11 @@
   {:else if data.isHost && gameStatus === GAME_STATUS.NOT_STARTED}
     <!-- Host lobby waiting -->
     <h1 class="text-3xl text-white mb-4">Jugadores</h1>
-    <h2 class="text-3xl text-white mb-4">Id de la sala : {$room?.id}</h2>
+    <h2 class="text-3xl text-white mb-4">Id de la sala :</h2>
+    <!-- Source -->
+    <div data-clipboard="roomId">{$room.id}</div>
+    <!-- Trigger -->
+    <button class = "btn variant-filled" use:clipboard={{ element: "roomId" }}>Copy</button>
     <h1 class="text-3xl text-white mb-4">Jugadores</h1>
     <div class="flex flex-col items-left mb-4 space-y-4">
       {#each $players as player}
@@ -98,7 +101,7 @@
             <input
               type="checkbox"
               class="form-checkbox text-black w-6 h-6"
-              value = {player.ready}
+              checked={player.ready}
               disabled
             />
           {/if}
@@ -206,7 +209,7 @@
             <input
               type="checkbox"
               class="form-checkbox text-black w-6 h-6"
-              value = {player.ready}
+              checked={player.ready}
               disabled
             />
           {/if}
