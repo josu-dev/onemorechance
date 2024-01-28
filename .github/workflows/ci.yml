@@ -28,7 +28,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./app
-          file: Dockerfile
+          file: ./app/Dockerfile
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/onemorechance:latest
 
