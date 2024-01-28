@@ -1,40 +1,36 @@
-<script>
-  import { onMount, onDestroy } from "svelte";
-  import { isPlaying } from "../stores/music"; // Asegúrate de que la ruta sea correcta
- //@ts-ignore
-  let audio; 
-  //@ts-ignore
-  let unsubscribe; 
-  
+<script lang="ts">
+  import { isPlaying } from '$lib/stores/music.js';
+  import { onMount } from 'svelte';
+
+  let audio: HTMLAudioElement;
 
   function toggleAudio() {
     isPlaying.update((value) => !value);
   }
 
   onMount(() => {
-    audio = new Audio("/audio/lobby_music.mp3");
+    audio = new Audio('/audio/lobby_music.mp3');
     audio.loop = true;
 
-    unsubscribe = isPlaying.subscribe((value) => {
+    const unsubscribe = isPlaying.subscribe((value) => {
       if (value) {
-        //@ts-ignore
-        audio.play(); 
+        audio.play();
       } else {
-        //@ts-ignore
-        audio.pause(); //@ts-ignore
+        audio.pause();
       }
     });
-  });
-
-  onDestroy(() => {
-    unsubscribe();
+    return () => {
+      audio.pause();
+      unsubscribe();
+    };
   });
 </script>
 
 <button
-  class="fixed top-3 right-3 bg-transparent border-none text-4xl"
+  class="fixed top-2 right-2 w-7 h-7 md:top-4 md:right-4 bg-transparent md:w-8 md:h-8 [&>img]:w-full [&>img]:h-full"
   on:click={toggleAudio}
 >
+  <span class="sr-only">Silenciar/Activar audio</span>
   {#if $isPlaying}
     <img
       src="/audio/volume-muted.svg"
