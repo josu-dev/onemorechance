@@ -5,7 +5,7 @@ import { attach_sockets } from "./sockets.js";
 const socket_io_plugin = {
 	name: "socket.io plugin",
 	configureServer(server: ViteDevServer) {
-		attach_sockets(server.httpServer!);
+		attach_sockets(server.httpServer as any);
 	},
 };
 

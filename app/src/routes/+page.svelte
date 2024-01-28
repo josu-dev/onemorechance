@@ -2,7 +2,6 @@
   import { room} from '$lib/stores/room.js';
   import { user } from '$lib/stores/user.js';
   import { socket } from '$lib/ws/index.js';
-  console.log(room)
 
   export let data;
 

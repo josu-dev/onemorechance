@@ -2,7 +2,7 @@ import type { IncomingMessage, Server, ServerResponse } from "http";
 import { nanoid } from 'nanoid';
 import { Server as ioServer } from "socket.io";
 import { GAME } from './src/lib/defaults.js';
-import { GAME_STATUS } from './src/lib/enums.js';
+import { GAME_STATUS, ROOM_STATUS } from './src/lib/enums.js';
 import type {
     ClientToServerEvents,
     Deck,
@@ -59,6 +59,7 @@ export function attach_sockets(
 
             const player: Player = {
                 userId: user.id,
+                name: user.name,
                 role: 'HOST',
                 score: 0,
                 ready: false,
@@ -70,6 +71,7 @@ export function attach_sockets(
             const roomId = nanoid();
             const room: Room = {
                 id: roomId,
+                status: ROOM_STATUS.LOBBY,
                 host: user,
                 users: [user],
                 readyCount: 0,
@@ -77,7 +79,7 @@ export function attach_sockets(
                     status: GAME_STATUS.WAITING_TO_START,
                     id: nanoid(),
                     maxRounds: GAME.ROUNDS,
-                    roundTime: GAME.COMPLETE_ROUND_TIME,
+                    chooseTime: GAME.COMPLETE_ROUND_TIME,
                     maxOptions: GAME.OPTIONS,
                     round: 0,
                     deck: {
@@ -115,6 +117,7 @@ export function attach_sockets(
 
             const player: Player = {
                 userId: user.id,
+                name: user.name,
                 role: 'INVITED',
                 score: 0,
                 ready: false,
@@ -188,9 +191,8 @@ export function attach_sockets(
             }
 
             room.readyCount = 0;
-            room.game.status = GAME_STATUS.IN_PROGRESS;
+            room.game.status = GAME_STATUS.CHOOSING_OPTION;
             room.game.round = 1;
-            // @ts-ignore
             const cards: Phrase[] = decks[room.game.deck.id].phrases;
             room.game.phrase = cards[Math.floor(Math.random() * cards.length)]!;
             io.to(roomId).emit('game_started', room.game);
@@ -213,7 +215,6 @@ export function attach_sockets(
             }
 
             const player = room.game.players.find(p => p.userId === userId)!;
-            // @ts-ignore
             const deck: Deck = decks[room.game.deck.id];
             for (let i = 0; i < options; i++) {
                 let option = deck.options[Math.floor(Math.random() * deck.options.length)]!;
@@ -229,9 +230,9 @@ export function attach_sockets(
             if (room.readyCount === room.users.length) {
                 room.readyCount = 0;
                 setTimeout(() => {
-                    room.game.status = GAME_STATUS.SELECTION_END;
+                    room.game.status = GAME_STATUS.RATING_PLAYS;
                     io.to(roomId).emit('selection_end', room.game);
-                }, room.game.roundTime);
+                }, room.game.chooseTime);
             }
         });
 

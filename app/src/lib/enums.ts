@@ -1,9 +1,20 @@
+export const ROOM_STATUS = {
+    LOBBY: 'LOBBY',
+    PLAYING: 'PLAYING',
+    CLOSED: 'CLOSED',
+} as const;
+
+export type RoomStatus = typeof ROOM_STATUS[keyof typeof ROOM_STATUS];
+
 export const GAME_STATUS = {
-    WAITING_TO_START: 'WAITING_TO_START',
-    IN_PROGRESS: 'IN_PROGRESS',
-    ROUND_ENDED: 'ROUND_ENDED',
-    SELECTION_END: 'SELECTION_END',
+    NOT_STARTED: 'NOT_STARTED',
+    PRE_ROUND: 'PRE_ROUND',
+    CHOOSING_OPTION: 'CHOOSING_OPTION',
+    RATING_PLAYS: 'RATING_PLAYS',
+    ROUND_WINNER: 'ROUND_WINNER',
+    OPTION_REFILL: 'OPTION_REFILL',
+    SCOREBOARD: 'SCOREBOARD',
     FINISHED: 'FINISHED',
 } as const;
 
-export type GameStatus = typeof GAME_STATUS[keyof typeof GAME_STATUS]
+export type GameStatus = typeof GAME_STATUS[keyof typeof GAME_STATUS];
