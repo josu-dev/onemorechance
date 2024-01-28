@@ -30,7 +30,7 @@
     "Otaku",
     "Peronista",
     "Banana",
-  ];
+  ]; //Estas deberian obtenerse del deck
 
   let selectedWord = "_______";
   function confirmPlayer(checked: boolean) {
@@ -61,7 +61,7 @@
   }
 
   function vote(voteType: string) {
-    gameStatus = GAME_STATUS.ROUND_WINNER;
+    gameStatus = GAME_STATUS.SCOREBOARD;
     //TODO Handle user vote
   }
   let buttonText = "Copiar";
@@ -314,7 +314,11 @@
   {:else if gameStatus === GAME_STATUS.CHOOSING_OPTION}
     <!-- On Game -->
     <h1 class="text-3xl text-white mb-4">Partida</h1>
-    <div class="flex items-center justify-center w-20 h-20 rounded-full bg-white mb-4"> <p class="text-center text-black  text-3xl ">{timer}</p></div>
+    <div
+      class="flex items-center justify-center w-20 h-20 rounded-full bg-white mb-4"
+    >
+      <p class="text-center text-black text-3xl">{timer}</p>
+    </div>
     <div class="flex justify-center items-center w-128">
       <div
         class="card bg-black border-white border-2 p-4 rounded-lg"
@@ -337,8 +341,6 @@
         </button>
       {/each}
     </div>
-    
-   
   {:else if gameStatus === GAME_STATUS.RATING_PLAYS}
     <!-- Voting -->
     <h1 class="text-3xl text-white mb-4">Puntuar</h1>
@@ -361,7 +363,7 @@
         >👎</button
       >
     </div>
-  {:else if gameStatus === GAME_STATUS.ROUND_WINNER}
+  {:else if gameStatus === GAME_STATUS.SCOREBOARD}
     <!-- Leaderboard -->
     <h1 class="text-3xl text-white mb-4">Tabla de puntajes</h1>
     {#each $roomUsers as player}
@@ -371,5 +373,7 @@
         <!-- <div class="text-lg text-white">{player.score}</div> -->
       </div>
     {/each}
+  {:else if gameStatus === GAME_STATUS.OPTION_REFILL}
+  <h1 class="text-3xl text-white mb-4">Repartiendo cartas...</h1>
   {/if}
 </div>
