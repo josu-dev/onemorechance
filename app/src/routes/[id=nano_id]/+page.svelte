@@ -4,18 +4,21 @@
   import { room, roomUsers } from "$lib/stores/room.js";
   import { user } from "$lib/stores/user.js";
   import { debugData } from "$lib/components/HyperDebug.svelte";
-  import type { GameStatus } from "$lib/enums.js";
+  import { GAME } from "$lib/defaults";
+  import { GAME_STATUS } from "$lib/enums.js";
+  import * as r from "$lib/stores/room.js";
 
   export let data;
-  let gameStatus: GameStatus = "WAITING_TO_START"; //TODO Change to use it with the data from the server
-
-  let rounds = 5;
-  let timer = 15;
+  let rounds = GAME.ROUNDS;
+  let timer = GAME.COMPLETE_ROUND_TIME;
+  let numOptions = GAME.OPTIONS;
   let selectedDeck = "default";
-  let numOptions = 4;
-  let confirmed = false;
+
+  $: gameStatus = $room?.game.status;
+  $: game = $room?.game;
+
   let incompletePhrase =
-    "El doctor me dijo que mi enfermedad no tiene cura culpa de ...";
+    "El doctor me dijo que mi enfermedad no tiene cura culpa de ";
   let wordList = [
     "Me coji al chavo",
     "Pelar pijas con la cola",
@@ -29,6 +32,13 @@
   ];
 
   let selectedWord = "_______";
+  function confirmPlayer(checked: boolean) {
+    if (checked) {
+      r.setReady();
+    } else {
+      r.setUnready();
+    }
+  }
 
   function startGame() {
     gameStatus = "IN_PROGRESS";
@@ -56,13 +66,14 @@
   debugData.set(room);
 </script>
 
+
 <div
   class="text-white bg-black min-h-screen flex flex-col items-center justify-center"
 >
-  {#if !room || !user}
+  {#if !$room || !$user}
     <HostMenu />
     <h1 class="mt-4 text-lg text-white">Room not found</h1>
-  {:else if data.isHost && gameStatus === "WAITING_TO_START"}
+  {:else if data.isHost && gameStatus === GAME_STATUS.WAITING_TO_START}
     <!-- Host lobby waiting -->
     <h1 class="text-3xl text-white mb-4">Jugadores</h1>
     <h2 class="text-3xl text-white mb-4">Id de la sala : {$room?.id}</h2>
@@ -71,6 +82,21 @@
         <div class="flex items-center space-x-4">
           <div class="w-10 h-10 rounded-full bg-white"></div>
           <div class="text-lg text-white">{player.name}</div>
+          {#if player.id == $user.id}
+            <input
+              type="checkbox"
+              on:change={(e) => {
+                confirmPlayer(e.currentTarget?.checked ?? false);
+              }}
+              class="form-checkbox text-black w-6 h-6"
+            />
+          {:else}
+            <input
+              type="checkbox"
+              value = {false}
+              disabled
+            />
+          {/if}
         </div>
       {/each}
     </div>
@@ -155,7 +181,7 @@
         Iniciar Partida
       </button>
     </form>
-  {:else if gameStatus === "WAITING_TO_START"}
+  {:else if gameStatus === GAME_STATUS.WAITING_TO_START}
     <!-- Guest lobby waiting -->
     <h1 class="text-3xl text-white mb-4">Jugadores</h1>
     <div class="flex flex-col items-left mb-4 space-y-4">
@@ -163,11 +189,15 @@
         <div class="flex items-center space-x-4">
           <div class="w-10 h-10 rounded-full bg-white"></div>
           <div class="text-lg text-white">{player.name}</div>
-          <input
-            type="checkbox"
-            bind:checked={confirmed}
-            class="form-checkbox text-black w-6 h-6"
-          />
+          {#if player.id == $user.id}
+            <input
+              type="checkbox"
+              on:change={(e) => {
+                confirmPlayer(e.currentTarget?.checked ?? false);
+              }}
+              class="form-checkbox text-black w-6 h-6"
+            />
+          {/if}
         </div>
       {/each}
     </div>
@@ -250,7 +280,7 @@
     </form>
 
     <PlayerMenu />
-  {:else if gameStatus === "IN_PROGRESS"}
+  {:else if gameStatus === GAME_STATUS.IN_PROGRESS}
     <!-- On Game -->
     <h1 class="text-3xl text-white mb-4">Partida</h1>
     <div class="flex justify-center items-center w-128">
@@ -259,7 +289,8 @@
         style="width: 50%; aspect-ratio: 2 / 3;"
       >
         <p class="text-white text-xxl">
-          “El doctor me dijo que mi enfermedad no tiene cura culpa de {selectedWord}“
+          “{incompletePhrase}
+          {selectedWord}“
         </p>
       </div>
     </div>
@@ -275,7 +306,7 @@
       {/each}
     </div>
     <p class="m-4">Tiempo restante: {timer} segundos</p>
-  {:else if gameStatus === "SELECTION_END"}
+  {:else if gameStatus === GAME_STATUS.SELECTION_END}
     <!-- Voting -->
     <h1 class="text-3xl text-white mb-4">Puntuar</h1>
     <div class="flex justify-center items-center w-128">
@@ -296,7 +327,7 @@
         >👎</button
       >
     </div>
-  {:else if gameStatus === "ROUND_ENDED"}
+  {:else if gameStatus === GAME_STATUS.ROUND_ENDED}
     <!-- Leaderboard -->
     <h1 class="text-3xl text-white mb-4">Tabla de puntajes</h1>
     {#each $roomUsers as player}

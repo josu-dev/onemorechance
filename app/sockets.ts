@@ -74,7 +74,7 @@ export function attach_sockets(
                 users: [user],
                 readyCount: 0,
                 game: {
-                    status: GAME_STATUS.NOT_STARTED,
+                    status: GAME_STATUS.WAITING_TO_START,
                     id: nanoid(),
                     maxRounds: GAME.ROUNDS,
                     roundTime: GAME.COMPLETE_ROUND_TIME,
