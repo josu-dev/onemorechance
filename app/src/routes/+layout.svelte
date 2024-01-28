@@ -22,8 +22,8 @@
 </script>
 
 {#if dev}
-  <!-- <CommandPalette commands={globalCommands} />
-  <HyperDebug /> -->
+  <CommandPalette commands={globalCommands} />
+  <HyperDebug />
 {/if}
 <AudioPlayer/>
 

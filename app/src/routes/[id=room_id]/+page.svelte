@@ -103,17 +103,16 @@
   function vote(vote: PlayerRating) {
     if (!voted) {
       voted = true;
-     
+      let audio ;
       if (vote === PLAYER_RATING.BAD) {
-        const audio = new Audio("/audio/sfx_abucheo.mp3");
-        audio.play();
+        audio = new Audio("/audio/sfx_abucheo.mp3");
       } else if (vote === PLAYER_RATING.MEH) {
-        const audio = new Audio("/audio/sfx_meh.mp3");
-        audio.play();
-      } else if (vote === PLAYER_RATING.GOOD) {
-        const audio = new Audio("/audio/sfx_aplauso.mp3");
-        audio.play();
+        audio = new Audio("/audio/sfx_meh.mp3");
+      }else {
+        audio = new Audio("/audio/sfx_aplauso.mp3");
       }
+      audio.volume = 0.5;
+      audio.play();
       g.ratePlayer($game?.ratingPlayer ?? "", vote);
     }
   }
@@ -420,18 +419,22 @@
         </p>
       </div>
     </div>
-    <div class="flex justify-center mt-4">
-      <button
-        class="mx-2 p-4 text-3xl"
-        on:click={() => vote(PLAYER_RATING.GOOD)}>👍</button
-      >
-      <button class="mx-2 p-4 text-3xl" on:click={() => vote(PLAYER_RATING.MEH)}
-        >😐</button
-      >
-      <button class="mx-2 p-4 text-3xl" on:click={() => vote(PLAYER_RATING.BAD)}
-        >👎</button
-      >
-    </div>
+    {#if !voted}
+      <div class="flex justify-center mt-4">
+        <button
+          class="mx-2 p-4 text-3xl"
+          on:click={() => vote(PLAYER_RATING.GOOD)}>👍</button
+        >
+        <button
+          class="mx-2 p-4 text-3xl"
+          on:click={() => vote(PLAYER_RATING.MEH)}>😐</button
+        >
+        <button
+          class="mx-2 p-4 text-3xl"
+          on:click={() => vote(PLAYER_RATING.BAD)}>👎</button
+        >
+      </div>
+    {/if}
   {:else if isScoreboard}
     <h1 class="text-3xl text-white mb-4">Tabla de puntajes</h1>
     {#each $players as player}
