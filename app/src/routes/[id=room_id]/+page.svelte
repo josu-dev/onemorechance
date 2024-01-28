@@ -1,21 +1,21 @@
 <script lang="ts">
-  import { dev } from '$app/environment';
-  import { debugData } from '$lib/components/HyperDebug.svelte';
-  import { GAME } from '$lib/defaults';
+  import { dev } from "$app/environment";
+  import { debugData } from "$lib/components/HyperDebug.svelte";
+  import { GAME } from "$lib/defaults";
   import {
     DECK_TYPE,
     GAME_STATUS,
     PLAYER_RATING,
     type GameStatus,
     type PlayerRating,
-  } from '$lib/enums.js';
-  import * as g from '$lib/stores/game.js';
-  import { game, players } from '$lib/stores/game.js';
-  import * as r from '$lib/stores/room.js';
-  import { room } from '$lib/stores/room.js';
-  import { user } from '$lib/stores/user.js';
-  import type { Option } from '$types';
-  import { clipboard } from '@skeletonlabs/skeleton';
+  } from "$lib/enums.js";
+  import * as g from "$lib/stores/game.js";
+  import { game, players } from "$lib/stores/game.js";
+  import * as r from "$lib/stores/room.js";
+  import { room } from "$lib/stores/room.js";
+  import { user } from "$lib/stores/user.js";
+  import type { Option } from "$types";
+  import { clipboard } from "@skeletonlabs/skeleton";
 
   export let data;
 
@@ -35,7 +35,7 @@
   let isRoundWinner = false;
   let isOptionRefill = false;
   let isScoreboard = false;
-
+  let voted = false;
   $: if ($game.status !== gameStatus) {
     gameStatus = $game.status;
     isNotStarted = gameStatus === GAME_STATUS.NOT_STARTED;
@@ -48,23 +48,23 @@
   }
 
   $: if (isChoosingOption) {
-    startTimer('choose', ($game?.chooseTime ?? 0) / 1000);
+    startTimer("choose", ($game?.chooseTime ?? 0) / 1000);
   } else {
-    endTimer('choose');
+    endTimer("choose");
   }
 
-  $: basePhrase = $game?.phrase.text ?? 'Missing frase';
+  $: basePhrase = $game?.phrase.text ?? "Missing frase";
 
   $: options = $game.players.find((p) => p.userId === $user?.id)?.options ?? [];
 
   let selectedOption = { text: undefined };
-  let freestyleText: string | undefined = '';
+  let freestyleText: string | undefined = "";
   function fillFreestyle(text: string) {
     freestyleText = text;
     g.setFreestyle([text]);
   }
-  
-  $: filledPhrase = basePhrase + (freestyleText ?? selectedOption.text ?? '');
+
+  $: filledPhrase = basePhrase + (freestyleText ?? selectedOption.text ?? "");
 
   function confirmPlayer(checked: boolean) {
     if (checked) {
@@ -93,7 +93,7 @@
         if (timer <= 0) {
           endTimer(key);
         }
-      }, 1000),
+      }, 1000)
     );
   }
   function endTimer(key: string) {
@@ -101,18 +101,32 @@
   }
 
   function vote(vote: PlayerRating) {
-    g.ratePlayer($game?.ratingPlayer ?? '', vote);
+    if (!voted) {
+      voted = true;
+     
+      if (vote === PLAYER_RATING.BAD) {
+        const audio = new Audio("/audio/sfx_abucheo.mp3");
+        audio.play();
+      } else if (vote === PLAYER_RATING.MEH) {
+        const audio = new Audio("/audio/sfx_meh.mp3");
+        audio.play();
+      } else if (vote === PLAYER_RATING.GOOD) {
+        const audio = new Audio("/audio/sfx_aplauso.mp3");
+        audio.play();
+      }
+      g.ratePlayer($game?.ratingPlayer ?? "", vote);
+    }
   }
 
   function chooseOption(option: Option) {
     selectedOption = option;
   }
 
-  let buttonText = 'Copiar';
+  let buttonText = "Copiar";
   function copy() {
-    buttonText = 'Copiado! 👍';
+    buttonText = "Copiado! 👍";
     setTimeout(() => {
-      buttonText = 'Copiar';
+      buttonText = "Copiar";
     }, 2000);
   }
 </script>
