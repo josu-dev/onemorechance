@@ -1,7 +1,27 @@
 <script lang="ts">
-  import "../app.pcss";
+  import { dev } from '$app/environment';
+  import HyperDebug, { debugEnabled } from '$lib/components/HyperDebug.svelte';
+  import { defineCommand } from 'svelte-hypercommands';
+  import CommandPalette from 'svelte-hypercommands/CommandPalette.svelte';
+  import '../app.pcss';
+
+  const globalCommands = defineCommand([
+    {
+      id: 'global:toggle_debug',
+      category: 'Global',
+      name: 'Toggle Debug',
+      description: 'Toggle the global debug panel',
+      shortcut: '$mod+D',
+      onAction: () => {
+        $debugEnabled = !$debugEnabled;
+      },
+    },
+  ]);
 </script>
 
-<a href="/" class="fixed top-0 left-0 bg-red-500 text-white font-medium "><h1>Home</h1></a>
+{#if dev}
+  <CommandPalette commands={globalCommands} />
+  <HyperDebug />
+{/if}
 
-<slot></slot>
+<slot />

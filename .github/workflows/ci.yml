@@ -7,14 +7,10 @@ on:
     paths:
       - "app/src/**"
       - ".github/workflows/ci.yml"
-    
-env:
-  APP_NAME: onemorechance
-  RUNS_ON: ubuntu-22.04
 
 jobs:
   build_and_push:
-    runs-on: $RUNS_ON
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -34,7 +30,7 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/$APP_NAME:latest
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/$onemorechance:latest
 
   compose-up:
     runs-on: ubuntu-22.04
