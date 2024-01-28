@@ -1,0 +1,24 @@
+---
+- name: omc docker compose
+  hosts: omc
+  gather_facts: yes
+  tasks:
+    - name: create /www/npm folder
+      become: yes
+      file:
+        path: /home/{{ ansible_user }}/www/npm
+        state: directory
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0755'
+
+    - name: copy npm.docker-compose.yml
+      become: yes
+      copy:
+        src: ../files/docker/npm.docker-compose.yml
+        dest: /home/{{ ansible_user }}/www/npm/npm.docker-compose.yml
+
+    - name: run docker compose
+      command: docker compose -f /home/"{{ ansible_user }}"/www/npm/npm.docker-compose.yml up -d
+      args:
+        chdir: /home/"{{ ansible_user }}"/www/npm
