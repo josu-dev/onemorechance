@@ -17,8 +17,8 @@
   let timer = GAME.ROUND_CHOOSE_TIME / 1000;
   let numOptions = GAME.OPTIONS;
   $: gameStatus = $room?.game.status;
-
-  let intervalId: number;
+  
+    let intervalId: number;
   $: if (gameStatus === GAME_STATUS.CHOOSING_OPTION) {
     timer = (game?.chooseTime ?? 0) / 1000;
     initTimer();
@@ -61,7 +61,7 @@
     //@ts-ignore
     intervalId = setInterval(() => {
       timer--;
-    }, 1000);
+          }, 1000);
   }
 
   function vote(vote: PlayerRating) {
