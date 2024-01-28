@@ -65,7 +65,14 @@
     gameStatus = GAME_STATUS.ROUND_WINNER;
     //TODO Handle user vote
   }
+  let buttonText = "Copiar";
 
+  function copy() {
+    buttonText = "Copiado! 👍";
+    setTimeout(() => {
+      buttonText = "Copiar";
+    }, 2000); 
+  }
   debugData.set(room);
 </script>
 
@@ -78,11 +85,22 @@
   {:else if data.isHost && gameStatus === GAME_STATUS.NOT_STARTED}
     <!-- Host lobby waiting -->
     <h1 class="text-3xl text-white mb-4">Jugadores</h1>
-    <h2 class="text-3xl text-white mb-4">Id de la sala :</h2>
-    <!-- Source -->
-    <div data-clipboard="roomId">{$room.id}</div>
-    <!-- Trigger -->
-    <button class = "btn variant-filled" use:clipboard={{ element: "roomId" }}>Copy</button>
+
+    <div
+      class="previewer-preview flex justify-center items-center mx-auto transition-[width] duration-200 w-full"
+    >
+      <h2 class="text-3xl text-white mb-4 mr-4">Id de la sala:</h2>
+      <h2 class="text-3xl text-white mb-4" data-clipboard="roomId">
+        {$room.id}
+      </h2>
+      <button
+        class="btn variant-filled text-white bg-black rounded-lg ml-4"
+        style="box-shadow: 0 0 0 2px white;"
+        on:click={copy}
+        use:clipboard={$room.id}>{buttonText}</button
+      >
+    </div>
+
     <h1 class="text-3xl text-white mb-4">Jugadores</h1>
     <div class="flex flex-col items-left mb-4 space-y-4">
       {#each $players as player}
@@ -97,13 +115,15 @@
               }}
               class="form-checkbox text-black w-6 h-6"
             />
-          {:else}
+          {:else if player.ready}
             <input
               type="checkbox"
               class="form-checkbox text-black w-6 h-6"
               checked={player.ready}
               disabled
             />
+            {:else}
+            <span class="text-white text-xl">X</span>
           {/if}
         </div>
       {/each}
@@ -205,13 +225,15 @@
               }}
               class="form-checkbox text-black w-6 h-6"
             />
-          {:else}
+          {:else if player.ready}
             <input
               type="checkbox"
               class="form-checkbox text-black w-6 h-6"
               checked={player.ready}
               disabled
             />
+            {:else}
+            <span class="text-white text-xl">X</span>
           {/if}
         </div>
       {/each}
