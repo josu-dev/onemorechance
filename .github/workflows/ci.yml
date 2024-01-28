@@ -30,7 +30,7 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/$onemorechance:latest
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/onemorechance:latest
 
   compose-up:
     runs-on: ubuntu-22.04
