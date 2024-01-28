@@ -26,6 +26,7 @@ export type Player = {
     modifiers: Modifier[],
 };
 
+
 export type Phrase = {
     id: string,
     text: string,
@@ -41,6 +42,7 @@ export type DeckIdentifier = {
     [x: string]: any;
     id: string,
     name: string,
+    type: DeckType,
 };
 
 export type Deck = {

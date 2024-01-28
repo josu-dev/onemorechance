@@ -1,49 +1,70 @@
 <script lang="ts">
-  import HostMenu from "$cmp/room/HostMenu.svelte";
-  import PlayerMenu from "$cmp/room/PlayerMenu.svelte";
-  import { room, roomUsers } from "$lib/stores/room.js";
-  import { players, ratePlayer } from "$lib/stores/game.js";
-  import { user } from "$lib/stores/user.js";
-  import { debugData } from "$lib/components/HyperDebug.svelte";
-  import { GAME } from "$lib/defaults";
-  import { GAME_STATUS, PLAYER_RATING, type PlayerRating } from "$lib/enums.js";
-  import * as r from "$lib/stores/room.js";
-  import * as g from "$lib/stores/game.js";
-  import { clipboard } from "@skeletonlabs/skeleton";
-  import type { Option } from "$types";
+  import { dev } from '$app/environment';
+  import { debugData } from '$lib/components/HyperDebug.svelte';
+  import { GAME } from '$lib/defaults';
+  import {
+    DECK_TYPE,
+    GAME_STATUS,
+    PLAYER_RATING,
+    type GameStatus,
+    type PlayerRating,
+  } from '$lib/enums.js';
+  import * as g from '$lib/stores/game.js';
+  import { game, players } from '$lib/stores/game.js';
+  import * as r from '$lib/stores/room.js';
+  import { room } from '$lib/stores/room.js';
+  import { user } from '$lib/stores/user.js';
+  import type { Option } from '$types';
+  import { clipboard } from '@skeletonlabs/skeleton';
 
   export let data;
+
+  if (dev) {
+    debugData.set(room);
+  }
+
   let rounds = GAME.ROUNDS;
   let timer = GAME.ROUND_CHOOSE_TIME / 1000;
   let numOptions = GAME.OPTIONS;
-  $: gameStatus = $room?.game.status;
 
-  let intervalId: number;
-  $: if (gameStatus === GAME_STATUS.CHOOSING_OPTION) {
-    timer = (game?.chooseTime ?? 0) / 1000;
-    initTimer();
-  } else {
-    clearInterval(intervalId);
+  let gameStatus: GameStatus = GAME_STATUS.NOT_STARTED;
+  let isNotStarted = true;
+  let isPreRound = false;
+  let isChoosingOption = false;
+  let isRatingPlays = false;
+  let isRoundWinner = false;
+  let isOptionRefill = false;
+  let isScoreboard = false;
+
+  $: if ($game.status !== gameStatus) {
+    gameStatus = $game.status;
+    isNotStarted = gameStatus === GAME_STATUS.NOT_STARTED;
+    isChoosingOption = gameStatus === GAME_STATUS.CHOOSING_OPTION;
+    isRatingPlays = gameStatus === GAME_STATUS.RATING_PLAYS;
+    isScoreboard = gameStatus === GAME_STATUS.SCOREBOARD;
+    isOptionRefill = gameStatus === GAME_STATUS.OPTION_REFILL;
+    isPreRound = gameStatus === GAME_STATUS.PRE_ROUND;
+    isRoundWinner = gameStatus === GAME_STATUS.ROUND_WINNER;
   }
 
-  $: game = $room?.game;
+  $: if (isChoosingOption) {
+    startTimer('choose', ($game?.chooseTime ?? 0) / 1000);
+  } else {
+    endTimer('choose');
+  }
 
-  let wordList = [
-    "Me coji al chavo",
-    "Pelar pijas con la cola",
-    "Lluvia de pijas",
-    "Vieja",
-    "Una paja en el micro",
-    "Puto",
-    "Otaku",
-    "Peronista",
-    "Banana",
-  ]; //Estas deberian obtenerse del deck
-  let selectedOption = {text: "___"};
-  $: filledPhrase = (game?.phrase.text ?? "Missing frase").replace(
-    /{{}}/g,
-    selectedOption?.text ?? "Missing option"
-  );
+  $: basePhrase = $game?.phrase.text ?? 'Missing frase';
+
+  $: options = $game.players.find((p) => p.userId === $user?.id)?.options ?? [];
+
+  let selectedOption = { text: undefined };
+  let freestyleText: string | undefined = '';
+  function fillFreestyle(text: string) {
+    freestyleText = text;
+    g.setFreestyle([text]);
+  }
+  
+  $: filledPhrase = basePhrase + (freestyleText ?? selectedOption.text ?? '');
 
   function confirmPlayer(checked: boolean) {
     if (checked) {
@@ -52,43 +73,58 @@
       r.setUnready();
     }
   }
+
   function startGame() {
     r.startGame();
-    //Start timer
-    initTimer();
   }
-  function initTimer() {
-    //@ts-ignore
-    intervalId = setInterval(() => {
-      timer--;
-    }, 1000);
+
+  const timerMap = new Map<string, ReturnType<typeof setInterval>>();
+  function startTimer(key: string, initialTime: number) {
+    if (timerMap.has(key)) {
+      return;
+    }
+
+    timer = initialTime;
+
+    timerMap.set(
+      key,
+      setInterval(() => {
+        timer--;
+        if (timer <= 0) {
+          endTimer(key);
+        }
+      }, 1000),
+    );
+  }
+  function endTimer(key: string) {
+    clearInterval(timerMap.get(key));
   }
 
   function vote(vote: PlayerRating) {
-    g.ratePlayer(game?.ratingPlayer ?? "", vote);
+    g.ratePlayer($game?.ratingPlayer ?? '', vote);
   }
 
-  function selectWord(word: Option) {
-    selectedOption = word;
+  function chooseOption(option: Option) {
+    selectedOption = option;
   }
-  let buttonText = "Copiar";
+
+  let buttonText = 'Copiar';
   function copy() {
-    buttonText = "Copiado! 👍";
+    buttonText = 'Copiado! 👍';
     setTimeout(() => {
-      buttonText = "Copiar";
+      buttonText = 'Copiar';
     }, 2000);
   }
-  debugData.set(room);
 </script>
 
 <div
   class="text-white bg-black min-h-screen flex flex-col items-center justify-center"
 >
   {#if !$room || !$user}
-    <HostMenu />
-    <h1 class="mt-4 text-lg text-white">Room not found</h1>
-  {:else if data.isHost && gameStatus === GAME_STATUS.NOT_STARTED}
-    <!-- Host lobby waiting -->
+    <h1 class="mt-4 text-lg text-white">
+      Room not found, you shouldnt be seeing this 😅
+    </h1>
+  {:else if data.isHost && isNotStarted}
     <h1 class="text-3xl text-white mb-4">Jugadores</h1>
 
     <div
@@ -210,10 +246,10 @@
         Iniciar Partida
       </button>
     </form>
-  {:else if (data.isHost && gameStatus === GAME_STATUS.PRE_ROUND) || gameStatus === GAME_STATUS.OPTION_REFILL}
+  {:else if (data.isHost && isPreRound) || isOptionRefill}
     <!-- Host lobby waiting -->
     <h1 class="text-3xl text-white mb-4">Esperando....</h1>
-  {:else if gameStatus === GAME_STATUS.NOT_STARTED}
+  {:else if isNotStarted}
     <!-- Guest lobby waiting -->
     <h1 class="text-3xl text-white mb-4">Jugadores</h1>
     <div class="flex flex-col items-left mb-4 space-y-4">
@@ -318,10 +354,7 @@
         </tr>
       </table>
     </form>
-
-    <PlayerMenu />
-  {:else if gameStatus === GAME_STATUS.CHOOSING_OPTION}
-    <!-- On Game -->
+  {:else if isChoosingOption}
     <h1 class="text-3xl text-white mb-4">Partida</h1>
     <div
       class="flex items-center justify-center w-20 h-20 rounded-full bg-white mb-4"
@@ -338,19 +371,30 @@
         </p>
       </div>
     </div>
-    <div class="flex flex-col items-center mt-4 overflow-auto h-32">
-      {#each wordList as word (word)}
-        <button
-          class="bg-black text-white p-2 rounded-lg mb-2"
-          on:click={() => selectWord({word})}
-          style="cursor: pointer;"
-        >
-          {word}
-        </button>
-      {/each}
+    <div class="flex flex-col items-center mt-4 h-32">
+      {#if $game.deck.type === DECK_TYPE.CHOOSE}
+        {#each options as option (option.id)}
+          <button
+            class="bg-black text-white p-2 rounded-lg mb-2"
+            on:click={() => chooseOption(option)}
+            style="cursor: pointer;"
+          >
+            {option.text}
+          </button>
+        {/each}
+      {:else}
+        <label for="freestyleCompletition" class="sr-only">Completar con</label>
+        <input
+          type="text"
+          id="freestyleCompletition"
+          class="!bg-black text-white p-2 rounded-lg mb-2 variant-outline-primary"
+          on:input={(e) => {
+            fillFreestyle(e.currentTarget.value);
+          }}
+        />
+      {/if}
     </div>
-  {:else if gameStatus === GAME_STATUS.RATING_PLAYS}
-    <!-- Voting -->
+  {:else if isRatingPlays}
     <h1 class="text-3xl text-white mb-4">Puntuar</h1>
     <div class="flex justify-center items-center w-128">
       <div
@@ -374,15 +418,16 @@
         >👎</button
       >
     </div>
-  {:else if gameStatus === GAME_STATUS.SCOREBOARD}
-    <!-- Leaderboard -->
+  {:else if isScoreboard}
     <h1 class="text-3xl text-white mb-4">Tabla de puntajes</h1>
-    {#each $roomUsers as player}
+    {#each $players as player}
       <div class="flex items-center space-x-4">
         <div class="w-10 h-10 rounded-full bg-white"></div>
         <div class="text-lg text-white">{player.name}</div>
-        <!-- <div class="text-lg text-white">{player.score}</div> -->
+        <div class="text-lg text-white">{player.totalScore}</div>
       </div>
     {/each}
+  {:else}
+    <h1 class="text-3xl text-white mb-4">Esperando... {gameStatus}</h1>
   {/if}
 </div>
