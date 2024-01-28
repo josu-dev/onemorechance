@@ -1,6 +1,6 @@
 import type { IncomingMessage, Server, ServerResponse } from "http";
 import { customRandom, nanoid, random } from 'nanoid';
-import { Server as ioServer } from "socket.io";
+import { Socket, Server as ioServer } from "socket.io";
 import { GAME } from '../src/lib/defaults.js';
 import { GAME_STATUS, ROOM_STATUS } from '../src/lib/enums.js';
 import type {
@@ -23,15 +23,18 @@ const users = new Map<string, User>();
 
 const rooms = new Map<string, Room>();
 
-type IoServer = ioServer<
+
+type _IoServer = ioServer<
     ClientToServerEvents,
     ServerToClientEvents,
     InterServerEvents,
     SocketData
 >;
 
-function newRound(io: IoServer, room: Room, user:User) {
+type _Socket = Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>;
 
+
+function newRound(io: _IoServer, socket:_Socket, room: Room, user:User) {
     const player = room.game.players.find(p => p.userId === userId)!;
     const deck: Deck = decks[room.game.deck.id];
     for (let i = 0; i < options; i++) {
@@ -116,6 +119,8 @@ export function attach_sockets(
                 }
             }
             if (room) {
+                socket.leave(room.id);
+
                 const userIndex = room.users.findIndex(u => u.id === user!.id);
                 if (userIndex > -1) {
                     room.users.splice(userIndex, 1);
@@ -134,8 +139,6 @@ export function attach_sockets(
                     }
                     io.to(room.id).emit('updated_room', room);
                 }
-
-                socket.leave(room.id);
             }
 
             users.delete(user.id);
@@ -324,6 +327,7 @@ export function attach_sockets(
             // @ts-ignore
             const cards: Phrase[] = decks[room.game.deck.id].phrases;
             room.game.phrase = cards[Math.floor(Math.random() * cards.length)]!;
+
             io.to(roomId).emit('game_started', room.game);
         });
 
@@ -358,7 +362,7 @@ export function attach_sockets(
                     option = deck.options[Math.floor(Math.random() * deck.options.length)]!;
                 }
                 player.options.push(option);
-                room.game.usedOptions.push(option.id);
+                room.game.usedOptions.push(option.id);  
             }
 
             room.readyCount += 1;
