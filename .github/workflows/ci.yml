@@ -38,7 +38,7 @@ jobs:
 
   compose-up:
     runs-on: ubuntu-22.04
-    needs: build
+    needs: build_and_push
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
