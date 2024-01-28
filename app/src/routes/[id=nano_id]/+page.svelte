@@ -11,17 +11,50 @@
   let selectedDeck = "default";
   let numOptions = 4;
   let confirmed = false;
+  let roomState = false;
+  let incompletePhrase =
+    "El doctor me dijo que mi enfermedad no tiene cura culpa de ...";
+  let wordList = [
+    "Me coji al chavo",
+    "Pelar pijas con la cola",
+    "Lluvia de pijas",
+    "Vieja",
+    "Una paja en el micro",
+    "Puto",
+    "Otaku",
+    "Peronista",
+    "Banana",
+  ];
+
   function startGame() {
-    // Guardar las configuraciones en el store o enviar al servidor
-    // data.setConfig({
-    //   rounds,
-    //   timer,
-    //   selectedDeck,
-    //   numOptions,
-    // });
-    // Iniciar el juego
-    // ...
+    roomState = true;
   }
+  let selectedWord = "_______";
+
+  function selectWord(word: string) {
+    selectedWord = word;
+  }
+  let timeLeft = 5;
+  let timerActivated = false;
+
+  const countdown = () => {
+    if (timeLeft > 0) {
+      timeLeft -= 1;
+    } else {
+      timerActivated = true;
+      clearInterval(interval);
+    }
+  };
+
+  const interval = setInterval(countdown, 1000);
+
+  function vote(voteType: string) {
+    endGame = true;
+    console.log(`Voted: ${voteType}`);
+    // Aquí puedes agregar el código para manejar el voto del usuario
+  }
+
+  let endGame = false;
 </script>
 
 <div
@@ -30,8 +63,9 @@
   {#if !$room || !$user}
     <HostMenu />
     <h1 class="mt-4 text-lg text-white">Room not found</h1>
-  {:else if data.isHost}
+  {:else if data.isHost && !roomState && !timerActivated}
     <h1 class="text-3xl text-white mb-4">Jugadores</h1>
+    <h2 class="text-3xl text-white mb-4">Id de la sala : {$room.id}</h2>
     <div class="flex flex-col items-left mb-4 space-y-4">
       {#each $roomUsers as player}
         <div class="flex items-center space-x-4">
@@ -83,9 +117,7 @@
         </tr>
         <tr>
           <td style="text-align: left; padding-right: 20px;">
-            <label for="deck" class="text-lg text-white"
-              >Seleccionar deck a utilizar:</label
-            >
+            <label for="deck" class="text-lg text-white">Deck: </label>
           </td>
           <td style="text-align: left;padding-right: 20px;">
             <select
@@ -100,7 +132,7 @@
         <tr>
           <td style="text-align: left;padding-right: 20px;">
             <label for="numOptions" class="text-lg text-white"
-              >Cantidad de cartas u opciones:</label
+              >Cantidad de cartas:</label
             >
           </td>
           <td style="text-align: left;padding-right: 20px;">
@@ -123,6 +155,59 @@
         Iniciar Partida
       </button>
     </form>
+  {:else if roomState && !timerActivated && !endGame}
+    <h1 class="text-3xl text-white mb-4">Partida</h1>
+    <div class="flex justify-center items-center w-128">
+      <div
+        class="card bg-black border-white border-2 p-4 rounded-lg"
+        style="width: 50%; aspect-ratio: 2 / 3;"
+      >
+        <p class="text-white text-xxl">
+          “El doctor me dijo que mi enfermedad no tiene cura culpa de {selectedWord}“
+        </p>
+      </div>
+    </div>
+    <div class="flex flex-col items-center mt-4 overflow-auto h-32">
+      {#each wordList as word (word)}
+        <button
+          class="bg-black text-white p-2 rounded-lg mb-2"
+          on:click={() => selectWord(word)}
+          style="cursor: pointer;"
+        >
+          {word}
+        </button>
+      {/each}
+    </div>
+    <p class="m-4">Tiempo restante: {timeLeft} segundos</p>
+  {:else if timerActivated && !endGame}
+    <h1 class="text-3xl text-white mb-4">Puntuar</h1>
+    <div class="flex justify-center items-center w-128">
+      <div
+        class="card bg-black border-white border-2 p-4 rounded-lg"
+        style="width: 50%; aspect-ratio: 2 / 3;"
+      >
+        <p class="text-white text-xxl">
+          “El doctor me dijo que mi enfermedad no tiene cura culpa de {selectedWord}“
+        </p>
+      </div>
+    </div>
+    <div class="flex justify-center mt-4">
+      <button class="mx-2 p-4 text-3xl" on:click={() => vote("like")}>👍</button
+      >
+      <button class="mx-2 p-4 text-3xl" on:click={() => vote("meh")}>😐</button>
+      <button class="mx-2 p-4 text-3xl" on:click={() => vote("dislike")}
+        >👎</button
+      >
+    </div>
+  {:else if endGame}
+    <h1 class="text-3xl text-white mb-4">Tabla de puntajes</h1>
+    {#each $roomUsers as player}
+      <div class="flex items-center space-x-4">
+        <div class="w-10 h-10 rounded-full bg-white"></div>
+        <div class="text-lg text-white">{player.name}</div>
+        <div class="text-lg text-white">{player.totalScore}</div>
+      </div>
+    {/each}
   {:else}
     <h1 class="text-3xl text-white mb-4">Jugadores</h1>
     <div class="flex flex-col items-left mb-4 space-y-4">
@@ -142,4 +227,4 @@
   {/if}
 </div>
 
-<SuperDebug data={{ room: $room, players: $roomUsers }} />
+<!-- <SuperDebug data={{ room: $room, players: $roomUsers }} /> -->
