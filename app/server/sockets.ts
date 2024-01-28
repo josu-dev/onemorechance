@@ -116,6 +116,7 @@ export function attach_sockets(
                 }
             }
             if (room) {
+                socket.leave(room.id);
                 const userIndex = room.users.findIndex(u => u.id === user!.id);
                 if (userIndex > -1) {
                     room.users.splice(userIndex, 1);
@@ -135,7 +136,7 @@ export function attach_sockets(
                     io.to(room.id).emit('updated_room', room);
                 }
 
-                socket.leave(room.id);
+                
             }
 
             users.delete(user.id);

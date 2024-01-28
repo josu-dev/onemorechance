@@ -12,9 +12,8 @@
 
   export let data;
   let rounds = GAME.ROUNDS;
-  let timer = GAME.COMPLETE_ROUND_TIME;
+  let timer = GAME.ROUND_CHOOSE_TIME / 1000;
   let numOptions = GAME.OPTIONS;
-  let selectedDeck = "default";
 
   $: gameStatus = $room?.game.status;
   $: game = $room?.game;
@@ -43,7 +42,7 @@
   }
 
   function startGame() {
-    r.startGame();
+    // r.startGame();
     gameStatus = GAME_STATUS.CHOOSING_OPTION;
     const countdown = () => {
       if (timer > 0) {
@@ -71,7 +70,7 @@
     buttonText = "Copiado! 👍";
     setTimeout(() => {
       buttonText = "Copiar";
-    }, 2000); 
+    }, 2000);
   }
   debugData.set(room);
 </script>
@@ -122,7 +121,7 @@
               checked={player.ready}
               disabled
             />
-            {:else}
+          {:else}
             <span class="text-white text-xl">X</span>
           {/if}
         </div>
@@ -163,7 +162,7 @@
               type="number"
               id="timer"
               bind:value={timer}
-              min="15"
+              min="1"
               max="30"
               class="bg-black text-white p-2 rounded-lg"
             />
@@ -174,12 +173,8 @@
             <label for="deck" class="text-lg text-white">Deck: </label>
           </td>
           <td style="text-align: left;padding-right: 20px;">
-            <select
-              id="deck"
-              bind:value={selectedDeck}
-              class="bg-black text-white p-2 rounded-lg"
-            >
-              <option value="default">Default Deck</option>
+            <select id="deck" class="bg-black text-white p-2 rounded-lg">
+              <option value="default">1</option>
             </select>
           </td>
         </tr>
@@ -232,7 +227,7 @@
               checked={player.ready}
               disabled
             />
-            {:else}
+          {:else}
             <span class="text-white text-xl">X</span>
           {/if}
         </div>
@@ -273,7 +268,7 @@
               type="number"
               id="timer"
               bind:value={timer}
-              min="15"
+              min="1"
               max="30"
               class="bg-black text-white p-2 rounded-lg"
               readonly
@@ -287,7 +282,6 @@
           <td style="text-align: left;padding-right: 20px;">
             <select
               id="deck"
-              bind:value={selectedDeck}
               class="bg-black text-white p-2 rounded-lg"
               disabled
             >
@@ -320,12 +314,13 @@
   {:else if gameStatus === GAME_STATUS.CHOOSING_OPTION}
     <!-- On Game -->
     <h1 class="text-3xl text-white mb-4">Partida</h1>
+    <div class="flex items-center justify-center w-20 h-20 rounded-full bg-white mb-4"> <p class="text-center text-black  text-3xl ">{timer}</p></div>
     <div class="flex justify-center items-center w-128">
       <div
         class="card bg-black border-white border-2 p-4 rounded-lg"
-        style="width: 50%; aspect-ratio: 2 / 3;"
+        style="width: 300px; height: 400px;"
       >
-        <p class="text-white text-xxl">
+        <p class="text-white text-center text-2xl mt-6">
           “{incompletePhrase}
           {selectedWord}“
         </p>
@@ -342,17 +337,19 @@
         </button>
       {/each}
     </div>
-    <p class="m-4">Tiempo restante: {timer} segundos</p>
+    
+   
   {:else if gameStatus === GAME_STATUS.RATING_PLAYS}
     <!-- Voting -->
     <h1 class="text-3xl text-white mb-4">Puntuar</h1>
     <div class="flex justify-center items-center w-128">
       <div
         class="card bg-black border-white border-2 p-4 rounded-lg"
-        style="width: 50%; aspect-ratio: 2 / 3;"
+        style="width: 300px; height: 400px;"
       >
-        <p class="text-white text-xxl">
-          “El doctor me dijo que mi enfermedad no tiene cura culpa de {selectedWord}“
+        <p class="text-white text-center text-2xl mt-6">
+          “{incompletePhrase}
+          {selectedWord}“
         </p>
       </div>
     </div>
