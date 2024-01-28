@@ -1,4 +1,4 @@
-import type { GameStatus, PlayerRating, RoomStatus } from './lib/enums.js';
+import type { DeckType, GameStatus, PlayerRating, RoomStatus } from './lib/enums.js';
 
 export type User = {
     id: string,
@@ -46,6 +46,7 @@ export type DeckIdentifier = {
 export type Deck = {
     id: string,
     name: string,
+    type: DeckType,
     phrases: Phrase[],
     options: Option[],
 };

@@ -26,3 +26,10 @@ export const PLAYER_RATING = {
 } as const;
 
 export type PlayerRating = typeof PLAYER_RATING[keyof typeof PLAYER_RATING];
+
+export const DECK_TYPE = {
+    CHOOSE: 'CHOOSE',
+    COMPLETE: 'COMPLETE',
+} as const;
+
+export type DeckType = typeof DECK_TYPE[keyof typeof DECK_TYPE];
