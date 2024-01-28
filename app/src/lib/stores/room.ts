@@ -74,6 +74,26 @@ socket.on('game_started', (data) => {
     // socket.emit('get_new_round', { roomId: room.peek!.id, userId: user.peek!.id, options: room.peek!.game.maxOptions });
 });
 
+
+socket.on('game_updated', (data) => {
+    const _room = room.peek;
+    if (!_room) {
+        return;
+    }
+    _room.game = data;
+    room.set(_room);
+});
+
+socket.on('game_status_update', (data) => {
+    const _room = room.peek;
+    if (!_room) {
+        return;
+    }
+    _room.game.status = data.status;
+    room.set(_room);
+});
+
+
 export function updateRoom(room: Room) {
     socket.emit('update_room', { roomId: room.id, data: room });
 }
