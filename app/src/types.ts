@@ -1,4 +1,4 @@
-import type { GameStatus } from '$lib/enums.js';
+import type { GameStatus } from './lib/enums.js';
 
 export type User = {
     id: string,
@@ -13,7 +13,7 @@ export type Modifier = {
 export type PlayerRole = 'HOST' | 'INVITED';
 
 export type Player = {
-    role:PlayerRole,
+    role: PlayerRole,
     userId: string,
     score: number,
     ready: boolean,
@@ -93,18 +93,18 @@ export type ServerToClientEvents = {
 
 
 export type ClientToServerEvents = {
-    register_user: (data: { userId?:string, name: string; }) => void;
+    register_user: (data: { userId?: string, name: string; }) => void;
     unregister_user: (data: { userId: string; }) => void;
     create_room: (data: { userId: string; }) => void;
-    update_room: (data: { roomId: string; data:Room }) => void;
+    update_room: (data: { roomId: string; data: Room }) => void;
     join_room: (data: { roomId: string; userId: string; }) => void;
     leave_room: (data: { roomId: string; userId: string; }) => void;
     player_ready: (data: { roomId: string; userId: string; }) => void;
     player_unready: (data: { roomId: string; userId: string; }) => void;
     start_game: (data: { roomId: string; userId: string; }) => void;
     trigger_decks_update: () => void;
-    get_new_round: (data: { roomId: string; userId: string; options:number}) => void;
-    option_selected: (data: { roomId: string; userId: string; option:Option; }) => void;
+    get_new_round: (data: { roomId: string; userId: string; options: number }) => void;
+    option_selected: (data: { roomId: string; userId: string; option: Option; }) => void;
 };
 
 

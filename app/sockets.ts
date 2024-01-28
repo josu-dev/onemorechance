@@ -190,7 +190,7 @@ export function attach_sockets(
             room.readyCount = 0;
             room.game.status = GAME_STATUS.IN_PROGRESS;
             room.game.round = 1;
-            // @ts-expect-error the indexing is fine
+            // @ts-ignore
             const cards: Phrase[] = decks[room.game.deck.id].phrases;
             room.game.phrase = cards[Math.floor(Math.random() * cards.length)]!;
             io.to(roomId).emit('game_started', room.game);
@@ -213,7 +213,7 @@ export function attach_sockets(
             }
 
             const player = room.game.players.find(p => p.userId === userId)!;
-            // @ts-expect-error the indexing is fine
+            // @ts-ignore
             const deck: Deck = decks[room.game.deck.id];
             for (let i = 0; i < options; i++) {
                 let option = deck.options[Math.floor(Math.random() * deck.options.length)]!;
