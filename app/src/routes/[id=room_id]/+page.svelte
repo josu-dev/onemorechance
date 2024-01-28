@@ -65,6 +65,22 @@
   }
 
   function vote(vote: PlayerRating) {
+    if(vote = PLAYER_RATING.BAD) {
+      const audio = new Audio("/sounds/sfx_abucheo.mp3");
+      audio.play();
+      return;
+    }
+    else if(vote = PLAYER_RATING.GOOD) {
+      const audio = new Audio("/sounds/sfx_aplausos.mp3");
+      audio.play();
+      return;
+    }
+    else if(vote = PLAYER_RATING.MEH) {
+      const audio = new Audio("/sounds/sfx_meh.mp3");
+      audio.play();
+      return;
+    }
+
     g.ratePlayer(game?.ratingPlayer ?? "", vote);
   }
 
