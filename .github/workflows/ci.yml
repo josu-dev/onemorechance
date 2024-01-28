@@ -9,8 +9,17 @@ on:
       - ".github/workflows/ci.yml"
 
 jobs:
+  gitleaks:
+    uses: jd-apprentice/jd-workflows/.github/workflows/gitleaks.yml@main
+    with:
+      runs-on: ubuntu-latest
+      name: Gitleaks
+    secrets:
+      gh_token: ${{ secrets.GITHUB_TOKEN }}
+
   build_and_push:
     runs-on: ubuntu-22.04
+    needs: gitleaks
     steps:
       - name: Checkout
         uses: actions/checkout@v4

@@ -18,7 +18,7 @@
         src: ../files/docker/omc.docker-compose.yml
         dest: /home/{{ ansible_user }}/www/omc/omc.docker-compose.yml
 
-    # - name: run docker compose
-    #   command: docker-compose -f /home/"{{ ansible_user }}"/www/omc/omc.docker-compose.yml up -d
-    #   args:
-    #     chdir: /home/"{{ ansible_user }}"/www/omc
+    - name: run docker compose
+      command: docker compose -f /home/"{{ ansible_user }}"/www/omc/omc.docker-compose.yml up -d
+      args:
+        chdir: /home/"{{ ansible_user }}"/www/omc
