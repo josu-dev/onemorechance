@@ -1,0 +1,820 @@
+{
+  "1": {
+    "id": "1",
+    "name": "Humor negro",
+    "type": "CHOOSE",
+    "phrases": [
+      {
+        "text": "Si pudiera tener cualquier superpoder, elegiría {{}}"
+      },
+      {
+        "text": "No puedo creer que mi {{}} haya muerto por culpa de {{}}"
+      },
+      {
+        "text": "La mejor forma de relajarme es {{}}"
+      },
+      {
+        "text": "Mi solucion para el hambre en africa es {{}}"
+      },
+      {
+        "text": "Mejor forma de matar a un discapacitado {{}}"
+      },
+      {
+        "text": "Me rompi la pierna pero por lo menos no {{}}"
+      },
+      {
+        "text": "La ultima vez que termine en el hospital fue por {{}}"
+      },
+      {
+        "text": "Perdi la vision del ojo porque {{}}"
+      },
+      {
+        "text": "Que ganas de {{}}"
+      },
+      {
+        "text": "Al ultimo que me debia plata le hice {{}}"
+      },
+      {
+        "text": "Tuve que ponerle fin a mi relacion culpa de {{}}"
+      },
+      {
+        "text": "Si fuera dios por un dia {{}}"
+      },
+      {
+        "text": "Si despertara con el sexo opuesto lo primero que haria es {{}}"
+      },
+      {
+        "text": "Si todo fuera legal haria {{}}"
+      },
+      {
+        "text": "En el medio del desierto le pedi a dios que {{}}"
+      },
+      {
+        "text": "Si {{}} el mundo seria mas feliz"
+      },
+      {
+        "text": "No podria vivir sin {{}}"
+      },
+      {
+        "text": "Lo primero que pienso en el dia es {{}}"
+      },
+      {
+        "text": "El doctor me dijo que mi enfermedad no tiene cura culpa de {{}}"
+      },
+      {
+        "text": "Me duele el culo porque {{}}"
+      },
+      {
+        "text": "Tengo fe de que ocurra {{}}"
+      },
+      {
+        "text": "No soy gay pero {{}} me banco“"
+      },
+      {
+        "text": "En mi cumple mi tio me sorprendio con {{}}"
+      },
+      {
+        "text": "Alla la estan {{}}"
+      },
+      {
+        "text": "Que ganas de ir al cementerio a {{}}"
+      },
+      {
+        "text": "El otro dia me cruce a tu amigo me dijo que {{}}"
+      },
+      {
+        "text": "La mejor contrasena es {{}}"
+      },
+      {
+        "text": "Consegui{{}} a cambio de {{}}"
+      },
+      {
+        "text": "Quiero que en mi tumba diga {{}}"
+      },
+      {
+        "text": "Si pudiera pedir 3 deseos serian {{}}, {{}}, {{}}"
+      },
+      {
+        "text": "Seria 1ro en un concurso de {{}}"
+      },
+      {
+        "text": " La mejor forma de morir seria {{}}"
+      },
+      {
+        "text": "Que ganas de cojerme a {{}}"
+      },
+      {
+        "text": "Mi profesor de matematicas me dijo que estoy con los numeros primos... yo le respondi “Que decis solo estoy pensando en {{}}“"
+      },
+      {
+        "text": "Le conte a mi abuelita que queria ser comediante me dijo “Ah como tu tio que siempre esta contando chistes sobre {{}}“"
+      }
+    ],
+    "options": [
+      {
+        "text": "Viejas putas"
+      },
+      {
+        "text": "Me coji al chavo"
+      },
+      {
+        "text": "Pelar pijas con la cola"
+      },
+      {
+        "text": "Lluvia de pijas"
+      },
+      {
+        "text": "Vieja"
+      },
+      {
+        "text": "Una paja en el micro"
+      },
+      {
+        "text": "Puto"
+      },
+      {
+        "text": "Peronista"
+      },
+      {
+        "text": "Otaku"
+      },
+      {
+        "text": "Libertario"
+      },
+      {
+        "text": "La mama de (Selecciona el nombre de un jugador)"
+      },
+      {
+        "text": "Romper el orto"
+      },
+      {
+        "text": "Papa"
+      },
+      {
+        "text": "Cura"
+      },
+      {
+        "text": "Banana"
+      },
+      {
+        "text": "Down"
+      },
+      {
+        "text": "Mitomano"
+      },
+      {
+        "text": "Hitler"
+      },
+      {
+        "text": "Nazi"
+      },
+      {
+        "text": "Fimosis"
+      },
+      {
+        "text": "Rompio el frenillo"
+      },
+      {
+        "text": "Ereccion"
+      },
+      {
+        "text": "Dedaso en el orto"
+      },
+      {
+        "text": "Cancer"
+      },
+      {
+        "text": "Cocaina"
+      },
+      {
+        "text": "Porno gay"
+      },
+      {
+        "text": "Crear un juego porno multijugador "
+      },
+      {
+        "text": "Hermana"
+      },
+      {
+        "text": "Conoci un trava"
+      },
+      {
+        "text": "Deje llevar"
+      },
+      {
+        "text": "Intente frenar un camion con la pija"
+      },
+      {
+        "text": "Pense que podia aguantar dos kilos colgando de las bolas"
+      },
+      {
+        "text": "Viejo"
+      },
+      {
+        "text": "Tio"
+      },
+      {
+        "text": "Stalin"
+      },
+      {
+        "text": "Mussolini"
+      },
+      {
+        "text": "Diarrea"
+      },
+      {
+        "text": "Sifilis"
+      },
+      {
+        "text": "Gonorrea"
+      },
+      {
+        "text": "Sida"
+      },
+      {
+        "text": "Boliviano"
+      },
+      {
+        "text": "Cagadera"
+      },
+      {
+        "text": "Onichan"
+      },
+      {
+        "text": "Culeando"
+      },
+      {
+        "text": "Gozando"
+      },
+      {
+        "text": "No se banco 2 tiros en la cabeza"
+      },
+      {
+        "text": "Darle para que tenga"
+      },
+      {
+        "text": "Cipayo"
+      },
+      {
+        "text": "Que ganas que me cojan en el counter"
+      },
+      {
+        "text": "Gordo virgen"
+      },
+      {
+        "text": "La concha de tu vieja"
+      },
+      {
+        "text": "No se , pero como te chuparia todo el orto "
+      },
+      {
+        "text": "Cogerme {{jugador}}"
+      },
+      {
+        "text": "Estar con la hermana de {{jugador}}"
+      },
+      {
+        "text": "Judio"
+      },
+      {
+        "text": "Hornos"
+      },
+      {
+        "text": "Arabes"
+      },
+      {
+        "text": "Koreanos"
+      },
+      {
+        "text": "Chinos de mierda"
+      },
+      {
+        "text": "A caballito"
+      },
+      {
+        "text": "El viejo verde"
+      },
+      {
+        "text": "concha de la lora"
+      },
+      {
+        "text": "gomazos limpio"
+      },
+      {
+        "text": "Puntito caramelo"
+      },
+      {
+        "text": "A todo culo"
+      },
+      {
+        "text": "Abortera"
+      },
+      {
+        "text": "Abuso"
+      },
+      {
+        "text": "ACM1PT"
+      },
+      {
+        "text": "Panflin"
+      },
+      {
+        "text": "AFA AFA AFA AFA AFAAERTEEEE"
+      },
+      {
+        "text": "Agarra una pala y deja de jugar esta cagada"
+      },
+      {
+        "text": "Amigarcha"
+      },
+      {
+        "text": "Amasijar la nutria"
+      },
+      {
+        "text": "Pajero"
+      },
+      {
+        "text": "Pajin"
+      },
+      {
+        "text": "Trio de negras"
+      },
+      {
+        "text": "Petardo"
+      },
+      {
+        "text": "Pija dulce"
+      },
+      {
+        "text": "Pregúntale a tu vieja"
+      },
+      {
+        "text": "Squirt de culo"
+      },
+      {
+        "text": "No se pero la anterior fue malisima"
+      },
+      {
+        "text": "Waskaso"
+      },
+      {
+        "text": "Chotito"
+      },
+      {
+        "text": "Chorizo"
+      },
+      {
+        "text": "Chonguito"
+      },
+      {
+        "text": "Garchado"
+      },
+      {
+        "text": "Poringa"
+      },
+      {
+        "text": "Chupame la pija"
+      },
+      {
+        "text": "Que cartas de mierda che!"
+      },
+      {
+        "text": "Comegato"
+      },
+      {
+        "text": "esnifa penes"
+      },
+      {
+        "text": "Conchuda"
+      },
+      {
+        "text": "Cornudo "
+      },
+      {
+        "text": "Infidelidad"
+      },
+      {
+        "text": "Consumir cocaina "
+      },
+      {
+        "text": "Violar"
+      },
+      {
+        "text": "El diego"
+      },
+      {
+        "text": "Colarse un vaso en el orto"
+      },
+      {
+        "text": "Esnifar merca del culo de un enano "
+      },
+      {
+        "text": "Comerse a una menor"
+      },
+      {
+        "text": "Ir a un jardin de infantes"
+      },
+      {
+        "text": "Pajaso"
+      },
+      {
+        "text": "Drogas"
+      },
+      {
+        "text": "Sexo interracial"
+      },
+      {
+        "text": "Furros "
+      },
+      {
+        "text": "Zoofilia "
+      },
+      {
+        "text": "Doble penetracion"
+      },
+      {
+        "text": "Milf"
+      },
+      {
+        "text": "vulva"
+      },
+      {
+        "text": "testiculo"
+      },
+      {
+        "text": "Cancer"
+      },
+      {
+        "text": "Holocausto"
+      },
+      {
+        "text": "Auschwitz"
+      },
+      {
+        "text": "Terremoto de chotas "
+      },
+      {
+        "text": "Tsunami fluido vaginal "
+      },
+      {
+        "text": "Atentado a playboy"
+      },
+      {
+        "text": "Bomba en villa 1 11 14"
+      },
+      {
+        "text": "Suicidio"
+      },
+      {
+        "text": "Genocidio"
+      },
+      {
+        "text": "Violación"
+      },
+      {
+        "text": "Racismo"
+      },
+      {
+        "text": "Xenofobia"
+      },
+      {
+        "text": "Pobreza"
+      },
+      {
+        "text": "Amputación de verga"
+      },
+      {
+        "text": "Vacunado"
+      },
+      {
+        "text": "Pedofilia"
+      },
+      {
+        "text": "Incesto"
+      },
+      {
+        "text": "Necrofilia"
+      },
+      {
+        "text": "Canibalismo"
+      },
+      {
+        "text": "Esclavizar un nene hindu"
+      },
+      {
+        "text": "Succionar legos con el orto"
+      },
+      {
+        "text": "Macri"
+      },
+      {
+        "text": "De hecho eso lo vi en pornhub"
+      },
+      {
+        "text": "Mamba negra"
+      },
+      {
+        "text": "Nene africano"
+      },
+      {
+        "text": "Sobredosis de coito"
+      },
+      {
+        "text": "Eyacular en la comida "
+      },
+      {
+        "text": "Eyacular en la cara"
+      },
+      {
+        "text": "La profe de matematica"
+      },
+      {
+        "text": "La vecina"
+      },
+      {
+        "text": "Telettubie"
+      },
+      {
+        "text": "Manda fruta"
+      },
+      {
+        "text": "Tenedor anal"
+      },
+      {
+        "text": "Trompeta de leche"
+      },
+      {
+        "text": "El 9 de lanus"
+      },
+      {
+        "text": "Gargara de semen"
+      },
+      {
+        "text": "Cata porongas"
+      },
+      {
+        "text": "Examen de prostata"
+      },
+      {
+        "text": "Infla chotas"
+      },
+      {
+        "text": "Calentador de huerfanas"
+      },
+      {
+        "text": "Camion Iveco lleno de prostitutas"
+      },
+      {
+        "text": "Goloso"
+      },
+      {
+        "text": "uyy la puse.... , en la vieja"
+      },
+      {
+        "text": "Terrorismo de choripanes"
+      },
+      {
+        "text": "Termotanque de sida"
+      },
+      {
+        "text": "Flequillo de carne"
+      },
+      {
+        "text": "Centrifugador de ortos"
+      },
+      {
+        "text": "Asaltador de virginidades"
+      },
+      {
+        "text": "Eyaculador precoz"
+      }
+    ]
+  },
+  "2": {
+    "id": "2",
+    "name": "Refranes inventados",
+    "type": "COMPLETE",
+    "phrases": [
+      {
+        "text": "Más aburrido que"
+      },
+      {
+        "text": "Más perdido que"
+      },
+      {
+        "text": "Más vale tarde que"
+      },
+      {
+        "text": "Más contento que"
+      },
+      {
+        "text": "No hay mal que"
+      },
+      {
+        "text": "A caballo regalado"
+      },
+      {
+        "text": "Más vale prevenir que"
+      },
+      {
+        "text": "Más vale pájaro en mano que"
+      },
+      {
+        "text": "Más vale maña que"
+      },
+      {
+        "text": "Más viejo que"
+      },
+      {
+        "text": "A todo chancho"
+      },
+      {
+        "text": "A la corta o a la larga"
+      },
+      {
+        "text": "A este le dicen Zapata porque"
+      },
+      {
+        "text": "Más peligroso que"
+      },
+      {
+        "text": "Más enredado"
+      },
+      {
+        "text": "Más loco que"
+      },
+      {
+        "text": "Más desordenado que"
+      },
+      {
+        "text": "Más lento que"
+      },
+      {
+        "text": "Más distraído"
+      },
+      {
+        "text": "Más complicado que"
+      },
+      {
+        "text": "Mas suertudo que"
+      },
+      {
+        "text": "Más claro que"
+      },
+      {
+        "text": "Más duro que"
+      },
+      {
+        "text": "Más rápido que"
+      },
+      {
+        "text": "Más sano que"
+      },
+      {
+        "text": "Más bueno que"
+      },
+      {
+        "text": "Más rico que"
+      },
+      {
+        "text": "Más sabio que"
+      },
+      {
+        "text": "Más fuerte que"
+      },
+      {
+        "text": "Más raro que"
+      },
+      {
+        "text": "Más falso que"
+      },
+      {
+        "text": "Más fácil que"
+      },
+      {
+        "text": "Más caro que"
+      },
+      {
+        "text": "Más seguro que"
+      },
+      {
+        "text": "Más feliz que"
+      },
+      {
+        "text": "Más grande que"
+      }
+    ]
+  },
+  "3": {
+    "id": "3",
+    "name": "Family friendly",
+    "type": "CHOOSE",
+    "phrases": [
+      {
+        "text": "El mejor regalo que recibí en Navidad fue un {{}}"
+      },
+      {
+        "text": "Nunca saldría con alguien que le guste {{}}"
+      },
+      {
+        "text": "Mi sueño es viajar por el mundo y conocer {{}}"
+      },
+      {
+        "text": "Si pudiera tener un superpoder, sería {{}}"
+      },
+      {
+        "text": "Lo que más me gusta de mi trabajo es {{}}"
+      },
+      {
+        "text": "Mi película favorita es {{}}, porque {{}}"
+      },
+      {
+        "text": "La última vez que me reí mucho fue cuando {{}}"
+      },
+      {
+        "text": "Mi mayor miedo es {{}}"
+      },
+      {
+        "text": "Si ganara la lotería, lo primero que haría sería {{}}"
+      },
+      {
+        "text": "Mi comida favorita es {{}}, pero no me gusta {{}}"
+      },
+      {
+        "text": "Mi hobby más raro es {{}}"
+      },
+      {
+        "text": "Lo que más me molesta de la gente es {{}}"
+      },
+      {
+        "text": "Mi animal favorito es {{}}, porque {{}}"
+      },
+      {
+        "text": "Mi deporte favorito es {{}}, pero soy malo/a en {{}}"
+      },
+      {
+        "text": "Mi lugar favorito para relajarme es {{}}"
+      },
+      {
+        "text": "Mi programa de televisión favorito es {{}}, porque {{}}"
+      },
+      {
+        "text": "Mi libro favorito es {{}}, porque {{}}"
+      },
+      {
+        "text": "Mi canción favorita es {{}}, porque {{}}"
+      },
+      {
+        "text": "Mi color favorito es {{}}, porque {{}}"
+      },
+      {
+        "text": "Mi flor favorita es {{}}, porque {{}}"
+      },
+      {
+        "text": "Mi estación favorita es {{}}, porque {{}}"
+      },
+      {
+        "text": "Mi juego de mesa favorito es {{}}, porque {{}}"
+      },
+      {
+        "text": "Mi juego de cartas favorito es {{}}, porque {{}}"
+      },
+      {
+        "text": "Mi helado favorito es {{}}, porque {{}}"
+      },
+      {
+        "text": "Mi postre favorito es {{}}, porque {{}}"
+      },
+      {
+        "text": "Mi bebida favorita es {{}}, porque {{}}"
+      },
+      {
+        "text": "Mi fruta favorita es {{}}, porque {{}}"
+      },
+      {
+        "text": "Mi verdura favorita es {{}}, porque {{}}"
+      },
+      {
+        "text": "Mi condimento favorito es {{}}, porque {{}}"
+      },
+      {
+        "text": "Mi marca de ropa favorita es {{}}, porque {{}}"
+      },
+      {
+        "text": "Mi estilo de música favorito es {{}}, porque {{}}"
+      },
+      {
+        "text": "Mi artista favorito es {{}}, porque {{}}"
+      },
+      {
+        "text": "Mi actor/actriz favorito/a es {{}}, porque {{}}"
+      },
+      {
+        "text": "Mi personaje de ficción favorito es {{}}, porque {{}}"
+      },
+      {
+        "text":"Cuando veo {{}}, me siento como en casa."
+      }
+    ]
+  }
+}
