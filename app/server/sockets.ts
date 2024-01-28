@@ -359,74 +359,6 @@ export function attach_sockets(
             }));
         });
 
-        // socket.on('get_new_round', ({ roomId, userId, options }) => {
-        //     const room = rooms.get(roomId);
-        //     const user = users.get(userId);
-        //     if (!room || !user) {
-        //         return;
-        //     }
-
-        //     if (room.game.round >= room.game.maxRounds) {
-        //         room.game.status = GAME_STATUS.SCOREBOARD;
-        //         io.to(roomId).emit('game_status_update', { status: room.game.status });
-        //         return;
-        //     }
-
-        //     const player = room.game.players.find(p => p.userId === userId)!;
-        //     // @ts-ignore
-        //     const deck: Deck = decks[room.game.deck.id];
-        //     for (let i = 0; i < options; i++) {
-        //         let option = deck.options[Math.floor(Math.random() * deck.options.length)]!;
-        //         while (room.game.usedOptions.includes(option.id)) {
-        //             option = deck.options[Math.floor(Math.random() * deck.options.length)]!;
-        //         }
-        //         player.options.push(option);
-        //         room.game.usedOptions.push(option.id);
-        //     }
-
-        //     room.readyCount += 1;
-        //     socket.emit('updated_round', room.game);
-        //     if (room.readyCount === room.users.length) {
-        //         room.readyCount = 0;
-        //         room.game.status = GAME_STATUS.CHOOSING_OPTION;
-        //         io.to(roomId).emit('game_status_update', { status: room.game.status });
-
-        //         setTimeout(() => {
-        //             room.game.status = GAME_STATUS.CHOOSING_OPTION;
-        //             io.to(roomId).emit('selection_end', room.game);
-
-        //             const playerCount = room.game.players.length;
-        //             for (let i = 0; i < playerCount; i++) {
-        //                 setTimeout(() => {
-        //                     const player = room.game.players[i];
-        //                     io.to(player.userId).emit('rate_player', { playerId: player.userId });
-        //                 }, i * GAME.ROUND_RATE_TIME);
-        //             }
-
-        //             setTimeout(() => {
-        //                 room.game.status = GAME_STATUS.ROUND_WINNER;
-        //                 let winnerId = '';
-        //                 let winnerScore = 0;
-        //                 for (const player of room.game.players) {
-        //                     if (player.score > winnerScore) {
-        //                         winnerId = player.userId;
-        //                         winnerScore = player.score;
-        //                     }
-        //                 }
-        //                 room.game.lastWinner = winnerId;
-
-        //                 io.to(roomId).emit('game_status_update', { status: room.game.status });
-
-        //                 setTimeout(() => {
-        //                     io;
-
-        //                 }, playerCount);
-        //             }, GAME.ROUND_CHOOSE_TIME);
-
-        //         });
-        //     }
-        // });
-
         socket.on('option_selected', ({ roomId, userId, option }) => {
             const room = rooms.get(roomId);
             const user = users.get(userId);
@@ -436,6 +368,19 @@ export function attach_sockets(
 
             const player = room.game.players.find(p => p.userId === userId)!;
             player.selectedOption = option;
+            socket.emit('player_updated', player);
+        });
+
+        socket.on('freestyle_selected', ({ roomId, userId, freestyle }) => {
+            const room = rooms.get(roomId);
+            const user = users.get(userId);
+            if (!room || !user) {
+                return;
+            }
+
+            const player = room.game.players.find(p => p.userId === userId)!;
+            player.freestyle = freestyle;
+            socket.emit('player_updated', player);
         });
     });
 }

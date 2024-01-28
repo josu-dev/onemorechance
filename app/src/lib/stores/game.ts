@@ -1,9 +1,9 @@
 import { GAME_STATUS, type PlayerRating } from '$lib/enums';
-import type { Game, Player } from '$types';
+import { socket } from '$lib/ws';
+import type { Game, Option, Player } from '$types';
 import { derived, writable } from 'svelte/store';
 import { room } from './room';
 import { user } from './user';
-import { socket } from '$lib/ws';
 
 
 const FALLBACK_GAME: Game = {
@@ -60,19 +60,17 @@ export function isMe(player: Player) {
     return player.userId === user.peek?.id;
 }
 
-export function ratePlayer(playerId:string, rate: PlayerRating) {
+export function ratePlayer(playerId: string, rate: PlayerRating) {
     socket.emit('rate_player', { roomId: room.peek!.id, playerId: playerId, rate: rate });
 }
 
+export function setSelectedOption(option: Option) {
+    socket.emit('option_selected', { roomId: room.peek!.id, userId: user.peek!.id, option: option });
+}
 
-// socket.on('game_started', (data) => {
-//     room.peek!.game = data;
-//     socket.emit('get_new_round', { roomId: room.peek!.id, userId: user.peek!.id, options: room.peek!.game.maxOptions });
-// });
-
-// export function updateRoom(room: Room) {
-//     socket.emit('update_room', { roomId: room.id, data: room });
-// }
+export function setFreestyle(text: string | string[]) {
+    socket.emit('freestyle_selected', { roomId: room.peek!.id, userId: user.peek!.id, freestyle: Array.isArray(text) ? text : [text] });
+}
 
 // export function setReady() {
 //     socket.emit('player_ready', { roomId: room.peek!.id, userId: user.peek!.id });
