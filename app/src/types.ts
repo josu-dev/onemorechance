@@ -1,4 +1,4 @@
-import type { GameStatus, RoomStatus } from './lib/enums.js';
+import type { GameStatus, PlayerRating, RoomStatus } from './lib/enums.js';
 
 export type User = {
     id: string,
@@ -17,6 +17,7 @@ export type Player = {
     name: string,
     role: PlayerRole,
     score: number,
+    totalScore: number,
     ready: boolean,
     phrases: Phrase[],
     options: Option[],
@@ -61,6 +62,7 @@ export type Game = {
     usedPhrases: string[],
     usedOptions: string[],
     players: Player[],
+    ratingPlayer?: string,
     lastWinner?: string,
 };
 
@@ -80,12 +82,16 @@ export type ServerToClientEvents = {
     created_room: (data: Room) => void;
     updated_room: (data: Room) => void;
     joined_room: (data: Room) => void;
-    user_joined_room: (data: User) => void;
+    user_join_room: (data: {user:User, player:Player}) => void;
     user_left_room: (data: User) => void;
     game_started: (data: Game) => void;
     availible_decks_update: (data: DeckIdentifier[]) => void;
     updated_round: (data: Game) => void;
     selection_end: (data: Game) => void;
+    player_updated: (data: Player) => void;
+    game_updated: (data: Game) => void;
+    rate_player: (data: { playerId: string;}) => void;
+    game_status_update: (data: { status: GameStatus; }) => void;
 };
 
 
@@ -102,6 +108,9 @@ export type ClientToServerEvents = {
     trigger_decks_update: () => void;
     get_new_round: (data: { roomId: string; userId: string; options: number; }) => void;
     option_selected: (data: { roomId: string; userId: string; option: Option; }) => void;
+    player_update: (data: { roomId: string; player: Player; }) => void;
+    rate_player: (data: { roomId: string; playerId: string; rate: PlayerRating; }) => void;
+    game_update: (data: { roomId: string; game: Game; }) => void;
 };
 
 

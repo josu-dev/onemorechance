@@ -18,3 +18,11 @@ export const GAME_STATUS = {
 } as const;
 
 export type GameStatus = typeof GAME_STATUS[keyof typeof GAME_STATUS];
+
+export const PLAYER_RATING = {
+    GOOD: 'GOOD',
+    MEH: 'MEH',
+    BAD: 'BAD',
+} as const;
+
+export type PlayerRating = typeof PLAYER_RATING[keyof typeof PLAYER_RATING];

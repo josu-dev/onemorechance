@@ -1,8 +1,9 @@
-import { GAME_STATUS } from '$lib/enums';
+import { GAME_STATUS, type PlayerRating } from '$lib/enums';
 import type { Game, Player } from '$types';
 import { derived, writable } from 'svelte/store';
 import { room } from './room';
 import { user } from './user';
+import { socket } from '$lib/ws';
 
 
 const FALLBACK_GAME: Game = {
@@ -37,9 +38,9 @@ function createGameStore() {
     });
 
     return {
-        init(room: Game) {
-            _game = room;
-            set(room);
+        init(game: Game) {
+            _game = game;
+            set(game);
         },
         get peek() {
             return _game;
@@ -50,13 +51,17 @@ function createGameStore() {
 
 export const game = createGameStore();
 
-export const players = derived([game], ([$game], set) => {
-    set($game.players);
+export const players = derived(game, ($game) => {
+    return $game.players;
 }, [] as Player[]);
 
 
 export function isMe(player: Player) {
     return player.userId === user.peek?.id;
+}
+
+export function ratePlayer(playerId:string, rate: PlayerRating) {
+    socket.emit('rate_player', { roomId: room.peek!.id, playerId: playerId, rate: rate });
 }
 
 
