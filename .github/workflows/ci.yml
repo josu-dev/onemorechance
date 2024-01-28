@@ -13,9 +13,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
+        uses: actions/checkout@v4
 
       - name: Login to Docker Hub
         uses: docker/login-action@v2
@@ -29,8 +27,8 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
-          context: .
-          file: ./app/Dockerfile
+          context: ./app
+          file: Dockerfile
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/onemorechance:latest
 
