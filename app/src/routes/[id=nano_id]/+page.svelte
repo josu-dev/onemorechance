@@ -1,19 +1,15 @@
 <script lang="ts">
-  import HostMenu from '$cmp/room/HostMenu.svelte';
-  import PlayerMenu from '$cmp/room/PlayerMenu.svelte';
-  import { room, roomUsers } from '$lib/stores/room.js';
+  import { debugData } from '$lib/components/HyperDebug.svelte';
+  import { room } from '$lib/stores/room.js';
   import { user } from '$lib/stores/user.js';
-  import SuperDebug from 'sveltekit-superforms/client/SuperDebug.svelte';
 
   export let data;
+
+  debugData.set(room);
 </script>
 
 {#if !$room || !$user}
-<HostMenu />
-  <h1>Room not found</h1>
-{:else if data.isHost}
+  <p>Cargando</p>
 {:else}
-  <PlayerMenu />
+  <p>Jugadores {$room.users.length}</p>
 {/if}
-
-<SuperDebug data={{ room: $room, players: $roomUsers }} />
