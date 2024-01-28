@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev",
-    "dev:start": "vite dev --host",
+    "dev:start": "vite dev --host --force",
     "start": "node .",
     "build": "vite build && tsc ./server/index.ts ./server/sockets.ts --outDir ./server --module nodenext --resolveJsonModule",
     "preview": "vite preview",
