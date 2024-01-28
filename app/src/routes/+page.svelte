@@ -108,5 +108,11 @@
         style="box-shadow: 0 0 0 2px white;">Ingresar a la sala</button
       >
     </form>
+    <button
+        type="submit"
+        class="btn text-white m-4 bg-black rounded-lg w-48 h-10"
+        disabled
+        style="box-shadow: 0 0 0 2px white;">Decks(Proximamente)</button
+      >
   {/if}
 </div>

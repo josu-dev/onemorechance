@@ -2,11 +2,13 @@
   import HostMenu from "$cmp/room/HostMenu.svelte";
   import PlayerMenu from "$cmp/room/PlayerMenu.svelte";
   import { room, roomUsers } from "$lib/stores/room.js";
+  import { players} from "$lib/stores/game.js";
   import { user } from "$lib/stores/user.js";
   import { debugData } from "$lib/components/HyperDebug.svelte";
   import { GAME } from "$lib/defaults";
   import { GAME_STATUS } from "$lib/enums.js";
   import * as r from "$lib/stores/room.js";
+  
 
   export let data;
   let rounds = GAME.ROUNDS;
@@ -41,12 +43,13 @@
   }
 
   function startGame() {
-    gameStatus = "IN_PROGRESS";
+    r.startGame();
+    gameStatus = GAME_STATUS.CHOOSING_OPTION;
     const countdown = () => {
       if (timer > 0) {
         timer -= 1;
       } else {
-        gameStatus = "SELECTION_END";
+        gameStatus = GAME_STATUS.RATING_PLAYS;
         clearInterval(interval);
       }
     };
@@ -59,7 +62,7 @@
   }
 
   function vote(voteType: string) {
-    gameStatus = "ROUND_ENDED";
+    gameStatus = GAME_STATUS.ROUND_WINNER;
     //TODO Handle user vote
   }
 
@@ -73,16 +76,17 @@
   {#if !$room || !$user}
     <HostMenu />
     <h1 class="mt-4 text-lg text-white">Room not found</h1>
-  {:else if data.isHost && gameStatus === GAME_STATUS.WAITING_TO_START}
+  {:else if data.isHost && gameStatus === GAME_STATUS.NOT_STARTED}
     <!-- Host lobby waiting -->
     <h1 class="text-3xl text-white mb-4">Jugadores</h1>
     <h2 class="text-3xl text-white mb-4">Id de la sala : {$room?.id}</h2>
+    <h1 class="text-3xl text-white mb-4">Jugadores</h1>
     <div class="flex flex-col items-left mb-4 space-y-4">
-      {#each $roomUsers as player}
+      {#each $players as player}
         <div class="flex items-center space-x-4">
           <div class="w-10 h-10 rounded-full bg-white"></div>
           <div class="text-lg text-white">{player.name}</div>
-          {#if player.id == $user.id}
+          {#if player.userId == $user.id}
             <input
               type="checkbox"
               on:change={(e) => {
@@ -93,7 +97,8 @@
           {:else}
             <input
               type="checkbox"
-              value = {false}
+              class="form-checkbox text-black w-6 h-6"
+              value = {player.ready}
               disabled
             />
           {/if}
@@ -181,21 +186,28 @@
         Iniciar Partida
       </button>
     </form>
-  {:else if gameStatus === GAME_STATUS.WAITING_TO_START}
+  {:else if gameStatus === GAME_STATUS.NOT_STARTED}
     <!-- Guest lobby waiting -->
     <h1 class="text-3xl text-white mb-4">Jugadores</h1>
     <div class="flex flex-col items-left mb-4 space-y-4">
-      {#each $roomUsers as player}
+      {#each $players as player}
         <div class="flex items-center space-x-4">
           <div class="w-10 h-10 rounded-full bg-white"></div>
           <div class="text-lg text-white">{player.name}</div>
-          {#if player.id == $user.id}
+          {#if player.userId == $user.id}
             <input
               type="checkbox"
               on:change={(e) => {
                 confirmPlayer(e.currentTarget?.checked ?? false);
               }}
               class="form-checkbox text-black w-6 h-6"
+            />
+          {:else}
+            <input
+              type="checkbox"
+              class="form-checkbox text-black w-6 h-6"
+              value = {player.ready}
+              disabled
             />
           {/if}
         </div>
@@ -280,7 +292,7 @@
     </form>
 
     <PlayerMenu />
-  {:else if gameStatus === GAME_STATUS.IN_PROGRESS}
+  {:else if gameStatus === GAME_STATUS.CHOOSING_OPTION}
     <!-- On Game -->
     <h1 class="text-3xl text-white mb-4">Partida</h1>
     <div class="flex justify-center items-center w-128">
@@ -306,7 +318,7 @@
       {/each}
     </div>
     <p class="m-4">Tiempo restante: {timer} segundos</p>
-  {:else if gameStatus === GAME_STATUS.SELECTION_END}
+  {:else if gameStatus === GAME_STATUS.RATING_PLAYS}
     <!-- Voting -->
     <h1 class="text-3xl text-white mb-4">Puntuar</h1>
     <div class="flex justify-center items-center w-128">
@@ -327,7 +339,7 @@
         >👎</button
       >
     </div>
-  {:else if gameStatus === GAME_STATUS.ROUND_ENDED}
+  {:else if gameStatus === GAME_STATUS.ROUND_WINNER}
     <!-- Leaderboard -->
     <h1 class="text-3xl text-white mb-4">Tabla de puntajes</h1>
     {#each $roomUsers as player}
