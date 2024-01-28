@@ -5,6 +5,7 @@ import forms from '@tailwindcss/forms';
 
 // 1. Import the Skeleton plugin
 import { skeleton } from '@skeletonlabs/tw-plugin';
+import { blackAndWhite } from './theme';
 
 const config = {
     // 2. Opt for dark mode to be handled via the class method
@@ -24,7 +25,7 @@ const config = {
     plugins: [
         forms,
         skeleton({
-            themes: { preset: ["gold-nouveau"] }
+            themes: { custom: [blackAndWhite] }
         })
     ]
 } satisfies Config;
