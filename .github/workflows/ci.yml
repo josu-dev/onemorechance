@@ -27,10 +27,10 @@ jobs:
         uses: docker/setup-buildx-action@v2
 
       - name: Build and push
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v5
         with:
-          context: ./app
-          file: ./Dockerfile
+          context: .
+          file: omc.Dockerfile
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/onemorechance:latest
 
