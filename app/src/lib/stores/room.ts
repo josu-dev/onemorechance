@@ -71,7 +71,7 @@ socket.on('game_deck_update', (data) => {
 
 socket.on('game_started', (data) => {
     room.peek!.game = data;
-    socket.emit('get_new_round', { roomId: room.peek!.id, userId: user.peek!.id, options: room.peek!.game.maxOptions });
+    // socket.emit('get_new_round', { roomId: room.peek!.id, userId: user.peek!.id, options: room.peek!.game.maxOptions });
 });
 
 export function updateRoom(room: Room) {
