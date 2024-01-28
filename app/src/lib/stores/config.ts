@@ -3,7 +3,6 @@ import type { DeckIdentifier } from '$types';
 import { writable } from 'svelte/store';
 
 
-
 function createAvailableDecksStore() {
     let decks: DeckIdentifier[] = [];
     const { subscribe, set } = writable<DeckIdentifier[]>(decks);
@@ -20,7 +19,7 @@ function createAvailableDecksStore() {
 
     return {
         subscribe,
-        set:_set,
+        set: _set,
         get peek() {
             return decks;
         },
@@ -29,10 +28,12 @@ function createAvailableDecksStore() {
 
 export const availableDecks = createAvailableDecksStore();
 
-export function updateAvailableDecks() {
-    socket.emit('trigger_decks_update');
-}
 
 socket.on('availible_decks_update', (data) => {
     availableDecks.set(data);
 });
+
+
+export function updateAvailableDecks() {
+    socket.emit('trigger_decks_update');
+}

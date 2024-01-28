@@ -1,16 +1,16 @@
 import { sveltekit } from "@sveltejs/kit/vite";
 import type { UserConfig, ViteDevServer } from "vite";
-import { attach_sockets } from "./sockets.js";
+import { attach_sockets } from "./server/sockets.js";
 
 const socket_io_plugin = {
-	name: "socket.io plugin",
-	configureServer(server: ViteDevServer) {
-		attach_sockets(server.httpServer!);
-	},
+    name: "socket.io plugin",
+    configureServer(server: ViteDevServer) {
+        attach_sockets(server.httpServer as any);
+    },
 };
 
 const config: UserConfig = {
-	plugins: [sveltekit(), socket_io_plugin],
+    plugins: [sveltekit(), socket_io_plugin],
 };
 
 export default config;
