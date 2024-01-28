@@ -2,7 +2,7 @@ import type { IncomingMessage, Server, ServerResponse } from "http";
 import { customRandom, nanoid, random } from 'nanoid';
 import { Socket, Server as ioServer } from "socket.io";
 import { GAME } from '../src/lib/defaults.js';
-import { DECK_TYPE, GAME_STATUS, ROOM_STATUS } from '../src/lib/enums.js';
+import { DECK_TYPE, GAME_STATUS, ROOM_STATUS, type DeckType } from '../src/lib/enums.js';
 import type {
     ClientToServerEvents,
     Deck,
@@ -219,6 +219,7 @@ export function attach_sockets(
                     deck: {
                         id: '2',
                         name: 'Refranes inventados',
+                        type: DECK_TYPE.COMPLETE,
                     },
                     phrase: {
                         id: 'default',
@@ -308,6 +309,7 @@ export function attach_sockets(
             room.game.deck = {
                 id: deck.id,
                 name: deck.name,
+                type: deck.type,
             };
             io.to(roomId).emit('game_deck_update', room.game.deck);
         });
@@ -354,6 +356,7 @@ export function attach_sockets(
                 return {
                     id: d.id,
                     name: d.name,
+                    type: d.type as DeckType,
                 };
             }));
         });
