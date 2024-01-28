@@ -2,7 +2,7 @@ import type { IncomingMessage, Server, ServerResponse } from "http";
 import { customRandom, nanoid, random } from 'nanoid';
 import { Socket, Server as ioServer } from "socket.io";
 import { GAME } from '../src/lib/defaults.js';
-import { GAME_STATUS, ROOM_STATUS } from '../src/lib/enums.js';
+import { DECK_TYPE, GAME_STATUS, ROOM_STATUS } from '../src/lib/enums.js';
 import type {
     ClientToServerEvents,
     Deck,
@@ -42,18 +42,20 @@ function newRound(io: _IoServer, socket: _Socket, room: Room) {
     while (room.game.usedPhrases.includes(phrase.id)) {
         phrase = deck.phrases[Math.floor(Math.random() * deck.phrases.length)]!;
     }
-    
+
     room.game.phrase = phrase;
 
-    for (const player of room.game.players) {
-        const missingOptions = room.game.maxOptions - player.options.length;
-        for (let i = 0; i < missingOptions; i++) {
-            let option = deck.options[Math.floor(Math.random() * deck.options.length)]!;
-            while (room.game.usedOptions.includes(option.id)) {
-                option = deck.options[Math.floor(Math.random() * deck.options.length)]!;
+    if (deck.type === DECK_TYPE.CHOOSE) {
+        for (const player of room.game.players) {
+            const missingOptions = room.game.maxOptions - player.options.length;
+            for (let i = 0; i < missingOptions; i++) {
+                let option = deck.options[Math.floor(Math.random() * deck.options.length)]!;
+                while (room.game.usedOptions.includes(option.id)) {
+                    option = deck.options[Math.floor(Math.random() * deck.options.length)]!;
+                }
+                player.options.push(option);
+                room.game.usedOptions.push(option.id);
             }
-            player.options.push(option);
-            room.game.usedOptions.push(option.id);
         }
     }
 
@@ -63,7 +65,7 @@ function newRound(io: _IoServer, socket: _Socket, room: Room) {
     setTimeout(() => {
         room.game.status = GAME_STATUS.RATING_PLAYS;
         io.to(room.id).emit('game_updated', room.game);
-    
+
         const playerCount = room.game.players.length;
         for (let i = 0; i < playerCount; i++) {
             setTimeout(() => {
