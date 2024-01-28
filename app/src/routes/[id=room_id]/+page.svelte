@@ -2,24 +2,32 @@
   import HostMenu from "$cmp/room/HostMenu.svelte";
   import PlayerMenu from "$cmp/room/PlayerMenu.svelte";
   import { room, roomUsers } from "$lib/stores/room.js";
-  import { players } from "$lib/stores/game.js";
+  import { players, ratePlayer } from "$lib/stores/game.js";
   import { user } from "$lib/stores/user.js";
   import { debugData } from "$lib/components/HyperDebug.svelte";
   import { GAME } from "$lib/defaults";
-  import { GAME_STATUS } from "$lib/enums.js";
+  import { GAME_STATUS, PLAYER_RATING, type PlayerRating } from "$lib/enums.js";
   import * as r from "$lib/stores/room.js";
+  import * as g from "$lib/stores/game.js";
   import { clipboard } from "@skeletonlabs/skeleton";
+  import type { Option } from "$types";
 
   export let data;
   let rounds = GAME.ROUNDS;
   let timer = GAME.ROUND_CHOOSE_TIME / 1000;
   let numOptions = GAME.OPTIONS;
-
   $: gameStatus = $room?.game.status;
+
+  let intervalId: number;
+  $: if (gameStatus === GAME_STATUS.CHOOSING_OPTION) {
+    timer = (game?.chooseTime ?? 0) / 1000;
+    initTimer();
+  } else {
+    clearInterval(intervalId);
+  }
+
   $: game = $room?.game;
 
-  let incompletePhrase =
-    "El doctor me dijo que mi enfermedad no tiene cura culpa de ";
   let wordList = [
     "Me coji al chavo",
     "Pelar pijas con la cola",
@@ -31,8 +39,12 @@
     "Peronista",
     "Banana",
   ]; //Estas deberian obtenerse del deck
+  let selectedOption = {text: "___"};
+  $: filledPhrase = (game?.phrase.text ?? "Missing frase").replace(
+    /{{}}/g,
+    selectedOption?.text ?? "Missing option"
+  );
 
-  let selectedWord = "_______";
   function confirmPlayer(checked: boolean) {
     if (checked) {
       r.setReady();
@@ -40,32 +52,26 @@
       r.setUnready();
     }
   }
-
   function startGame() {
-    // r.startGame();
-    gameStatus = GAME_STATUS.CHOOSING_OPTION;
-    const countdown = () => {
-      if (timer > 0) {
-        timer -= 1;
-      } else {
-        gameStatus = GAME_STATUS.RATING_PLAYS;
-        clearInterval(interval);
-      }
-    };
-
-    const interval = setInterval(countdown, 1000);
+    r.startGame();
+    //Start timer
+    initTimer();
+  }
+  function initTimer() {
+    //@ts-ignore
+    intervalId = setInterval(() => {
+      timer--;
+    }, 1000);
   }
 
-  function selectWord(word: string) {
-    selectedWord = word;
+  function vote(vote: PlayerRating) {
+    g.ratePlayer(game?.ratingPlayer ?? "", vote);
   }
 
-  function vote(voteType: string) {
-    gameStatus = GAME_STATUS.SCOREBOARD;
-    //TODO Handle user vote
+  function selectWord(word: Option) {
+    selectedOption = word;
   }
   let buttonText = "Copiar";
-
   function copy() {
     buttonText = "Copiado! 👍";
     setTimeout(() => {
@@ -169,14 +175,14 @@
           </td>
         </tr>
         <tr>
-          <td style="text-align: left; padding-right: 20px;">
+          <!-- <td style="text-align: left; padding-right: 20px;">
             <label for="deck" class="text-lg text-white">Deck: </label>
           </td>
           <td style="text-align: left;padding-right: 20px;">
             <select id="deck" class="bg-black text-white p-2 rounded-lg">
               <option value="default">1</option>
             </select>
-          </td>
+          </td> -->
         </tr>
         <tr>
           <td style="text-align: left;padding-right: 20px;">
@@ -204,6 +210,9 @@
         Iniciar Partida
       </button>
     </form>
+  {:else if (data.isHost && gameStatus === GAME_STATUS.PRE_ROUND) || gameStatus === GAME_STATUS.OPTION_REFILL}
+    <!-- Host lobby waiting -->
+    <h1 class="text-3xl text-white mb-4">Esperando....</h1>
   {:else if gameStatus === GAME_STATUS.NOT_STARTED}
     <!-- Guest lobby waiting -->
     <h1 class="text-3xl text-white mb-4">Jugadores</h1>
@@ -325,8 +334,7 @@
         style="width: 300px; height: 400px;"
       >
         <p class="text-white text-center text-2xl mt-6">
-          “{incompletePhrase}
-          {selectedWord}“
+          {`“${filledPhrase}“`}
         </p>
       </div>
     </div>
@@ -334,7 +342,7 @@
       {#each wordList as word (word)}
         <button
           class="bg-black text-white p-2 rounded-lg mb-2"
-          on:click={() => selectWord(word)}
+          on:click={() => selectWord({word})}
           style="cursor: pointer;"
         >
           {word}
@@ -350,16 +358,19 @@
         style="width: 300px; height: 400px;"
       >
         <p class="text-white text-center text-2xl mt-6">
-          “{incompletePhrase}
-          {selectedWord}“
+          {`“${filledPhrase}“`}
         </p>
       </div>
     </div>
     <div class="flex justify-center mt-4">
-      <button class="mx-2 p-4 text-3xl" on:click={() => vote("like")}>👍</button
+      <button
+        class="mx-2 p-4 text-3xl"
+        on:click={() => vote(PLAYER_RATING.GOOD)}>👍</button
       >
-      <button class="mx-2 p-4 text-3xl" on:click={() => vote("meh")}>😐</button>
-      <button class="mx-2 p-4 text-3xl" on:click={() => vote("dislike")}
+      <button class="mx-2 p-4 text-3xl" on:click={() => vote(PLAYER_RATING.MEH)}
+        >😐</button
+      >
+      <button class="mx-2 p-4 text-3xl" on:click={() => vote(PLAYER_RATING.BAD)}
         >👎</button
       >
     </div>
@@ -373,7 +384,5 @@
         <!-- <div class="text-lg text-white">{player.score}</div> -->
       </div>
     {/each}
-  {:else if gameStatus === GAME_STATUS.OPTION_REFILL}
-  <h1 class="text-3xl text-white mb-4">Repartiendo cartas...</h1>
   {/if}
 </div>
