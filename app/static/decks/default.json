@@ -5,587 +5,781 @@
     "type": "CHOOSE",
     "phrases": [
       {
+        "id": "0",
         "text": "Si pudiera tener cualquier superpoder, elegiría {{}}"
       },
       {
+        "id": "1",
         "text": "No puedo creer que mi {{}} haya muerto por culpa de {{}}"
       },
       {
+        "id": "2",
         "text": "La mejor forma de relajarme es {{}}"
       },
       {
+        "id": "3",
         "text": "Mi solucion para el hambre en africa es {{}}"
       },
       {
+        "id": "4",
         "text": "Mejor forma de matar a un discapacitado {{}}"
       },
       {
+        "id": "5",
         "text": "Me rompi la pierna pero por lo menos no {{}}"
       },
       {
+        "id": "6",
         "text": "La ultima vez que termine en el hospital fue por {{}}"
       },
       {
+        "id": "7",
         "text": "Perdi la vision del ojo porque {{}}"
       },
       {
+        "id": "8",
         "text": "Que ganas de {{}}"
       },
       {
+        "id": "9",
         "text": "Al ultimo que me debia plata le hice {{}}"
       },
       {
+        "id": "10",
         "text": "Tuve que ponerle fin a mi relacion culpa de {{}}"
       },
       {
+        "id": "11",
         "text": "Si fuera dios por un dia {{}}"
       },
       {
+        "id": "12",
         "text": "Si despertara con el sexo opuesto lo primero que haria es {{}}"
       },
       {
+        "id": "13",
         "text": "Si todo fuera legal haria {{}}"
       },
       {
+        "id": "14",
         "text": "En el medio del desierto le pedi a dios que {{}}"
       },
       {
+        "id": "15",
         "text": "Si {{}} el mundo seria mas feliz"
       },
       {
+        "id": "16",
         "text": "No podria vivir sin {{}}"
       },
       {
+        "id": "17",
         "text": "Lo primero que pienso en el dia es {{}}"
       },
       {
+        "id": "18",
         "text": "El doctor me dijo que mi enfermedad no tiene cura culpa de {{}}"
       },
       {
+        "id": "19",
         "text": "Me duele el culo porque {{}}"
       },
       {
+        "id": "20",
         "text": "Tengo fe de que ocurra {{}}"
       },
       {
+        "id": "21",
         "text": "No soy gay pero {{}} me banco“"
       },
       {
+        "id": "22",
         "text": "En mi cumple mi tio me sorprendio con {{}}"
       },
       {
+        "id": "23",
         "text": "Alla la estan {{}}"
       },
       {
+        "id": "24",
         "text": "Que ganas de ir al cementerio a {{}}"
       },
       {
+        "id": "25",
         "text": "El otro dia me cruce a tu amigo me dijo que {{}}"
       },
       {
+        "id": "26",
         "text": "La mejor contrasena es {{}}"
       },
       {
+        "id": "27",
         "text": "Consegui{{}} a cambio de {{}}"
       },
       {
+        "id": "28",
         "text": "Quiero que en mi tumba diga {{}}"
       },
       {
+        "id": "29",
         "text": "Si pudiera pedir 3 deseos serian {{}}, {{}}, {{}}"
       },
       {
+        "id": "30",
         "text": "Seria 1ro en un concurso de {{}}"
       },
       {
+        "id": "31",
         "text": " La mejor forma de morir seria {{}}"
       },
       {
+        "id": "32",
         "text": "Que ganas de cojerme a {{}}"
       },
       {
+        "id": "33",
         "text": "Mi profesor de matematicas me dijo que estoy con los numeros primos... yo le respondi “Que decis solo estoy pensando en {{}}“"
       },
       {
+        "id": "34",
         "text": "Le conte a mi abuelita que queria ser comediante me dijo “Ah como tu tio que siempre esta contando chistes sobre {{}}“"
       }
     ],
     "options": [
       {
+        "id": "35",
         "text": "Viejas putas"
       },
       {
+        "id": "36",
         "text": "Me coji al chavo"
       },
       {
+        "id": "37",
         "text": "Pelar pijas con la cola"
       },
       {
+        "id": "38",
         "text": "Lluvia de pijas"
       },
       {
+        "id": "39",
         "text": "Vieja"
       },
       {
+        "id": "40",
         "text": "Una paja en el micro"
       },
       {
+        "id": "41",
         "text": "Puto"
       },
       {
+        "id": "42",
         "text": "Peronista"
       },
       {
+        "id": "43",
         "text": "Otaku"
       },
       {
+        "id": "44",
         "text": "Libertario"
       },
       {
+        "id": "45",
         "text": "La mama de (Selecciona el nombre de un jugador)"
       },
       {
+        "id": "46",
         "text": "Romper el orto"
       },
       {
+        "id": "47",
         "text": "Papa"
       },
       {
+        "id": "48",
         "text": "Cura"
       },
       {
+        "id": "49",
         "text": "Banana"
       },
       {
+        "id": "50",
         "text": "Down"
       },
       {
+        "id": "51",
         "text": "Mitomano"
       },
       {
+        "id": "52",
         "text": "Hitler"
       },
       {
+        "id": "53",
         "text": "Nazi"
       },
       {
+        "id": "54",
         "text": "Fimosis"
       },
       {
+        "id": "55",
         "text": "Rompio el frenillo"
       },
       {
+        "id": "56",
         "text": "Ereccion"
       },
       {
+        "id": "57",
         "text": "Dedaso en el orto"
       },
       {
+        "id": "58",
         "text": "Cancer"
       },
       {
+        "id": "59",
         "text": "Cocaina"
       },
       {
+        "id": "60",
         "text": "Porno gay"
       },
       {
+        "id": "61",
         "text": "Crear un juego porno multijugador "
       },
       {
+        "id": "62",
         "text": "Hermana"
       },
       {
+        "id": "63",
         "text": "Conoci un trava"
       },
       {
+        "id": "64",
         "text": "Deje llevar"
       },
       {
+        "id": "65",
         "text": "Intente frenar un camion con la pija"
       },
       {
+        "id": "66",
         "text": "Pense que podia aguantar dos kilos colgando de las bolas"
       },
       {
+        "id": "67",
         "text": "Viejo"
       },
       {
+        "id": "68",
         "text": "Tio"
       },
       {
+        "id": "69",
         "text": "Stalin"
       },
       {
+        "id": "70",
         "text": "Mussolini"
       },
       {
+        "id": "71",
         "text": "Diarrea"
       },
       {
+        "id": "72",
         "text": "Sifilis"
       },
       {
+        "id": "73",
         "text": "Gonorrea"
       },
       {
+        "id": "74",
         "text": "Sida"
       },
       {
+        "id": "75",
         "text": "Boliviano"
       },
       {
+        "id": "76",
         "text": "Cagadera"
       },
       {
+        "id": "77",
         "text": "Onichan"
       },
       {
+        "id": "78",
         "text": "Culeando"
       },
       {
+        "id": "79",
         "text": "Gozando"
       },
       {
+        "id": "80",
         "text": "No se banco 2 tiros en la cabeza"
       },
       {
+        "id": "81",
         "text": "Darle para que tenga"
       },
       {
+        "id": "82",
         "text": "Cipayo"
       },
       {
+        "id": "83",
         "text": "Que ganas que me cojan en el counter"
       },
       {
+        "id": "84",
         "text": "Gordo virgen"
       },
       {
+        "id": "85",
         "text": "La concha de tu vieja"
       },
       {
+        "id": "86",
         "text": "No se , pero como te chuparia todo el orto "
       },
       {
+        "id": "87",
         "text": "Cogerme {{jugador}}"
       },
       {
+        "id": "88",
         "text": "Estar con la hermana de {{jugador}}"
       },
       {
+        "id": "89",
         "text": "Judio"
       },
       {
+        "id": "90",
         "text": "Hornos"
       },
       {
+        "id": "91",
         "text": "Arabes"
       },
       {
+        "id": "92",
         "text": "Koreanos"
       },
       {
+        "id": "93",
         "text": "Chinos de mierda"
       },
       {
+        "id": "94",
         "text": "A caballito"
       },
       {
+        "id": "95",
         "text": "El viejo verde"
       },
       {
+        "id": "96",
         "text": "concha de la lora"
       },
       {
+        "id": "97",
         "text": "gomazos limpio"
       },
       {
+        "id": "98",
         "text": "Puntito caramelo"
       },
       {
+        "id": "99",
         "text": "A todo culo"
       },
       {
+        "id": "100",
         "text": "Abortera"
       },
       {
+        "id": "101",
         "text": "Abuso"
       },
       {
+        "id": "102",
         "text": "ACM1PT"
       },
       {
+        "id": "103",
         "text": "Panflin"
       },
       {
+        "id": "104",
         "text": "AFA AFA AFA AFA AFAAERTEEEE"
       },
       {
+        "id": "105",
         "text": "Agarra una pala y deja de jugar esta cagada"
       },
       {
+        "id": "106",
         "text": "Amigarcha"
       },
       {
+        "id": "107",
         "text": "Amasijar la nutria"
       },
       {
+        "id": "108",
         "text": "Pajero"
       },
       {
+        "id": "109",
         "text": "Pajin"
       },
       {
+        "id": "110",
         "text": "Trio de negras"
       },
       {
+        "id": "111",
         "text": "Petardo"
       },
       {
+        "id": "112",
         "text": "Pija dulce"
       },
       {
+        "id": "113",
         "text": "Pregúntale a tu vieja"
       },
       {
+        "id": "114",
         "text": "Squirt de culo"
       },
       {
+        "id": "115",
         "text": "No se pero la anterior fue malisima"
       },
       {
+        "id": "116",
         "text": "Waskaso"
       },
       {
+        "id": "117",
         "text": "Chotito"
       },
       {
+        "id": "118",
         "text": "Chorizo"
       },
       {
+        "id": "119",
         "text": "Chonguito"
       },
       {
+        "id": "120",
         "text": "Garchado"
       },
       {
+        "id": "121",
         "text": "Poringa"
       },
       {
+        "id": "122",
         "text": "Chupame la pija"
       },
       {
+        "id": "123",
         "text": "Que cartas de mierda che!"
       },
       {
+        "id": "124",
         "text": "Comegato"
       },
       {
+        "id": "125",
         "text": "esnifa penes"
       },
       {
+        "id": "126",
         "text": "Conchuda"
       },
       {
+        "id": "127",
         "text": "Cornudo "
       },
       {
+        "id": "128",
         "text": "Infidelidad"
       },
       {
+        "id": "129",
         "text": "Consumir cocaina "
       },
       {
+        "id": "130",
         "text": "Violar"
       },
       {
+        "id": "131",
         "text": "El diego"
       },
       {
+        "id": "132",
         "text": "Colarse un vaso en el orto"
       },
       {
+        "id": "133",
         "text": "Esnifar merca del culo de un enano "
       },
       {
+        "id": "134",
         "text": "Comerse a una menor"
       },
       {
+        "id": "135",
         "text": "Ir a un jardin de infantes"
       },
       {
+        "id": "136",
         "text": "Pajaso"
       },
       {
+        "id": "137",
         "text": "Drogas"
       },
       {
+        "id": "138",
         "text": "Sexo interracial"
       },
       {
+        "id": "139",
         "text": "Furros "
       },
       {
+        "id": "140",
         "text": "Zoofilia "
       },
       {
+        "id": "141",
         "text": "Doble penetracion"
       },
       {
+        "id": "142",
         "text": "Milf"
       },
       {
+        "id": "143",
         "text": "vulva"
       },
       {
+        "id": "144",
         "text": "testiculo"
       },
       {
+        "id": "145",
         "text": "Cancer"
       },
       {
+        "id": "146",
         "text": "Holocausto"
       },
       {
+        "id": "147",
         "text": "Auschwitz"
       },
       {
+        "id": "148",
         "text": "Terremoto de chotas "
       },
       {
+        "id": "149",
         "text": "Tsunami fluido vaginal "
       },
       {
+        "id": "150",
         "text": "Atentado a playboy"
       },
       {
+        "id": "151",
         "text": "Bomba en villa 1 11 14"
       },
       {
+        "id": "152",
         "text": "Suicidio"
       },
       {
+        "id": "153",
         "text": "Genocidio"
       },
       {
+        "id": "154",
         "text": "Violación"
       },
       {
+        "id": "155",
         "text": "Racismo"
       },
       {
+        "id": "156",
         "text": "Xenofobia"
       },
       {
+        "id": "157",
         "text": "Pobreza"
       },
       {
+        "id": "158",
         "text": "Amputación de verga"
       },
       {
+        "id": "159",
         "text": "Vacunado"
       },
       {
+        "id": "160",
         "text": "Pedofilia"
       },
       {
+        "id": "161",
         "text": "Incesto"
       },
       {
+        "id": "162",
         "text": "Necrofilia"
       },
       {
+        "id": "163",
         "text": "Canibalismo"
       },
       {
+        "id": "164",
         "text": "Esclavizar un nene hindu"
       },
       {
+        "id": "165",
         "text": "Succionar legos con el orto"
       },
       {
+        "id": "166",
         "text": "Macri"
       },
       {
+        "id": "167",
         "text": "De hecho eso lo vi en pornhub"
       },
       {
+        "id": "168",
         "text": "Mamba negra"
       },
       {
+        "id": "169",
         "text": "Nene africano"
       },
       {
+        "id": "170",
         "text": "Sobredosis de coito"
       },
       {
+        "id": "171",
         "text": "Eyacular en la comida "
       },
       {
+        "id": "172",
         "text": "Eyacular en la cara"
       },
       {
+        "id": "173",
         "text": "La profe de matematica"
       },
       {
+        "id": "174",
         "text": "La vecina"
       },
       {
+        "id": "175",
         "text": "Telettubie"
       },
       {
+        "id": "176",
         "text": "Manda fruta"
       },
       {
+        "id": "177",
         "text": "Tenedor anal"
       },
       {
+        "id": "178",
         "text": "Trompeta de leche"
       },
       {
+        "id": "179",
         "text": "El 9 de lanus"
       },
       {
+        "id": "180",
         "text": "Gargara de semen"
       },
       {
+        "id": "181",
         "text": "Cata porongas"
       },
       {
+        "id": "182",
         "text": "Examen de prostata"
       },
       {
+        "id": "183",
         "text": "Infla chotas"
       },
       {
+        "id": "184",
         "text": "Calentador de huerfanas"
       },
       {
+        "id": "185",
         "text": "Camion Iveco lleno de prostitutas"
       },
       {
+        "id": "186",
         "text": "Goloso"
       },
       {
+        "id": "187",
         "text": "uyy la puse.... , en la vieja"
       },
       {
+        "id": "188",
         "text": "Terrorismo de choripanes"
       },
       {
+        "id": "189",
         "text": "Termotanque de sida"
       },
       {
+        "id": "190",
         "text": "Flequillo de carne"
       },
       {
+        "id": "191",
         "text": "Centrifugador de ortos"
       },
       {
+        "id": "192",
         "text": "Asaltador de virginidades"
       },
       {
+        "id": "193",
         "text": "Eyaculador precoz"
       }
     ]
@@ -596,111 +790,147 @@
     "type": "COMPLETE",
     "phrases": [
       {
+        "id": "194",
         "text": "Más aburrido que"
       },
       {
+        "id": "195",
         "text": "Más perdido que"
       },
       {
+        "id": "196",
         "text": "Más vale tarde que"
       },
       {
+        "id": "197",
         "text": "Más contento que"
       },
       {
+        "id": "198",
         "text": "No hay mal que"
       },
       {
+        "id": "199",
         "text": "A caballo regalado"
       },
       {
+        "id": "200",
         "text": "Más vale prevenir que"
       },
       {
+        "id": "201",
         "text": "Más vale pájaro en mano que"
       },
       {
+        "id": "202",
         "text": "Más vale maña que"
       },
       {
+        "id": "203",
         "text": "Más viejo que"
       },
       {
+        "id": "204",
         "text": "A todo chancho"
       },
       {
+        "id": "205",
         "text": "A la corta o a la larga"
       },
       {
+        "id": "206",
         "text": "A este le dicen Zapata porque"
       },
       {
+        "id": "207",
         "text": "Más peligroso que"
       },
       {
+        "id": "208",
         "text": "Más enredado"
       },
       {
+        "id": "209",
         "text": "Más loco que"
       },
       {
+        "id": "210",
         "text": "Más desordenado que"
       },
       {
+        "id": "211",
         "text": "Más lento que"
       },
       {
+        "id": "212",
         "text": "Más distraído"
       },
       {
+        "id": "213",
         "text": "Más complicado que"
       },
       {
+        "id": "214",
         "text": "Mas suertudo que"
       },
       {
+        "id": "215",
         "text": "Más claro que"
       },
       {
+        "id": "216",
         "text": "Más duro que"
       },
       {
+        "id": "217",
         "text": "Más rápido que"
       },
       {
+        "id": "218",
         "text": "Más sano que"
       },
       {
+        "id": "219",
         "text": "Más bueno que"
       },
       {
+        "id": "220",
         "text": "Más rico que"
       },
       {
+        "id": "221",
         "text": "Más sabio que"
       },
       {
+        "id": "222",
         "text": "Más fuerte que"
       },
       {
+        "id": "223",
         "text": "Más raro que"
       },
       {
+        "id": "224",
         "text": "Más falso que"
       },
       {
+        "id": "225",
         "text": "Más fácil que"
       },
       {
+        "id": "226",
         "text": "Más caro que"
       },
       {
+        "id": "227",
         "text": "Más seguro que"
       },
       {
+        "id": "228",
         "text": "Más feliz que"
       },
       {
+        "id": "229",
         "text": "Más grande que"
       }
     ]
@@ -711,109 +941,144 @@
     "type": "CHOOSE",
     "phrases": [
       {
+        "id": "230",
         "text": "El mejor regalo que recibí en Navidad fue un {{}}"
       },
       {
+        "id": "231",
         "text": "Nunca saldría con alguien que le guste {{}}"
       },
       {
+        "id": "232",
         "text": "Mi sueño es viajar por el mundo y conocer {{}}"
       },
       {
+        "id": "233",
         "text": "Si pudiera tener un superpoder, sería {{}}"
       },
       {
+        "id": "234",
         "text": "Lo que más me gusta de mi trabajo es {{}}"
       },
       {
+        "id": "235",
         "text": "Mi película favorita es {{}}, porque {{}}"
       },
       {
+        "id": "236",
         "text": "La última vez que me reí mucho fue cuando {{}}"
       },
       {
+        "id": "237",
         "text": "Mi mayor miedo es {{}}"
       },
       {
+        "id": "238",
         "text": "Si ganara la lotería, lo primero que haría sería {{}}"
       },
       {
+        "id": "239",
         "text": "Mi comida favorita es {{}}, pero no me gusta {{}}"
       },
       {
+        "id": "240",
         "text": "Mi hobby más raro es {{}}"
       },
       {
+        "id": "241",
         "text": "Lo que más me molesta de la gente es {{}}"
       },
       {
+        "id": "242",
         "text": "Mi animal favorito es {{}}, porque {{}}"
       },
       {
+        "id": "243",
         "text": "Mi deporte favorito es {{}}, pero soy malo/a en {{}}"
       },
       {
+        "id": "244",
         "text": "Mi lugar favorito para relajarme es {{}}"
       },
       {
+        "id": "245",
         "text": "Mi programa de televisión favorito es {{}}, porque {{}}"
       },
       {
+        "id": "246",
         "text": "Mi libro favorito es {{}}, porque {{}}"
       },
       {
+        "id": "247",
         "text": "Mi canción favorita es {{}}, porque {{}}"
       },
       {
+        "id": "248",
         "text": "Mi color favorito es {{}}, porque {{}}"
       },
       {
+        "id": "249",
         "text": "Mi flor favorita es {{}}, porque {{}}"
       },
       {
+        "id": "250",
         "text": "Mi estación favorita es {{}}, porque {{}}"
       },
       {
+        "id": "251",
         "text": "Mi juego de mesa favorito es {{}}, porque {{}}"
       },
       {
+        "id": "252",
         "text": "Mi juego de cartas favorito es {{}}, porque {{}}"
       },
       {
+        "id": "253",
         "text": "Mi helado favorito es {{}}, porque {{}}"
       },
       {
+        "id": "254",
         "text": "Mi postre favorito es {{}}, porque {{}}"
       },
       {
+        "id": "255",
         "text": "Mi bebida favorita es {{}}, porque {{}}"
       },
       {
+        "id": "256",
         "text": "Mi fruta favorita es {{}}, porque {{}}"
       },
       {
+        "id": "257",
         "text": "Mi verdura favorita es {{}}, porque {{}}"
       },
       {
+        "id": "258",
         "text": "Mi condimento favorito es {{}}, porque {{}}"
       },
       {
+        "id": "259",
         "text": "Mi marca de ropa favorita es {{}}, porque {{}}"
       },
       {
+        "id": "260",
         "text": "Mi estilo de música favorito es {{}}, porque {{}}"
       },
       {
+        "id": "261",
         "text": "Mi artista favorito es {{}}, porque {{}}"
       },
       {
+        "id": "262",
         "text": "Mi actor/actriz favorito/a es {{}}, porque {{}}"
       },
       {
+        "id": "263",
         "text": "Mi personaje de ficción favorito es {{}}, porque {{}}"
       },
       {
-        "text":"Cuando veo {{}}, me siento como en casa."
+        "id": "264",
+        "text": "Cuando veo {{}}, me siento como en casa."
       }
     ]
   }

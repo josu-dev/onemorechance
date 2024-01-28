@@ -27,6 +27,6 @@ socket.on('registered', (data) => {
 });
 
 socket.on('unregistered', () => {
-    console.log('unregistered');
+    console.info('unregistered');
     user.init(undefined);
 });

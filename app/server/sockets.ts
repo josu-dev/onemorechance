@@ -1,13 +1,12 @@
 import type { IncomingMessage, Server, ServerResponse } from "http";
 import { customRandom, nanoid, random } from 'nanoid';
-import { Server as ioServer } from "socket.io";
+import { Socket, Server as ioServer } from "socket.io";
 import { GAME } from '../src/lib/defaults.js';
-import { GAME_STATUS, ROOM_STATUS } from '../src/lib/enums.js';
+import { DECK_TYPE, GAME_STATUS, ROOM_STATUS, type DeckType } from '../src/lib/enums.js';
 import type {
     ClientToServerEvents,
     Deck,
     InterServerEvents,
-    Phrase,
     Player,
     Room,
     ServerToClientEvents,
@@ -23,69 +22,95 @@ const users = new Map<string, User>();
 
 const rooms = new Map<string, Room>();
 
-type IoServer = ioServer<
+
+type _IoServer = ioServer<
     ClientToServerEvents,
     ServerToClientEvents,
     InterServerEvents,
     SocketData
 >;
 
-function newRound(io: IoServer, room: Room, user:User) {
+type _Socket = Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>;
 
-    const player = room.game.players.find(p => p.userId === userId)!;
+
+function newRound(io: _IoServer, socket: _Socket, room: Room) {
+    room.game.round += 1;
+    // @ts-ignore
     const deck: Deck = decks[room.game.deck.id];
-    for (let i = 0; i < options; i++) {
-        let option = deck.options[Math.floor(Math.random() * deck.options.length)]!;
-        while (room.game.usedOptions.includes(option.id)) {
-            option = deck.options[Math.floor(Math.random() * deck.options.length)]!;
-        }
-        player.options.push(option);
-        room.game.usedOptions.push(option.id);
+
+    let phrase = deck.phrases[Math.floor(Math.random() * deck.phrases.length)]!;
+    while (room.game.usedPhrases.includes(phrase.id)) {
+        phrase = deck.phrases[Math.floor(Math.random() * deck.phrases.length)]!;
     }
 
-    room.readyCount += 1;
-    socket.emit('updated_round', room.game);
-    if (room.readyCount === room.users.length) {
-        room.readyCount = 0;
-        room.game.status = GAME_STATUS.CHOOSING_OPTION;
-        io.to(roomId).emit('game_status_update', { status: room.game.status });
+    room.game.phrase = phrase;
+
+    if (deck.type === DECK_TYPE.CHOOSE) {
+        for (const player of room.game.players) {
+            const missingOptions = room.game.maxOptions - player.options.length;
+            for (let i = 0; i < missingOptions; i++) {
+                let option = deck.options[Math.floor(Math.random() * deck.options.length)]!;
+                while (room.game.usedOptions.includes(option.id)) {
+                    option = deck.options[Math.floor(Math.random() * deck.options.length)]!;
+                }
+                player.options.push(option);
+                room.game.usedOptions.push(option.id);
+            }
+        }
+    }
+
+    room.game.status = GAME_STATUS.CHOOSING_OPTION;
+    io.to(room.id).emit('game_updated', room.game);
+
+    setTimeout(() => {
+        room.game.status = GAME_STATUS.RATING_PLAYS;
+        io.to(room.id).emit('game_updated', room.game);
+
+        const playerCount = room.game.players.length;
+        for (let i = 0; i < playerCount; i++) {
+            setTimeout(() => {
+                const player = room.game.players[i];
+                io.to(player.userId).emit('rate_player', { playerId: player.userId });
+            }, i * GAME.ROUND_RATE_TIME);
+        }
 
         setTimeout(() => {
-            room.game.status = GAME_STATUS.CHOOSING_OPTION;
-            io.to(roomId).emit('selection_end', room.game);
+            room.game.status = GAME_STATUS.ROUND_WINNER;
+            let winnerId = '';
+            let winnerScore = 0;
+            for (const player of room.game.players) {
+                if (player.score > winnerScore) {
+                    winnerId = player.userId;
+                    winnerScore = player.score;
+                }
+            }
+            room.game.lastWinner = winnerId;
+            room.game.status = GAME_STATUS.ROUND_WINNER;
+            io.to(room.id).emit('game_updated', room.game);
 
-            const playerCount = room.game.players.length;
-            for (let i = 0; i < playerCount; i++) {
-                setTimeout(() => {
-                    const player = room.game.players[i];
-                    io.to(player.userId).emit('rate_player', { playerId: player.userId });
-                }, i * GAME.ROUND_RATE_TIME);
+            if (room.game.round < room.game.maxRounds) {
+                setTimeout(
+                    newRound,
+                    GAME.ROUND_RESULTS_TIME,
+                    io,
+                    socket,
+                    room
+                );
+                return;
             }
 
             setTimeout(() => {
-                room.game.status = GAME_STATUS.ROUND_WINNER;
-                let winnerId = '';
-                let winnerScore = 0;
-                for (const player of room.game.players) {
-                    if (player.score > winnerScore) {
-                        winnerId = player.userId;
-                        winnerScore = player.score;
-                    }
-                }
-                room.game.lastWinner = winnerId;
-
-                io.to(roomId).emit('game_status_update', { status: room.game.status });
+                room.game.status = GAME_STATUS.SCOREBOARD;
+                io.to(room.id).emit('game_status_update', { status: room.game.status });
 
                 setTimeout(() => {
-                    io;
-
-                }, playerCount);
-            }, GAME.ROUND_CHOOSE_TIME);
-
-        });
-    }
+                    room.game.status = GAME_STATUS.FINISHED;
+                    io.to(room.id).emit('game_updated', room.game);
+                }, GAME.GAME_RESULTS_TIME);
+            }, GAME.ROUND_RESULTS_TIME);
+        }, room.game.players.length * GAME.ROUND_RATE_TIME);
+    }, GAME.ROUND_CHOOSE_TIME);
 }
-
 
 
 export function attach_sockets(
@@ -116,6 +141,7 @@ export function attach_sockets(
                 }
             }
             if (room) {
+                socket.leave(room.id);
                 const userIndex = room.users.findIndex(u => u.id === user!.id);
                 if (userIndex > -1) {
                     room.users.splice(userIndex, 1);
@@ -134,8 +160,6 @@ export function attach_sockets(
                     }
                     io.to(room.id).emit('updated_room', room);
                 }
-
-                socket.leave(room.id);
             }
 
             users.delete(user.id);
@@ -193,8 +217,9 @@ export function attach_sockets(
                     maxOptions: GAME.OPTIONS,
                     round: 0,
                     deck: {
-                        id: '1',
-                        name: 'Humor negro',
+                        id: '2',
+                        name: 'Refranes inventados',
+                        type: DECK_TYPE.COMPLETE,
                     },
                     phrase: {
                         id: 'default',
@@ -284,6 +309,7 @@ export function attach_sockets(
             room.game.deck = {
                 id: deck.id,
                 name: deck.name,
+                type: deck.type,
             };
             io.to(roomId).emit('game_deck_update', room.game.deck);
         });
@@ -319,12 +345,10 @@ export function attach_sockets(
             }
 
             room.readyCount = 0;
-            room.game.status = GAME_STATUS.CHOOSING_OPTION;
-            room.game.round = 1;
-            // @ts-ignore
-            const cards: Phrase[] = decks[room.game.deck.id].phrases;
-            room.game.phrase = cards[Math.floor(Math.random() * cards.length)]!;
+            room.game.status = GAME_STATUS.PRE_ROUND;
+            room.game.round = 0;
             io.to(roomId).emit('game_started', room.game);
+            newRound(io, socket, room);
         });
 
         socket.on('trigger_decks_update', () => {
@@ -332,76 +356,9 @@ export function attach_sockets(
                 return {
                     id: d.id,
                     name: d.name,
+                    type: d.type as DeckType,
                 };
             }));
-        });
-
-        socket.on('get_new_round', ({ roomId, userId, options }) => {
-            const room = rooms.get(roomId);
-            const user = users.get(userId);
-            if (!room || !user) {
-                return;
-            }
-
-            if (room.game.round >= room.game.maxRounds) {
-                room.game.status = GAME_STATUS.SCOREBOARD;
-                io.to(roomId).emit('game_status_update', { status: room.game.status });
-                return;
-            }
-
-            const player = room.game.players.find(p => p.userId === userId)!;
-            // @ts-ignore
-            const deck: Deck = decks[room.game.deck.id];
-            for (let i = 0; i < options; i++) {
-                let option = deck.options[Math.floor(Math.random() * deck.options.length)]!;
-                while (room.game.usedOptions.includes(option.id)) {
-                    option = deck.options[Math.floor(Math.random() * deck.options.length)]!;
-                }
-                player.options.push(option);
-                room.game.usedOptions.push(option.id);
-            }
-
-            room.readyCount += 1;
-            socket.emit('updated_round', room.game);
-            if (room.readyCount === room.users.length) {
-                room.readyCount = 0;
-                room.game.status = GAME_STATUS.CHOOSING_OPTION;
-                io.to(roomId).emit('game_status_update', { status: room.game.status });
-
-                setTimeout(() => {
-                    room.game.status = GAME_STATUS.CHOOSING_OPTION;
-                    io.to(roomId).emit('selection_end', room.game);
-
-                    const playerCount = room.game.players.length;
-                    for (let i = 0; i < playerCount; i++) {
-                        setTimeout(() => {
-                            const player = room.game.players[i];
-                            io.to(player.userId).emit('rate_player', { playerId: player.userId });
-                        }, i * GAME.ROUND_RATE_TIME);
-                    }
-
-                    setTimeout(() => {
-                        room.game.status = GAME_STATUS.ROUND_WINNER;
-                        let winnerId = '';
-                        let winnerScore = 0;
-                        for (const player of room.game.players) {
-                            if (player.score > winnerScore) {
-                                winnerId = player.userId;
-                                winnerScore = player.score;
-                            }
-                        }
-                        room.game.lastWinner = winnerId;
-
-                        io.to(roomId).emit('game_status_update', { status: room.game.status });
-
-                        setTimeout(() => {
-                            io;
-
-                        }, playerCount);
-                    }, GAME.ROUND_CHOOSE_TIME);
-
-                });
-            }
         });
 
         socket.on('option_selected', ({ roomId, userId, option }) => {
@@ -413,7 +370,19 @@ export function attach_sockets(
 
             const player = room.game.players.find(p => p.userId === userId)!;
             player.selectedOption = option;
-            player.phrases.push(option);
+            socket.emit('player_updated', player);
+        });
+
+        socket.on('freestyle_selected', ({ roomId, userId, freestyle }) => {
+            const room = rooms.get(roomId);
+            const user = users.get(userId);
+            if (!room || !user) {
+                return;
+            }
+
+            const player = room.game.players.find(p => p.userId === userId)!;
+            player.freestyle = freestyle;
+            socket.emit('player_updated', player);
         });
     });
 }

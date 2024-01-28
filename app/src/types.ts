@@ -1,4 +1,4 @@
-import type { GameStatus, PlayerRating, RoomStatus } from './lib/enums.js';
+import type { DeckType, GameStatus, PlayerRating, RoomStatus } from './lib/enums.js';
 
 export type User = {
     id: string,
@@ -26,6 +26,7 @@ export type Player = {
     modifiers: Modifier[],
 };
 
+
 export type Phrase = {
     id: string,
     text: string,
@@ -41,11 +42,13 @@ export type DeckIdentifier = {
     [x: string]: any;
     id: string,
     name: string,
+    type: DeckType,
 };
 
 export type Deck = {
     id: string,
     name: string,
+    type: DeckType,
     phrases: Phrase[],
     options: Option[],
 };
@@ -109,7 +112,8 @@ export type ClientToServerEvents = {
     player_unready: (data: { roomId: string; userId: string; }) => void;
     start_game: (data: { roomId: string; userId: string; }) => void;
     get_new_round: (data: { roomId: string; userId: string; options: number; }) => void;
-    option_selected: (data: { roomId: string; userId: string; option: Option; }) => void;
+    option_selected: (data: { roomId: string; userId: string; option:Option; }) => void;
+    freestyle_selected: (data: { roomId: string; userId: string; freestyle:string[]; }) => void;
     player_update: (data: { roomId: string; player: Player; }) => void;
     rate_player: (data: { roomId: string; playerId: string; rate: PlayerRating; }) => void;
     game_update: (data: { roomId: string; game: Game; }) => void;

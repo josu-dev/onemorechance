@@ -1,39 +1,75 @@
 <script lang="ts">
-  import HostMenu from "$cmp/room/HostMenu.svelte";
-  import PlayerMenu from "$cmp/room/PlayerMenu.svelte";
-  import { room, roomUsers } from "$lib/stores/room.js";
-  import { players } from "$lib/stores/game.js";
-  import { user } from "$lib/stores/user.js";
+  import { dev } from "$app/environment";
   import { debugData } from "$lib/components/HyperDebug.svelte";
   import { GAME } from "$lib/defaults";
-  import { GAME_STATUS } from "$lib/enums.js";
+  import {
+    DECK_TYPE,
+    GAME_STATUS,
+    PLAYER_RATING,
+    type GameStatus,
+    type PlayerRating,
+  } from "$lib/enums.js";
+  import * as g from "$lib/stores/game.js";
+  import { game, players } from "$lib/stores/game.js";
   import * as r from "$lib/stores/room.js";
+  import { room } from "$lib/stores/room.js";
+  import { user } from "$lib/stores/user.js";
+  import type { Option } from "$types";
   import { clipboard } from "@skeletonlabs/skeleton";
 
   export let data;
+
+  if (dev) {
+    debugData.set(room);
+  }
+
+  $: pageTitle = `${
+    $room?.status === 'PLAYING' ? 'Jugando' : 'Sala de espera'
+  } - One More Chance`;
+
   let rounds = GAME.ROUNDS;
-  let timer = GAME.COMPLETE_ROUND_TIME;
+  let timer = GAME.ROUND_CHOOSE_TIME / 1000;
   let numOptions = GAME.OPTIONS;
-  let selectedDeck = "default";
 
-  $: gameStatus = $room?.game.status;
-  $: game = $room?.game;
+  let gameStatus: GameStatus = GAME_STATUS.NOT_STARTED;
+  let isNotStarted = true;
+  let isPreRound = false;
+  let isChoosingOption = false;
+  let isRatingPlays = false;
+  let isRoundWinner = false;
+  let isOptionRefill = false;
+  let isScoreboard = false;
+  let voted = false;
+  $: if ($game.status !== gameStatus) {
+    gameStatus = $game.status;
+    isNotStarted = gameStatus === GAME_STATUS.NOT_STARTED;
+    isChoosingOption = gameStatus === GAME_STATUS.CHOOSING_OPTION;
+    isRatingPlays = gameStatus === GAME_STATUS.RATING_PLAYS;
+    isScoreboard = gameStatus === GAME_STATUS.SCOREBOARD;
+    isOptionRefill = gameStatus === GAME_STATUS.OPTION_REFILL;
+    isPreRound = gameStatus === GAME_STATUS.PRE_ROUND;
+    isRoundWinner = gameStatus === GAME_STATUS.ROUND_WINNER;
+  }
 
-  let incompletePhrase =
-    "El doctor me dijo que mi enfermedad no tiene cura culpa de ";
-  let wordList = [
-    "Me coji al chavo",
-    "Pelar pijas con la cola",
-    "Lluvia de pijas",
-    "Vieja",
-    "Una paja en el micro",
-    "Puto",
-    "Otaku",
-    "Peronista",
-    "Banana",
-  ];
+  $: if (isChoosingOption) {
+    startTimer("choose", ($game?.chooseTime ?? 0) / 1000);
+  } else {
+    endTimer("choose");
+  }
 
-  let selectedWord = "_______";
+  $: basePhrase = $game?.phrase.text ?? "Missing frase";
+
+  $: options = $game.players.find((p) => p.userId === $user?.id)?.options ?? [];
+
+  let selectedOption: Partial<Option> = { text: undefined };
+  let freestyleText: string | undefined = '';
+  function fillFreestyle(text: string) {
+    freestyleText = text;
+    g.setFreestyle([text]);
+  }
+
+  $: filledPhrase = basePhrase + (freestyleText ?? selectedOption.text ?? '');
+
   function confirmPlayer(checked: boolean) {
     if (checked) {
       r.setReady();
@@ -44,45 +80,88 @@
 
   function startGame() {
     r.startGame();
-    gameStatus = GAME_STATUS.CHOOSING_OPTION;
-    const countdown = () => {
-      if (timer > 0) {
-        timer -= 1;
-      } else {
-        gameStatus = GAME_STATUS.RATING_PLAYS;
-        clearInterval(interval);
+  }
+
+  const timerMap = new Map<string, ReturnType<typeof setInterval>>();
+  function startTimer(key: string, initialTime: number) {
+    if (timerMap.has(key)) {
+      return;
+    }
+
+    timer = initialTime;
+
+    timerMap.set(
+      key,
+      setInterval(() => {
+        timer--;
+        if (timer <= 0) {
+          endTimer(key);
+        }
+      }, 1000)
+    );
+  }
+  function endTimer(key: string) {
+    clearInterval(timerMap.get(key));
+  }
+
+  function vote(vote: PlayerRating) {
+    if (!voted) {
+      voted = true;
+      let audio ;
+      if (vote === PLAYER_RATING.BAD) {
+        audio = new Audio("/audio/sfx_abucheo.mp3");
+      } else if (vote === PLAYER_RATING.MEH) {
+        audio = new Audio("/audio/sfx_meh.mp3");
+      }else {
+        audio = new Audio("/audio/sfx_aplauso.mp3");
       }
-    };
-
-    const interval = setInterval(countdown, 1000);
+      audio.volume = 0.5;
+      audio.play();
+      g.ratePlayer($game?.ratingPlayer ?? "", vote);
+    }
   }
 
-  function selectWord(word: string) {
-    selectedWord = word;
+  function chooseOption(option: Option) {
+    selectedOption = option;
   }
-
-  function vote(voteType: string) {
-    gameStatus = GAME_STATUS.ROUND_WINNER;
-    //TODO Handle user vote
-  }
-
-  debugData.set(room);
 </script>
 
-<div
-  class="text-white bg-black min-h-screen flex flex-col items-center justify-center"
+<svelte:head>
+  <title>{pageTitle}</title>
+</svelte:head>
+
+<main
+  class="h-full flex flex-col items-center justify-center overflow-y-auto p-1"
 >
   {#if !$room || !$user}
-    <HostMenu />
-    <h1 class="mt-4 text-lg text-white">Room not found</h1>
-  {:else if data.isHost && gameStatus === GAME_STATUS.NOT_STARTED}
-    <!-- Host lobby waiting -->
-    <h1 class="text-3xl text-white mb-4">Jugadores</h1>
-    <h2 class="text-3xl text-white mb-4">Id de la sala :</h2>
-    <!-- Source -->
-    <div data-clipboard="roomId">{$room.id}</div>
-    <!-- Trigger -->
-    <button class = "btn variant-filled" use:clipboard={{ element: "roomId" }}>Copy</button>
+    <h1 class="text-4xl text-white font-bold text-center">
+      Room not found, you shouldnt be seeing this 😅
+    </h1>
+  {:else if data.isHost && isNotStarted}
+    <h1 class="text-4xl text-white font-bold text-center mb-[1em]">
+      Lobby de la sala
+    </h1>
+
+    <div
+      class="previewer-preview flex justify-center items-center mx-auto transition-[width] duration-200 w-full"
+    >
+      <h2 class="text-3xl text-white mb-4 mr-4">Id de la sala:</h2>
+      <h2 class="text-3xl text-white mb-4" data-clipboard="roomId">
+        {$room.id}
+      </h2>
+      <button
+        class="btn variant-filled text-white bg-black rounded-lg ml-4"
+        style="box-shadow: 0 0 0 2px white;"
+        on:click={(event) => {
+          event.currentTarget.textContent = 'Copiado! 👍';
+          setTimeout(() => {
+            event.currentTarget.textContent = 'Copiar';
+          }, 2000);
+        }}
+        use:clipboard={$room.id}>Copiar</button
+      >
+    </div>
+
     <h1 class="text-3xl text-white mb-4">Jugadores</h1>
     <div class="flex flex-col items-left mb-4 space-y-4">
       {#each $players as player}
@@ -97,19 +176,21 @@
               }}
               class="form-checkbox text-black w-6 h-6"
             />
-          {:else}
+          {:else if player.ready}
             <input
               type="checkbox"
               class="form-checkbox text-black w-6 h-6"
               checked={player.ready}
               disabled
             />
+          {:else}
+            <span class="text-white text-xl">X</span>
           {/if}
         </div>
       {/each}
     </div>
 
-    <h1 class="text-3xl text-white mb-4">Configuración de la partida</h1>
+    <h2 class="text-2xl text-white mb-4">Configuración de la partida</h2>
     <form
       on:submit|preventDefault={startGame}
       class="flex flex-col items-center space-y-4 mb-8"
@@ -143,25 +224,21 @@
               type="number"
               id="timer"
               bind:value={timer}
-              min="15"
+              min="1"
               max="30"
               class="bg-black text-white p-2 rounded-lg"
             />
           </td>
         </tr>
         <tr>
-          <td style="text-align: left; padding-right: 20px;">
+          <!-- <td style="text-align: left; padding-right: 20px;">
             <label for="deck" class="text-lg text-white">Deck: </label>
           </td>
           <td style="text-align: left;padding-right: 20px;">
-            <select
-              id="deck"
-              bind:value={selectedDeck}
-              class="bg-black text-white p-2 rounded-lg"
-            >
-              <option value="default">Default Deck</option>
+            <select id="deck" class="bg-black text-white p-2 rounded-lg">
+              <option value="default">1</option>
             </select>
-          </td>
+          </td> -->
         </tr>
         <tr>
           <td style="text-align: left;padding-right: 20px;">
@@ -189,9 +266,12 @@
         Iniciar Partida
       </button>
     </form>
-  {:else if gameStatus === GAME_STATUS.NOT_STARTED}
-    <!-- Guest lobby waiting -->
-    <h1 class="text-3xl text-white mb-4">Jugadores</h1>
+  {:else if (data.isHost && isPreRound) || isOptionRefill}
+    <h1 class="text-4xl text-white font-bold text-center">Cargando...</h1>
+  {:else if isNotStarted}
+    <h1 class="text-4xl text-white font-bold text-center mb-[1em]">
+      Sala de espera
+    </h1>
     <div class="flex flex-col items-left mb-4 space-y-4">
       {#each $players as player}
         <div class="flex items-center space-x-4">
@@ -205,18 +285,20 @@
               }}
               class="form-checkbox text-black w-6 h-6"
             />
-          {:else}
+          {:else if player.ready}
             <input
               type="checkbox"
               class="form-checkbox text-black w-6 h-6"
               checked={player.ready}
               disabled
             />
+          {:else}
+            <span class="text-white text-xl">X</span>
           {/if}
         </div>
       {/each}
     </div>
-    <h1 class="text-3xl text-white mb-4">Configuración de la partida</h1>
+    <h2 class="text-2xl text-white mb-4">Configuración de la partida</h2>
     <form
       on:submit|preventDefault={startGame}
       class="flex flex-col items-center space-y-4 mb-8"
@@ -251,7 +333,7 @@
               type="number"
               id="timer"
               bind:value={timer}
-              min="15"
+              min="1"
               max="30"
               class="bg-black text-white p-2 rounded-lg"
               readonly
@@ -265,7 +347,6 @@
           <td style="text-align: left;padding-right: 20px;">
             <select
               id="deck"
-              bind:value={selectedDeck}
               class="bg-black text-white p-2 rounded-lg"
               disabled
             >
@@ -293,64 +374,94 @@
         </tr>
       </table>
     </form>
-
-    <PlayerMenu />
-  {:else if gameStatus === GAME_STATUS.CHOOSING_OPTION}
-    <!-- On Game -->
-    <h1 class="text-3xl text-white mb-4">Partida</h1>
+  {:else if isChoosingOption}
+    <h1 class="text-4xl text-white font-bold text-center mb-[1em]">A jugar!</h1>
+    <div
+      class="flex items-center justify-center w-20 h-20 rounded-full bg-white mb-4"
+    >
+      <p class="text-center text-black text-3xl">{timer}</p>
+    </div>
     <div class="flex justify-center items-center w-128">
       <div
         class="card bg-black border-white border-2 p-4 rounded-lg"
-        style="width: 50%; aspect-ratio: 2 / 3;"
+        style="width: 300px; height: 400px;"
       >
-        <p class="text-white text-xxl">
-          “{incompletePhrase}
-          {selectedWord}“
+        <p class="text-white text-center text-2xl mt-6">
+          {`“${filledPhrase}“`}
         </p>
       </div>
     </div>
-    <div class="flex flex-col items-center mt-4 overflow-auto h-32">
-      {#each wordList as word (word)}
+    <div class="flex flex-col items-center mt-4 h-32">
+      {#if $game.deck.type === DECK_TYPE.CHOOSE}
+        {#each options as option (option.id)}
+          <button
+            class="bg-black text-white p-2 rounded-lg mb-2"
+            on:click={() => chooseOption(option)}
+            style="cursor: pointer;"
+          >
+            {option.text}
+          </button>
+        {/each}
+      {:else}
+        <label for="freestyleCompletition" class="sr-only">Completar con</label>
+        <input
+          type="text"
+          id="freestyleCompletition"
+          class="!bg-black text-white p-2 rounded-lg mb-2 variant-outline-primary"
+          on:input={(e) => {
+            fillFreestyle(e.currentTarget.value);
+          }}
+        />
+      {/if}
+    </div>
+  {:else if isRatingPlays}
+    <h1 class="text-4xl text-white font-bold text-center mb-[1em]">
+      A puntuar!
+    </h1>
+    <div class="flex justify-center items-center w-128">
+      <div
+        class="card bg-black border-white border-2 p-4 rounded-lg"
+        style="width: 300px; height: 400px;"
+      >
+        <p class="text-white text-center text-2xl mt-6">
+          {`“${filledPhrase}“`}
+        </p>
+      </div>
+    </div>
+    {#if !voted}
+      <div class="flex justify-center mt-4">
         <button
-          class="bg-black text-white p-2 rounded-lg mb-2"
-          on:click={() => selectWord(word)}
-          style="cursor: pointer;"
+          class="mx-2 p-4 text-3xl"
+          on:click={() => vote(PLAYER_RATING.GOOD)}>👍</button
         >
-          {word}
-        </button>
-      {/each}
-    </div>
-    <p class="m-4">Tiempo restante: {timer} segundos</p>
-  {:else if gameStatus === GAME_STATUS.RATING_PLAYS}
-    <!-- Voting -->
-    <h1 class="text-3xl text-white mb-4">Puntuar</h1>
-    <div class="flex justify-center items-center w-128">
-      <div
-        class="card bg-black border-white border-2 p-4 rounded-lg"
-        style="width: 50%; aspect-ratio: 2 / 3;"
-      >
-        <p class="text-white text-xxl">
-          “El doctor me dijo que mi enfermedad no tiene cura culpa de {selectedWord}“
-        </p>
+        <button
+          class="mx-2 p-4 text-3xl"
+          on:click={() => vote(PLAYER_RATING.MEH)}>😐</button
+        >
+        <button
+          class="mx-2 p-4 text-3xl"
+          on:click={() => vote(PLAYER_RATING.BAD)}>👎</button
+        >
       </div>
-    </div>
-    <div class="flex justify-center mt-4">
-      <button class="mx-2 p-4 text-3xl" on:click={() => vote("like")}>👍</button
-      >
-      <button class="mx-2 p-4 text-3xl" on:click={() => vote("meh")}>😐</button>
-      <button class="mx-2 p-4 text-3xl" on:click={() => vote("dislike")}
-        >👎</button
-      >
-    </div>
-  {:else if gameStatus === GAME_STATUS.ROUND_WINNER}
-    <!-- Leaderboard -->
-    <h1 class="text-3xl text-white mb-4">Tabla de puntajes</h1>
-    {#each $roomUsers as player}
+    {/if}
+  {:else if isRoundWinner}
+    <h1 class="text-4xl text-white font-bold text-center mb-[1em]">
+      Ganador de la ronda!
+    </h1>
+  {:else if isScoreboard}
+    <h1 class="text-4xl text-white font-bold text-center mb-[1em]">
+      Tabla de puntajes Final
+    </h1>
+    {#each $players as player}
       <div class="flex items-center space-x-4">
         <div class="w-10 h-10 rounded-full bg-white"></div>
         <div class="text-lg text-white">{player.name}</div>
-        <!-- <div class="text-lg text-white">{player.score}</div> -->
+        <div class="text-lg text-white">{player.totalScore}</div>
       </div>
     {/each}
+  {:else}
+    <h1 class="text-4xl text-white font-bold text-center mb-[1em]">
+      Esperando... {dev ? gameStatus : ''}
+    </h1>
   {/if}
-</div>
+</main>
