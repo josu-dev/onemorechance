@@ -12,6 +12,7 @@ function createAvailableDecksStore() {
             return {
                 id: deck.id,
                 name: deck.name,
+                type: deck.type,
             };
         });
         set(decks);

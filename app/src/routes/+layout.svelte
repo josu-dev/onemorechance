@@ -1,11 +1,10 @@
 <script lang="ts">
   import { dev } from '$app/environment';
+  import AudioPlayer from '$lib/components/AudioPlayer.svelte';
   import HyperDebug, { debugEnabled } from '$lib/components/HyperDebug.svelte';
   import { defineCommand } from 'svelte-hypercommands';
   import CommandPalette from 'svelte-hypercommands/CommandPalette.svelte';
   import '../app.pcss';
-  import AudioPlayer from "$lib/components/AudioPlayer.svelte";
-  import { isPlaying } from '$lib/stores/music'; 
 
   const globalCommands = defineCommand([
     {
@@ -25,6 +24,7 @@
   <CommandPalette commands={globalCommands} />
   <HyperDebug />
 {/if}
-<AudioPlayer/>
+
+<AudioPlayer />
 
 <slot />

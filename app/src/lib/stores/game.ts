@@ -16,6 +16,7 @@ const FALLBACK_GAME: Game = {
     deck: {
         id: '',
         name: '',
+        type: 'COMPLETE',
     },
     phrase: {
         id: '',
