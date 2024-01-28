@@ -56,4 +56,4 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             cd /home/${{ secrets.USER }}/www/omc
-            docker compose -f omc.docker-compose.yml up -d --build --force-recreate
+            docker compose -f omc.docker-compose.yml up -d --pull --build
