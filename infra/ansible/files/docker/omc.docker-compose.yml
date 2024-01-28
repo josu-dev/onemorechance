@@ -1,0 +1,11 @@
+version: '3.8'
+
+services:
+  one_more_chance:
+    container_name: onemorechance_app
+    image: dyallo/onemorechance:latest
+    restart: always
+    ports:
+      - ${PORT}:${PORT}
+    env_file:
+      - .env
