@@ -1,8 +1,8 @@
 import type { IncomingMessage, Server, ServerResponse } from "http";
 import { customRandom, nanoid, random } from 'nanoid';
 import { Server as ioServer } from "socket.io";
-import { GAME } from './src/lib/defaults.js';
-import { GAME_STATUS, ROOM_STATUS } from './src/lib/enums.js';
+import { GAME } from '../src/lib/defaults.js';
+import { GAME_STATUS, ROOM_STATUS } from '../src/lib/enums.js';
 import type {
     ClientToServerEvents,
     Deck,
@@ -13,8 +13,8 @@ import type {
     ServerToClientEvents,
     SocketData,
     User
-} from "./src/types.js";
-import decks from './static/decks/default.json';
+} from "../src/types.js";
+import decks from '../static/decks/default.json';
 
 
 const randomRoomId = customRandom('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz', 6, random);
@@ -276,6 +276,20 @@ export function attach_sockets(
             }
 
             socket.leave(room.id);
+        });
+
+        socket.on('update_room_deck', ({ roomId, deckId }) => {
+            const room = rooms.get(roomId);
+            const deck = decks[deckId];
+            if (!room || !deck) {
+                return;
+            }
+
+            room.game.deck = {
+                id: deck.id,
+                name: deck.name,
+            };
+            io.to(roomId).emit('game_deck_update', room.game.deck);
         });
 
         socket.on('player_ready', ({ roomId, userId }) => {
