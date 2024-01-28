@@ -1,8 +1,13 @@
 <script lang="ts">
-  import { randomLettersId } from '$lib/utils';
+  import { randomLettersId } from '$lib/utils/index.js';
     import GameSettings from '$cmp/room/GameSettings.svelte';
 
   const modalId = randomLettersId();
+  
+import { getModalStore } from '@skeletonlabs/skeleton';
+			
+      const modalStore = getModalStore();
+            
 </script>
 
 <GameSettings />

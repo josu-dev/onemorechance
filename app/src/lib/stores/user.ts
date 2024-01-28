@@ -25,3 +25,8 @@ export const user = createUserStore();
 socket.on('registered', (data) => {
     user.init(data);
 });
+
+socket.on('unregistered', () => {
+    console.log('unregistered');
+    user.init(undefined);
+});

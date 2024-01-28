@@ -3,7 +3,7 @@
   import PlayerMenu from "$cmp/room/PlayerMenu.svelte";
   import { room, roomUsers } from "$lib/stores/room.js";
   import { user } from "$lib/stores/user.js";
-  import SuperDebug from "sveltekit-superforms/client/SuperDebug.svelte";
+  import { debugData } from '$lib/components/HyperDebug.svelte';
 
   export let data;
   let rounds = 5;
@@ -55,17 +55,22 @@
   }
 
   let endGame = false;
+
+  
+
+
+  debugData.set(room);
 </script>
 
 <div
   class="text-white bg-black min-h-screen flex flex-col items-center justify-center"
 >
-  {#if !$room || !$user}
+  {#if !room || !user}
     <HostMenu />
     <h1 class="mt-4 text-lg text-white">Room not found</h1>
   {:else if data.isHost && !roomState && !timerActivated}
     <h1 class="text-3xl text-white mb-4">Jugadores</h1>
-    <h2 class="text-3xl text-white mb-4">Id de la sala : {$room.id}</h2>
+    <h2 class="text-3xl text-white mb-4">Id de la sala : {$room?.id}</h2>
     <div class="flex flex-col items-left mb-4 space-y-4">
       {#each $roomUsers as player}
         <div class="flex items-center space-x-4">
@@ -205,7 +210,7 @@
       <div class="flex items-center space-x-4">
         <div class="w-10 h-10 rounded-full bg-white"></div>
         <div class="text-lg text-white">{player.name}</div>
-        <div class="text-lg text-white">{player.totalScore}</div>
+        <!-- <div class="text-lg text-white">{player.score}</div> -->
       </div>
     {/each}
   {:else}
@@ -227,4 +232,4 @@
   {/if}
 </div>
 
-<!-- <SuperDebug data={{ room: $room, players: $roomUsers }} /> -->
+

@@ -1,12 +1,41 @@
 <script lang="ts">
-  import { room } from "$lib/stores/room.js";
-  import { user } from "$lib/stores/user.js";
-  import { socket } from "$lib/ws/index.js";
+  import { room} from '$lib/stores/room.js';
+  import { user } from '$lib/stores/user.js';
+  import { socket } from '$lib/ws/index.js';
+  console.log(room)
+
+  export let data;
+
+  // if (data.name) {
+  //   registerUser({ userId: data.userId, name: data.name });
+  // }
 
   let name: string = "";
 
-  function registerUser() {
-    socket.emit("register_user", { name: name });
+  function registerUser(data: { userId?: string; name: string }) {
+    socket.emit('register_user', data);
+  }
+
+  async function signIn() {
+    // const user = await fetch('/api/user', {
+    //   method: 'POST',
+    //   headers: {
+    //     'Content-Type': 'application/json',
+    //   },
+    //   body: JSON.stringify({ name: name }),
+    // }).then((res) => res.json());
+    registerUser({name:name});
+  }
+
+  async function signOut() {
+    await fetch('/api/user', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ name: undefined, userId: undefined }),
+    });
+    socket.emit('unregister_user', { userId: user.peek?.id! });
   }
 
   function create_room() {
@@ -30,7 +59,7 @@
 
   {#if !$user}
     <form
-      on:submit|preventDefault={registerUser}
+      on:submit|preventDefault={signIn}
       class="flex flex-col items-center space-y-2"
     >
       <label for="name" class="text-lg">
