@@ -1,0 +1,9 @@
+export const GAME_STATUS = {
+    NOT_STARTED: 'NOT_STARTED',
+    WAITING_TO_START: 'WAITING_TO_START',
+    IN_PROGRESS: 'IN_PROGRESS',
+    ROUND_ENDED: 'ROUND_ENDED',
+    FINISHED: 'FINISHED',
+};
+
+export type GameStatus = keyof typeof GAME_STATUS;

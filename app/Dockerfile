@@ -1,20 +1,16 @@
-FROM node:current-alpine3.18 AS builder
+FROM node:current-alpine3.18
+
 WORKDIR /app
 COPY package*.json .
 RUN npm ci --ignore-scripts
 COPY . .
 RUN npm run build
-RUN npm prune --production
 
-FROM node:current-alpine3.18 AS runner
-WORKDIR /app
-COPY --from=builder /app/build build/
-COPY --from=builder /app/node_modules node_modules/
-COPY package.json .
-
-ENV PORT 3000
-ENV NODE_ENV=production
+ARG PORT 5173
+ENV PORT ${PORT}
+ENV NODE_ENV production
 
 EXPOSE ${PORT}
 
-CMD [ "node", "build" ]
+## I know this is not the best, but no time left
+CMD [ "npm", "run", "dev:start" ]

@@ -3,9 +3,7 @@ version: '3.8'
 services:
   one_more_chance:
     container_name: onemorechance_app
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: dyallo/onemorechance:latest
     restart: always
     ports:
       - ${PORT}:${PORT}

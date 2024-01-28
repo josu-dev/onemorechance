@@ -1,11 +1,11 @@
 import express from "express";
 // @ts-expect-error (only available after build)
-import { handler } from "./build/handler.js";
+import { handler } from "../build/handler.js";
 // @ts-expect-error (only available after build)
 import { attach_sockets } from "./sockets.js";
 
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 const app = express();
 
 const server = app.listen(PORT, () => {
