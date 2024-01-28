@@ -1,8 +1,8 @@
 import type { IncomingMessage, Server, ServerResponse } from "http";
 import { customRandom, nanoid, random } from 'nanoid';
 import { Server as ioServer } from "socket.io";
-import { GAME } from './src/lib/defaults.js';
-import { GAME_STATUS, ROOM_STATUS } from './src/lib/enums.js';
+import { GAME } from '../src/lib/defaults.js';
+import { GAME_STATUS, ROOM_STATUS } from '../src/lib/enums.js';
 import type {
     ClientToServerEvents,
     Deck,
@@ -13,8 +13,8 @@ import type {
     ServerToClientEvents,
     SocketData,
     User
-} from "./src/types.js";
-import decks from './static/decks/default.json';
+} from "../src/types.js";
+import decks from '../static/decks/default.json';
 
 
 const randomRoomId = customRandom('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz', 6, random);
@@ -23,73 +23,68 @@ const users = new Map<string, User>();
 
 const rooms = new Map<string, Room>();
 
-// type IoServer = ioServer<
-//     ClientToServerEvents,
-//     ServerToClientEvents,
-//     InterServerEvents,
-//     SocketData
-// >;
+type IoServer = ioServer<
+    ClientToServerEvents,
+    ServerToClientEvents,
+    InterServerEvents,
+    SocketData
+>;
 
-// function newRound(io: IoServer, room: Room) {
-//     const room = rooms.get(roomId);
-//     const user = users.get(userId);
-//     if (!room || !user) {
-//         return;
-//     }
+function newRound(io: IoServer, room: Room, user:User) {
 
-//     const player = room.game.players.find(p => p.userId === userId)!;
-//     const deck: Deck = decks[room.game.deck.id];
-//     for (let i = 0; i < options; i++) {
-//         let option = deck.options[Math.floor(Math.random() * deck.options.length)]!;
-//         while (room.game.usedOptions.includes(option.id)) {
-//             option = deck.options[Math.floor(Math.random() * deck.options.length)]!;
-//         }
-//         player.options.push(option);
-//         room.game.usedOptions.push(option.id);
-//     }
+    const player = room.game.players.find(p => p.userId === userId)!;
+    const deck: Deck = decks[room.game.deck.id];
+    for (let i = 0; i < options; i++) {
+        let option = deck.options[Math.floor(Math.random() * deck.options.length)]!;
+        while (room.game.usedOptions.includes(option.id)) {
+            option = deck.options[Math.floor(Math.random() * deck.options.length)]!;
+        }
+        player.options.push(option);
+        room.game.usedOptions.push(option.id);
+    }
 
-//     room.readyCount += 1;
-//     socket.emit('updated_round', room.game);
-//     if (room.readyCount === room.users.length) {
-//         room.readyCount = 0;
-//         room.game.status = GAME_STATUS.CHOOSING_OPTION;
-//         io.to(roomId).emit('game_status_update', { status: room.game.status });
+    room.readyCount += 1;
+    socket.emit('updated_round', room.game);
+    if (room.readyCount === room.users.length) {
+        room.readyCount = 0;
+        room.game.status = GAME_STATUS.CHOOSING_OPTION;
+        io.to(roomId).emit('game_status_update', { status: room.game.status });
 
-//         setTimeout(() => {
-//             room.game.status = GAME_STATUS.CHOOSING_OPTION;
-//             io.to(roomId).emit('selection_end', room.game);
+        setTimeout(() => {
+            room.game.status = GAME_STATUS.CHOOSING_OPTION;
+            io.to(roomId).emit('selection_end', room.game);
 
-//             const playerCount = room.game.players.length;
-//             for (let i = 0; i < playerCount; i++) {
-//                 setTimeout(() => {
-//                     const player = room.game.players[i];
-//                     io.to(player.userId).emit('rate_player', { playerId: player.userId });
-//                 }, i * GAME.ROUND_RATE_TIME);
-//             }
+            const playerCount = room.game.players.length;
+            for (let i = 0; i < playerCount; i++) {
+                setTimeout(() => {
+                    const player = room.game.players[i];
+                    io.to(player.userId).emit('rate_player', { playerId: player.userId });
+                }, i * GAME.ROUND_RATE_TIME);
+            }
 
-//             setTimeout(() => {
-//                 room.game.status = GAME_STATUS.ROUND_WINNER;
-//                 let winnerId = '';
-//                 let winnerScore = 0;
-//                 for (const player of room.game.players) {
-//                     if (player.score > winnerScore) {
-//                         winnerId = player.userId;
-//                         winnerScore = player.score;
-//                     }
-//                 }
-//                 room.game.lastWinner = winnerId;
+            setTimeout(() => {
+                room.game.status = GAME_STATUS.ROUND_WINNER;
+                let winnerId = '';
+                let winnerScore = 0;
+                for (const player of room.game.players) {
+                    if (player.score > winnerScore) {
+                        winnerId = player.userId;
+                        winnerScore = player.score;
+                    }
+                }
+                room.game.lastWinner = winnerId;
 
-//                 io.to(roomId).emit('game_status_update', { status: room.game.status });
+                io.to(roomId).emit('game_status_update', { status: room.game.status });
 
-//                 setTimeout(() => {
-//                     io;
+                setTimeout(() => {
+                    io;
 
-//                 }, playerCount);
-//             }, GAME.ROUND_CHOOSE_TIME);
+                }, playerCount);
+            }, GAME.ROUND_CHOOSE_TIME);
 
-//         });
-//     }
-// }
+        });
+    }
+}
 
 
 
@@ -198,8 +193,8 @@ export function attach_sockets(
                     maxOptions: GAME.OPTIONS,
                     round: 0,
                     deck: {
-                        id: 'default',
-                        name: 'Default',
+                        id: '1',
+                        name: 'Humor negro',
                     },
                     phrase: {
                         id: 'default',
@@ -278,6 +273,21 @@ export function attach_sockets(
             socket.leave(room.id);
         });
 
+        socket.on('update_room_deck', ({ roomId, deckId }) => {
+            const room = rooms.get(roomId);
+            // @ts-ignore
+            const deck: Deck = decks[deckId];
+            if (!room || !deck) {
+                return;
+            }
+
+            room.game.deck = {
+                id: deck.id,
+                name: deck.name,
+            };
+            io.to(roomId).emit('game_deck_update', room.game.deck);
+        });
+
         socket.on('player_ready', ({ roomId, userId }) => {
             const room = rooms.get(roomId);
             if (!room) return;
@@ -311,6 +321,7 @@ export function attach_sockets(
             room.readyCount = 0;
             room.game.status = GAME_STATUS.CHOOSING_OPTION;
             room.game.round = 1;
+            // @ts-ignore
             const cards: Phrase[] = decks[room.game.deck.id].phrases;
             room.game.phrase = cards[Math.floor(Math.random() * cards.length)]!;
             io.to(roomId).emit('game_started', room.game);
@@ -339,6 +350,7 @@ export function attach_sockets(
             }
 
             const player = room.game.players.find(p => p.userId === userId)!;
+            // @ts-ignore
             const deck: Deck = decks[room.game.deck.id];
             for (let i = 0; i < options; i++) {
                 let option = deck.options[Math.floor(Math.random() * deck.options.length)]!;

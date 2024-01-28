@@ -92,6 +92,7 @@ export type ServerToClientEvents = {
     game_updated: (data: Game) => void;
     rate_player: (data: { playerId: string;}) => void;
     game_status_update: (data: { status: GameStatus; }) => void;
+    game_deck_update: (data: DeckIdentifier) => void;
 };
 
 
@@ -102,10 +103,11 @@ export type ClientToServerEvents = {
     update_room: (data: { roomId: string; data: Room; }) => void;
     join_room: (data: { roomId: string; userId: string; }) => void;
     leave_room: (data: { roomId: string; userId: string; }) => void;
+    trigger_decks_update: () => void;
+    update_room_deck: (data: { roomId: string; deckId:string; }) => void;
     player_ready: (data: { roomId: string; userId: string; }) => void;
     player_unready: (data: { roomId: string; userId: string; }) => void;
     start_game: (data: { roomId: string; userId: string; }) => void;
-    trigger_decks_update: () => void;
     get_new_round: (data: { roomId: string; userId: string; options: number; }) => void;
     option_selected: (data: { roomId: string; userId: string; option: Option; }) => void;
     player_update: (data: { roomId: string; player: Player; }) => void;

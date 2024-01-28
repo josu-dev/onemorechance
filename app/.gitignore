@@ -9,4 +9,4 @@ node_modules
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 /server/*
-!/server/index.mjs
+!/server/*.ts
