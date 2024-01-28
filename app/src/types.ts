@@ -35,6 +35,7 @@ export type Option = {
 
 
 export type DeckIdentifier = {
+    [x: string]: any;
     id: string,
     name: string,
 };
@@ -54,7 +55,7 @@ export type Game = {
     roundTime: number;
     round: number,
     deck: DeckIdentifier,
-    phase: Phrase,
+    phrase: Phrase,
     usedPhrases: string[],
     usedOptions: string[],
     players: Player[],

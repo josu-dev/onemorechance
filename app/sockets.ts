@@ -14,15 +14,11 @@ import type {
     SocketData,
     User
 } from "./src/types.js";
-import decks from './static/decks/json.json';
+import decks from './static/decks/default.json';
 
 const users = new Map<string, User>();
 
 const rooms = new Map<string, Room>();
-
-function generateStartRound(deckId: string) {
-
-}
 
 
 export function attach_sockets(
@@ -87,6 +83,10 @@ export function attach_sockets(
                     deck: {
                         id: 'default',
                         name: 'Default',
+                    },
+                    phrase: {
+                        id: 'default',
+                        text: 'Default'
                     },
                     usedPhrases: [],
                     usedOptions: [],
@@ -190,8 +190,9 @@ export function attach_sockets(
             room.readyCount = 0;
             room.game.status = GAME_STATUS.IN_PROGRESS;
             room.game.round = 1;
+            // @ts-expect-error the indexing is fine
             const cards: Phrase[] = decks[room.game.deck.id].phrases;
-            room.game.phase = cards[Math.floor(Math.random() * cards.length)]!;
+            room.game.phrase = cards[Math.floor(Math.random() * cards.length)]!;
             io.to(roomId).emit('game_started', room.game);
         });
 
@@ -212,6 +213,7 @@ export function attach_sockets(
             }
 
             const player = room.game.players.find(p => p.userId === userId)!;
+            // @ts-expect-error the indexing is fine
             const deck: Deck = decks[room.game.deck.id];
             for (let i = 0; i < options; i++) {
                 let option = deck.options[Math.floor(Math.random() * deck.options.length)]!;
