@@ -23,6 +23,10 @@
     debugData.set(room);
   }
 
+  $: pageTitle = `${
+    $room?.status === 'PLAYING' ? 'Jugando' : 'Sala de espera'
+  } - One More Chance`;
+
   let rounds = GAME.ROUNDS;
   let timer = GAME.ROUND_CHOOSE_TIME / 1000;
   let numOptions = GAME.OPTIONS;
@@ -57,14 +61,14 @@
 
   $: options = $game.players.find((p) => p.userId === $user?.id)?.options ?? [];
 
-  let selectedOption = { text: undefined };
-  let freestyleText: string | undefined = "";
+  let selectedOption: Partial<Option> = { text: undefined };
+  let freestyleText: string | undefined = '';
   function fillFreestyle(text: string) {
     freestyleText = text;
     g.setFreestyle([text]);
   }
 
-  $: filledPhrase = basePhrase + (freestyleText ?? selectedOption.text ?? "");
+  $: filledPhrase = basePhrase + (freestyleText ?? selectedOption.text ?? '');
 
   function confirmPlayer(checked: boolean) {
     if (checked) {
@@ -120,25 +124,23 @@
   function chooseOption(option: Option) {
     selectedOption = option;
   }
-
-  let buttonText = "Copiar";
-  function copy() {
-    buttonText = "Copiado! 👍";
-    setTimeout(() => {
-      buttonText = "Copiar";
-    }, 2000);
-  }
 </script>
 
-<div
-  class="text-white bg-black min-h-screen flex flex-col items-center justify-center"
+<svelte:head>
+  <title>{pageTitle}</title>
+</svelte:head>
+
+<main
+  class="h-full flex flex-col items-center justify-center overflow-y-auto p-1"
 >
   {#if !$room || !$user}
-    <h1 class="mt-4 text-lg text-white">
+    <h1 class="text-4xl text-white font-bold text-center">
       Room not found, you shouldnt be seeing this 😅
     </h1>
   {:else if data.isHost && isNotStarted}
-    <h1 class="text-3xl text-white mb-4">Jugadores</h1>
+    <h1 class="text-4xl text-white font-bold text-center mb-[1em]">
+      Lobby de la sala
+    </h1>
 
     <div
       class="previewer-preview flex justify-center items-center mx-auto transition-[width] duration-200 w-full"
@@ -150,8 +152,13 @@
       <button
         class="btn variant-filled text-white bg-black rounded-lg ml-4"
         style="box-shadow: 0 0 0 2px white;"
-        on:click={copy}
-        use:clipboard={$room.id}>{buttonText}</button
+        on:click={(event) => {
+          event.currentTarget.textContent = 'Copiado! 👍';
+          setTimeout(() => {
+            event.currentTarget.textContent = 'Copiar';
+          }, 2000);
+        }}
+        use:clipboard={$room.id}>Copiar</button
       >
     </div>
 
@@ -183,7 +190,7 @@
       {/each}
     </div>
 
-    <h1 class="text-3xl text-white mb-4">Configuración de la partida</h1>
+    <h2 class="text-2xl text-white mb-4">Configuración de la partida</h2>
     <form
       on:submit|preventDefault={startGame}
       class="flex flex-col items-center space-y-4 mb-8"
@@ -260,11 +267,11 @@
       </button>
     </form>
   {:else if (data.isHost && isPreRound) || isOptionRefill}
-    <!-- Host lobby waiting -->
-    <h1 class="text-3xl text-white mb-4">Esperando....</h1>
+    <h1 class="text-4xl text-white font-bold text-center">Cargando...</h1>
   {:else if isNotStarted}
-    <!-- Guest lobby waiting -->
-    <h1 class="text-3xl text-white mb-4">Jugadores</h1>
+    <h1 class="text-4xl text-white font-bold text-center mb-[1em]">
+      Sala de espera
+    </h1>
     <div class="flex flex-col items-left mb-4 space-y-4">
       {#each $players as player}
         <div class="flex items-center space-x-4">
@@ -291,7 +298,7 @@
         </div>
       {/each}
     </div>
-    <h1 class="text-3xl text-white mb-4">Configuración de la partida</h1>
+    <h2 class="text-2xl text-white mb-4">Configuración de la partida</h2>
     <form
       on:submit|preventDefault={startGame}
       class="flex flex-col items-center space-y-4 mb-8"
@@ -368,7 +375,7 @@
       </table>
     </form>
   {:else if isChoosingOption}
-    <h1 class="text-3xl text-white mb-4">Partida</h1>
+    <h1 class="text-4xl text-white font-bold text-center mb-[1em]">A jugar!</h1>
     <div
       class="flex items-center justify-center w-20 h-20 rounded-full bg-white mb-4"
     >
@@ -408,7 +415,9 @@
       {/if}
     </div>
   {:else if isRatingPlays}
-    <h1 class="text-3xl text-white mb-4">Puntuar</h1>
+    <h1 class="text-4xl text-white font-bold text-center mb-[1em]">
+      A puntuar!
+    </h1>
     <div class="flex justify-center items-center w-128">
       <div
         class="card bg-black border-white border-2 p-4 rounded-lg"
@@ -435,8 +444,14 @@
         >
       </div>
     {/if}
+  {:else if isRoundWinner}
+    <h1 class="text-4xl text-white font-bold text-center mb-[1em]">
+      Ganador de la ronda!
+    </h1>
   {:else if isScoreboard}
-    <h1 class="text-3xl text-white mb-4">Tabla de puntajes</h1>
+    <h1 class="text-4xl text-white font-bold text-center mb-[1em]">
+      Tabla de puntajes Final
+    </h1>
     {#each $players as player}
       <div class="flex items-center space-x-4">
         <div class="w-10 h-10 rounded-full bg-white"></div>
@@ -445,6 +460,8 @@
       </div>
     {/each}
   {:else}
-    <h1 class="text-3xl text-white mb-4">Esperando... {gameStatus}</h1>
+    <h1 class="text-4xl text-white font-bold text-center mb-[1em]">
+      Esperando... {dev ? gameStatus : ''}
+    </h1>
   {/if}
-</div>
+</main>
