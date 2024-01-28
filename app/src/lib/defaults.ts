@@ -5,4 +5,5 @@ export const GAME = {
     OPTIONS: 5,
     ROUND_RESULTS_TIME: 10 * 1000,
     ROUND_RATE_TIME: 15 * 1000,
+    GAME_RESULTS_TIME: 30 * 1000,
 } as const;
