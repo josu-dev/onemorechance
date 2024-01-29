@@ -12,15 +12,15 @@ export const GAME_STATUS = {
     CHOOSING_OPTION: 'CHOOSING_OPTION',
     RATING_PLAYS: 'RATING_PLAYS',
     ROUND_WINNER: 'ROUND_WINNER',
-    OPTION_REFILL: 'OPTION_REFILL',
+    POST_ROUND: 'POST_ROUND',
     SCOREBOARD: 'SCOREBOARD',
-    FINISHED: 'FINISHED',
+    ENDED: 'ENDED',
 } as const;
 
 export type GameStatus = typeof GAME_STATUS[keyof typeof GAME_STATUS];
 
 export const PLAYER_RATING = {
-    GOOD: 'GOOD',
+    GOD: 'GOOD',
     MEH: 'MEH',
     BAD: 'BAD',
 } as const;

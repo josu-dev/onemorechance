@@ -16,7 +16,7 @@ const FALLBACK_GAME: Game = {
     deck: {
         id: '',
         name: '',
-        type: 'COMPLETE',
+        type: 'CHOOSE',
     },
     phrase: {
         id: '',
@@ -47,6 +47,7 @@ function createGameStore() {
             return _game;
         },
         subscribe,
+        set,
     };
 }
 
@@ -55,6 +56,13 @@ export const game = createGameStore();
 export const players = derived(game, ($game) => {
     return $game.players;
 }, [] as Player[]);
+
+
+socket.on('rate_next_player', ({ playerId }) => {
+    const _game = game.peek;
+    _game.ratingPlayer = playerId;
+    game.set(_game);
+});
 
 
 export function isMe(player: Player) {

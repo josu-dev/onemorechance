@@ -1,9 +1,0 @@
-export const GAME = {
-    ROUNDS: 10,
-    COMPLETE_ROUND_TIME: 20 * 1000,
-    ROUND_CHOOSE_TIME: 15 * 1000,
-    OPTIONS: 5,
-    ROUND_RESULTS_TIME: 10 * 1000,
-    ROUND_RATE_TIME: 15 * 1000,
-    GAME_RESULTS_TIME: 30 * 1000,
-} as const;

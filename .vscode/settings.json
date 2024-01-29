@@ -1,5 +1,10 @@
 {
     "[json]": {
         "editor.tabSize": 2
-    }
+    },
+    "svelte.plugin.svelte.format.config.singleQuote": true,
+    "javascript.preferences.quoteStyle": "single",
+    "typescript.preferences.quoteStyle": "single",
+    "files.trimFinalNewlines": true,
+    "files.insertFinalNewline": true
 }
