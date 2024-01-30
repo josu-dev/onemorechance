@@ -28,7 +28,7 @@
   } - One More Chance`;
 
   let rounds = GAME.DEFAULT_ROUNDS;
-  let timer = GAME.DEFAULT_CHOOSE_TIME / 1000;
+  let timer = GAME.DEFAULT_SELECTION_TIME / 1000;
   let numOptions = GAME.DEFAULT_OPTIONS;
 
   let gameStatus: GameStatus = GAME_STATUS.NOT_STARTED;

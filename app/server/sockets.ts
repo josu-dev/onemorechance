@@ -121,7 +121,7 @@ function newRound(io: _IoServer, socket: _Socket, room: Room) {
                 }, GAME.DEFAULT_SCOREBOARD_TIME);
             }, GAME.DEFAULT_RESULTS_TIME);
         }, room.game.players.length * GAME.DEFAULT_RATE_TIME);
-    }, GAME.DEFAULT_CHOOSE_TIME);
+    }, GAME.DEFAULT_SELECTION_TIME);
 }
 
 
@@ -165,9 +165,9 @@ export function attach_sockets(
                 if (room.users.length === 0) {
                     rooms.delete(room.id);
                 } else {
-                    if (room.host.id === user!.id) {
-                        room.host = room.users[0];
-                        const hostPlayer = room.game.players.find(p => p.userId === room!.host.id)!;
+                    if (room.hostId.id === user!.id) {
+                        room.hostId = room.users[0];
+                        const hostPlayer = room.game.players.find(p => p.userId === room!.hostId.id)!;
                         hostPlayer.role = 'HOST';
                     }
                     io.to(room.id).emit('updated_room', room);
@@ -218,14 +218,14 @@ export function attach_sockets(
             const room: Room = {
                 id: roomId,
                 status: ROOM_STATUS.LOBBY,
-                host: user,
+                hostId: user,
                 users: [user],
                 readyCount: 0,
                 game: {
                     status: GAME_STATUS.NOT_STARTED,
                     id: nanoid(),
                     maxRounds: GAME.DEFAULT_ROUNDS,
-                    chooseTime: GAME.DEFAULT_CHOOSE_TIME,
+                    chooseTime: GAME.DEFAULT_SELECTION_TIME,
                     maxOptions: GAME.DEFAULT_OPTIONS,
                     round: 0,
                     deck: {
@@ -299,9 +299,9 @@ export function attach_sockets(
             if (room.users.length === 0) {
                 rooms.delete(room.id);
             } else {
-                if (room.host.id === user!.id) {
-                    room.host = room.users[0];
-                    const hostPlayer = room.game.players.find(p => p.userId === room!.host.id)!;
+                if (room.hostId.id === user!.id) {
+                    room.hostId = room.users[0];
+                    const hostPlayer = room.game.players.find(p => p.userId === room!.hostId.id)!;
                     hostPlayer.role = 'HOST';
                 }
                 io.to(room.id).emit('updated_room', room);
@@ -351,7 +351,7 @@ export function attach_sockets(
 
         socket.on('start_game', ({ roomId, userId }) => {
             const room = rooms.get(roomId);
-            if (!room || room.host.id !== userId) {
+            if (!room || room.hostId.id !== userId) {
                 return;
             }
 

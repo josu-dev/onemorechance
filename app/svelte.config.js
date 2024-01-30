@@ -8,7 +8,7 @@ const config = {
     kit: {
         adapter: adapter(),
         alias: {
-            $cmp: './src/lib/components',
+            $comps: './src/lib/components',
             $types: './src/types.js',
         }
     }

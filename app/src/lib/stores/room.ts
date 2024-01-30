@@ -127,7 +127,7 @@ export function setUnready() {
 
 export function startGame() {
     const userId = user.peek!.id;
-    if (room.peek?.host.id !== userId) {
+    if (room.peek?.hostId.id !== userId) {
         return;
     }
     socket.emit('start_game', { roomId: room.peek!.id, userId: userId });

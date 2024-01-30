@@ -19,6 +19,13 @@ export const GAME_STATUS = {
 
 export type GameStatus = typeof GAME_STATUS[keyof typeof GAME_STATUS];
 
+export const PLAYER_ROLE = {
+    HOST: 'HOST',
+    INVITED: 'INVITED',
+} as const;
+
+export type PlayerRole = typeof PLAYER_ROLE[keyof typeof PLAYER_ROLE];
+
 export const PLAYER_RATING = {
     GOD: 'GOOD',
     MEH: 'MEH',

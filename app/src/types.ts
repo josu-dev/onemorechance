@@ -42,6 +42,7 @@ export type DeckIdentifier = {
     id: string,
     name: string,
     type: DeckType,
+    description?: string,
 };
 
 export type DeckChoose = {
