@@ -15,7 +15,7 @@ export const load: PageLoad = async () => {
 
     updateAvailableDecks();
 
-    const isHost = user.peek?.id === _room.hostId.id;
+    const isHost = user.peek?.id === _room.host.id;
 
     return {
         isHost: isHost,
