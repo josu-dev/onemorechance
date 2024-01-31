@@ -1,35 +1,8 @@
 import { GAME } from '$lib/configs';
 import { GAME_STATUS } from '$lib/enums';
+import type { ExposedWritable } from '$lib/stores/types';
 import type { DeckIdentifier, Game, Room, User } from '$types';
-import { derived, writable, type Readable, type Writable } from 'svelte/store';
-
-
-/** Readable with its value exposed. */
-export interface ExposedReadable<T> extends Readable<T> {
-    /**
-     * Exposed value.
-     */
-    get value(): T;
-
-    /**
-     * Manually sync the value with the store to trigger updates.
-     */
-    sync(): void;
-}
-
-/** Writable with its value exposed. */
-export interface ExposedWritable<T> extends Writable<T> {
-    /**
-     * Exposed value.
-     */
-    get value(): T;
-
-    /**
-     * Manually sync the value with the store to trigger updates.
-     */
-    sync(): void;
-}
-
+import { derived, writable } from 'svelte/store';
 
 const INITIAL_USER: User = {
     id: '1',
@@ -52,12 +25,12 @@ const INITIAL_GAME: Game = {
     round: 0,
     deck: {
         id: '2',
-        name: 'No me acuerdo',
+        name: 'Refranes inventados',
         type: 'COMPLETE',
     },
     phrase: {
         id: '1',
-        text: '2313123123123',
+        text: 'Nunca saldría con alguien que le guste {{}}',
     },
     usedPhrases: [],
     usedOptions: [],

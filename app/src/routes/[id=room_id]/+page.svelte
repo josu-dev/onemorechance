@@ -45,10 +45,10 @@
     gameStatus = $game.status;
     isNotStarted = gameStatus === GAME_STATUS.NOT_STARTED;
     isPreRound = gameStatus === GAME_STATUS.PRE_ROUND;
-    isChoosingOption = gameStatus === GAME_STATUS.CHOOSING_OPTION;
-    isRatingPlays = gameStatus === GAME_STATUS.RATING_PLAYS;
+    isChoosingOption = gameStatus === GAME_STATUS.FILL_SENTENCE;
+    isRatingPlays = gameStatus === GAME_STATUS.RATE_SENTENCE;
     isRoundWinner = gameStatus === GAME_STATUS.ROUND_WINNER;
-    isOptionRefill = gameStatus === GAME_STATUS.POST_ROUND;
+    isOptionRefill = gameStatus === GAME_STATUS.POS_ROUND;
     isScoreboard = gameStatus === GAME_STATUS.SCOREBOARD;
     isEnded = gameStatus === GAME_STATUS.ENDED;
   }

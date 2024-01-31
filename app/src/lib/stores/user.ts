@@ -1,4 +1,4 @@
-import { socket } from '$lib/ws';
+import { socket } from '$lib/ws.js';
 import type { User } from '$types';
 import { writable } from 'svelte/store';
 

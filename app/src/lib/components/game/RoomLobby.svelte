@@ -1,15 +1,14 @@
 <script lang="ts">
   import CopyButton from '$comps/shared/CopyButton.svelte';
   import { GAME } from '$lib/configs';
-  import * as _state from '$lib/dev/state.js';
   import { DECK_TYPE, PLAYER_ROLE } from '$lib/enums.js';
+  import type { ExposedWritable, Readable } from '$lib/stores/types';
   import type { DeckIdentifier, Game, Player, Room, User } from '$types';
   import { createEventDispatcher } from 'svelte';
-  import type { Readable } from 'svelte/store';
 
-  export let user: _state.ExposedWritable<User>;
-  export let room: _state.ExposedWritable<Room>;
-  export let game: _state.ExposedWritable<Game>;
+  export let user: ExposedWritable<User>;
+  export let room: ExposedWritable<Room>;
+  export let game: ExposedWritable<Game>;
   export let players: Readable<Player[]>;
   export let availableDecks: Readable<DeckIdentifier[]>;
 

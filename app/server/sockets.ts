@@ -71,11 +71,11 @@ function newRound(io: _IoServer, socket: _Socket, room: Room) {
         }
     }
 
-    room.game.status = GAME_STATUS.CHOOSING_OPTION;
+    room.game.status = GAME_STATUS.FILL_SENTENCE;
     io.to(room.id).emit('game_updated', room.game);
 
     setTimeout(() => {
-        room.game.status = GAME_STATUS.RATING_PLAYS;
+        room.game.status = GAME_STATUS.RATE_SENTENCE;
         io.to(room.id).emit('game_updated', room.game);
 
         const playerCount = room.game.players.length;
@@ -165,9 +165,9 @@ export function attach_sockets(
                 if (room.users.length === 0) {
                     rooms.delete(room.id);
                 } else {
-                    if (room.hostId.id === user!.id) {
-                        room.hostId = room.users[0];
-                        const hostPlayer = room.game.players.find(p => p.userId === room!.hostId.id)!;
+                    if (room.host.id === user!.id) {
+                        room.host = room.users[0];
+                        const hostPlayer = room.game.players.find(p => p.userId === room!.host.id)!;
                         hostPlayer.role = 'HOST';
                     }
                     io.to(room.id).emit('updated_room', room);
@@ -218,7 +218,7 @@ export function attach_sockets(
             const room: Room = {
                 id: roomId,
                 status: ROOM_STATUS.LOBBY,
-                hostId: user,
+                host: user,
                 users: [user],
                 readyCount: 0,
                 game: {
@@ -299,9 +299,9 @@ export function attach_sockets(
             if (room.users.length === 0) {
                 rooms.delete(room.id);
             } else {
-                if (room.hostId.id === user!.id) {
-                    room.hostId = room.users[0];
-                    const hostPlayer = room.game.players.find(p => p.userId === room!.hostId.id)!;
+                if (room.host.id === user!.id) {
+                    room.host = room.users[0];
+                    const hostPlayer = room.game.players.find(p => p.userId === room!.host.id)!;
                     hostPlayer.role = 'HOST';
                 }
                 io.to(room.id).emit('updated_room', room);
@@ -351,7 +351,7 @@ export function attach_sockets(
 
         socket.on('start_game', ({ roomId, userId }) => {
             const room = rooms.get(roomId);
-            if (!room || room.hostId.id !== userId) {
+            if (!room || room.host.id !== userId) {
                 return;
             }
 

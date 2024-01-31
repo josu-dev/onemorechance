@@ -1,5 +1,5 @@
 import { goto } from '$app/navigation';
-import { socket } from '$lib/ws';
+import { socket } from '$lib/ws.js';
 import type { Room, User } from '$types';
 import { derived, writable } from 'svelte/store';
 import { user } from './user';
@@ -127,7 +127,7 @@ export function setUnready() {
 
 export function startGame() {
     const userId = user.peek!.id;
-    if (room.peek?.hostId.id !== userId) {
+    if (room.peek?.host.id !== userId) {
         return;
     }
     socket.emit('start_game', { roomId: room.peek!.id, userId: userId });

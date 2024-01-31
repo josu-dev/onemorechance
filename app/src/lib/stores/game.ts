@@ -1,5 +1,5 @@
 import { GAME_STATUS, type PlayerRating } from '$lib/enums';
-import { socket } from '$lib/ws';
+import { socket } from '$lib/ws.js';
 import type { Game, Option, Player } from '$types';
 import { derived, writable } from 'svelte/store';
 import { room } from './room';
