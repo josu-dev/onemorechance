@@ -4,6 +4,7 @@
   import GameLobby from '$comps/game/GameLobby.svelte';
   import GameRateSentence from '$comps/game/GameRateSentence.svelte';
   import GameScoreboard from '$comps/game/GameScoreboard.svelte';
+  import { GAME } from '$lib/configs.js';
   import {
     availibleDecks as availableDecks,
     game,
@@ -19,19 +20,26 @@
 
   // export let data;
 
+  function emulateRateSentence() {
+    setGameStatus(GAME_STATUS.RATE_SENTENCE);
+
+    for (let i = 0; i < $game.players.length; i++) {
+      setTimeout(
+        (id) => {
+          game.value.ratingPlayer = id;
+          game.sync();
+        },
+        i * GAME.DEFAULT_RATE_TIME,
+        $game.players[i].userId,
+      );
+    }
+  }
+
   onMount(() => {
     debugData.set(room);
     // setGameStatus(GAME_STATUS.FILL_SENTENCE);
 
     const cmdCleanup = helpers.registerCommand([
-      ...Object.keys(GAME_STATUS).map((key) => ({
-        category: 'Game Status',
-        name: key.toLowerCase().split('_').join(' '),
-        description: `Set game status to ${key}`,
-        onAction: () => {
-          setGameStatus(GAME_STATUS[key as GameStatus]);
-        },
-      })),
       {
         name: 'Toggle player role',
         description: "Toggle current player's role",
@@ -42,6 +50,28 @@
           _user.id = _user.id === '1' ? '3' : '1';
           user.sync();
         },
+      },
+      {
+        category: 'GS',
+        name: 'Not Started',
+        description: `Set game status to ${GAME_STATUS.NOT_STARTED}`,
+        onAction: () => {
+          setGameStatus(GAME_STATUS.NOT_STARTED);
+        },
+      },
+      {
+        category: 'GS',
+        name: 'Fill Sentence',
+        description: `Set game status to ${GAME_STATUS.FILL_SENTENCE}`,
+        onAction: () => {
+          setGameStatus(GAME_STATUS.FILL_SENTENCE);
+        },
+      },
+      {
+        category: 'GS',
+        name: 'Rate Sentence',
+        description: `Set game status to ${GAME_STATUS.RATE_SENTENCE}`,
+        onAction: emulateRateSentence,
       },
     ]);
 

@@ -1,26 +1,36 @@
 <script lang="ts">
-  import { PLAYER_RATING, type PlayerRating } from '$lib/enums.js';
+  import {
+    DECK_TYPE,
+    PLAYER_RATING,
+    type DeckType,
+    type PlayerRating,
+  } from '$lib/enums.js';
   import { audioPlayer } from '$lib/stores/audio';
   import type { ExposedWritable, Readable } from '$lib/stores/types';
-  import type { Game, Option } from '$types';
+  import type { Game } from '$types';
   import { createEventDispatcher } from 'svelte';
 
   export let game: ExposedWritable<Game>;
   export let players: Readable<Game['players']>;
 
-  let basePhrase = $game.phrase;
-  let emptyPhrase = basePhrase.text.replace(/{{}}/g, '...');
+  function fillSentence(
+    sentence: string,
+    type: DeckType,
+    option?: string,
+    freestyle?: string,
+  ) {
+    if (type === DECK_TYPE.CHOOSE) {
+      if (!option) {
+        return sentence.replace(/{{}}/g, '...');
+      }
+      return sentence.replace(/{{}}/g, option);
+    }
 
-  let options: Option[] = [];
-  let option: string | undefined = undefined;
-  $: filledOptions =
-    (option && basePhrase.text.replace(/{{}}/g, option)) ?? undefined;
-
-  let freestyle: string | undefined = undefined;
-  $: filledFreestyle =
-    (freestyle && basePhrase.text.replace(/{{}}/g, freestyle)) ?? undefined;
-
-  $: filledPhrase = filledOptions || filledFreestyle || emptyPhrase;
+    if (!freestyle) {
+      return sentence.replace(/{{}}/g, '...');
+    }
+    return sentence.replace(/{{}}/g, freestyle);
+  }
 
   const dispatch = createEventDispatcher<{
     rate: {
@@ -54,11 +64,11 @@
 <section
   class="flex flex-1 flex-col justify-center items-center text-fuchsia-200"
 >
-  <header class="flex flex-col text-center mb-4 md:mb-12">
+  <header class="flex flex-col text-center mb-4 md:mb-8">
     <h2 class="text-4xl text-white font-bold mb-1 md:mb-3">Puntua la frase</h2>
   </header>
 
-  <div class="flex flex-col gap-4 md:flex-row md:gap-16 md:justify-around">
+  <div class="flex flex-col gap-4 md:gap-8 md:justify-around">
     <div class="flex flex-col items-center">
       {#each $players as player (player.userId)}
         {#if player.userId === $game.ratingPlayer}
@@ -67,24 +77,29 @@
             style="width: 300px; height: 400px;"
           >
             <p class="text-white text-center text-2xl mt-6">
-              “{filledPhrase}“
+              “{fillSentence(
+                $game.phrase.text,
+                $game.deck.type,
+                player.selectedOption?.text,
+                player.freestyle?.[0],
+              )}“
             </p>
           </div>
         {/if}
       {/each}
     </div>
 
-    <div class="flex flex-col items-center">
+    <div class="flex items-center justify-center gap-6 text-3xl md:gap-10">
       <button
-        class="mx-2 p-4 text-3xl"
+        class="p-1 rounded-full"
         on:click={() => dispatchRate(PLAYER_RATING.GOD)}>🤣</button
       >
       <button
-        class="mx-2 p-4 text-3xl"
+        class="p-1 rounded-full"
         on:click={() => dispatchRate(PLAYER_RATING.MEH)}>😐</button
       >
       <button
-        class="mx-2 p-4 text-3xl"
+        class="p-1 rounded-full"
         on:click={() => dispatchRate(PLAYER_RATING.BAD)}>🤮</button
       >
     </div>

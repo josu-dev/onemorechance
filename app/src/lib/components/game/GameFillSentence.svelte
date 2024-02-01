@@ -1,5 +1,6 @@
 <script lang="ts">
   import { DECK_TYPE } from '$lib/enums.js';
+  import { audioPlayer } from '$lib/stores/audio';
   import type { ExposedWritable } from '$lib/stores/types';
   import { debounced } from '$lib/utils/client/functions';
   import type { Game, Option } from '$types';
@@ -35,7 +36,10 @@
   function update() {
     if (elapsed < duration) {
       timeoutId = setTimeout(update, TIMER_UPDATE_RATE);
+    } else {
+      audioPlayer.play('sfx_round.mp3');
     }
+
     const time = window.performance.now();
     elapsed += Math.min(time - last_time, duration - elapsed);
     last_time = time;
@@ -76,7 +80,7 @@
 <section
   class="flex flex-1 flex-col justify-center items-center text-fuchsia-200"
 >
-  <header class="flex flex-col text-center mb-4 md:mb-12">
+  <header class="flex flex-col text-center mb-4 md:mb-8">
     <h2 class="text-4xl text-white font-bold mb-1 md:mb-3">
       Completa la frase
     </h2>

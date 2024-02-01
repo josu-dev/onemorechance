@@ -3,13 +3,13 @@ import type { Readable } from './types';
 
 const audioLocation = '/audio/';
 
-type ValidAudios = 'music_lobby.mp3' | 'sfx_abucheo.mp3' | 'sfx_aplauso.mp3' | 'sfx_meh.mp3' | 'sfx_round.mp3';
+type ValidTracks = 'music_lobby.mp3' | 'sfx_abucheo.mp3' | 'sfx_aplauso.mp3' | 'sfx_meh.mp3' | 'sfx_round.mp3';
 
-type AudioType = 'music' | 'sfx' | 'none';
+type TrackType = 'music' | 'sfx' | 'none';
 
 type AudioState = {
-    type: AudioType;
-    track?: ValidAudios;
+    type: TrackType;
+    track?: ValidTracks;
     audio?: HTMLAudioElement;
     isMuted: boolean;
     isPlaying: boolean;
@@ -19,8 +19,17 @@ type AudioState = {
     sfxVolume: number;
 };
 
+type PlayConfig = {
+    loop?: boolean;
+    volume?: number;
+    duration?: number;
+    stopCurrent?: boolean;
+    musicVolume?: number;
+    sfxVolume?: number;
+};
+
 type AudioStore = Readable<AudioState> & {
-    play: (track: ValidAudios, loop?: boolean) => void;
+    play: <T extends ValidTracks>(track: T, config?: PlayConfig) => void;
     pause: () => void;
     resume: () => void;
     stop: () => void;
@@ -32,22 +41,31 @@ type AudioStore = Readable<AudioState> & {
     preLoadAudio: (src: string) => void;
 };
 
-const cachedAudio = new Map<string, HTMLAudioElement>();
 
 function normalizeVolume(volume: number): number {
     return Math.max(0, Math.min(1, volume));
 }
 
-function getAudioType(track: string): AudioType {
-    if (track.includes('music')) {
+function getTrackType(track: string): TrackType {
+    if (track.startsWith('music_')) {
         return 'music';
     }
-    if (track.includes('sfx')) {
+    if (track.startsWith('sfx_')) {
         return 'sfx';
     }
     return 'none';
 }
 
+// function isMusicTrack(track: string): track is MusicTracks {
+//     return track.startsWith('music_');
+// }
+
+// function isSfxTrack(track: string): track is SfxTracks {
+//     return track.startsWith('sfx_');
+// }
+
+
+const cachedAudio = new Map<string, HTMLAudioElement>();
 
 function createAudioStore(): AudioStore {
     const state: AudioState = {
@@ -65,18 +83,22 @@ function createAudioStore(): AudioStore {
 
     return {
         subscribe,
-        play(track: string, loop: boolean = false) {
+        play(track, config) {
+            // if (state.isPlaying) {
+            //     state.audio!.pause();
+            //     state.audio!.currentTime = 0;
+            // }
             let audio = cachedAudio.get(track);
             if (!audio) {
                 audio = new Audio(`${audioLocation}${track}`);
                 cachedAudio.set(track, audio);
             }
-            state.type = getAudioType(track);
+            state.type = getTrackType(track);
             state.audio = audio;
             state.isPlaying = true;
             state.isPaused = false;
             audio.volume = state.volume * (state.type === 'music' ? state.musicVolume : state.sfxVolume);
-            audio.loop = loop;
+            audio.loop = config?.loop ?? false;
             audio.muted = state.isMuted;
             audio.play();
             set(state);
@@ -154,7 +176,7 @@ function createAudioStore(): AudioStore {
             audio.preload = 'auto';
             audio.autoplay = false;
             audio.loop = false;
-            const audioType = getAudioType(track);
+            const audioType = getTrackType(track);
             audio.volume = state.volume * (audioType === 'music' ? state.musicVolume : state.sfxVolume);
             audio.load();
             cachedAudio.set(track, audio);
