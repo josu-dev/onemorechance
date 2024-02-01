@@ -1,8 +1,9 @@
 import { GAME } from '$lib/configs';
 import { GAME_STATUS } from '$lib/enums';
-import type { ExposedWritable } from '$lib/stores/types';
+import type { ExposedReadable } from '$lib/stores/types';
 import type { DeckIdentifier, Game, Room, User } from '$types';
 import { derived, writable } from 'svelte/store';
+
 
 const INITIAL_USER: User = {
     id: '1',
@@ -95,9 +96,10 @@ const INITIAL_DECKS: DeckIdentifier[] = [
 ];
 
 
-function createUserStore(): ExposedWritable<User | undefined> {
+function createUserStore(): ExposedReadable<User | undefined> {
     let _user: User | undefined = { ...INITIAL_USER };
-    const { subscribe, set, update } = writable<User | undefined>(_user);
+
+    const { subscribe, set } = writable<User | undefined>(_user);
 
     return {
         get value() {
@@ -106,40 +108,40 @@ function createUserStore(): ExposedWritable<User | undefined> {
         sync() {
             set(_user);
         },
-        set(user?: User) {
+        mset(user?: User) {
             _user = user;
             set(user);
         },
         subscribe,
-        update,
     };
 }
 
-function createRoomStore(): ExposedWritable<Room | undefined> {
+
+function createRoomStore(): ExposedReadable<Room | undefined> {
     let _room: Room | undefined = { ...INITIAL_ROOM };
 
-    const { subscribe, set, update } = writable<Room | undefined>(_room);
+    const { subscribe, set } = writable<Room | undefined>(_room);
 
     return {
+        subscribe,
         get value() {
             return _room;
         },
         sync() {
             set(_room);
         },
-        subscribe,
-        set(room: Room) {
+        mset(room: Room) {
             _room = room;
             set(room);
-        },
-        update
+        }
     };
 }
 
-function createGameStore(): ExposedWritable<Game> {
+
+function createGameStore(): ExposedReadable<Game> {
     let _game: Game = { ...INITIAL_GAME };
 
-    const { subscribe, set, update } = writable<Game>(_game);
+    const { subscribe, set } = writable<Game>(_game);
 
     room.subscribe((room) => {
         _game = room?.game || INITIAL_GAME;
@@ -147,18 +149,17 @@ function createGameStore(): ExposedWritable<Game> {
     });
 
     return {
+        subscribe,
         get value() {
             return _game;
         },
         sync() {
             set(_game);
         },
-        subscribe,
-        set(game: Game) {
+        mset(game: Game) {
             _game = game;
             set(game);
         },
-        update,
     };
 }
 

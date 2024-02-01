@@ -3,6 +3,7 @@ import { socket } from '$lib/ws.js';
 import type { Game, Option, Player } from '$types';
 import { derived, writable } from 'svelte/store';
 import { room } from './room';
+import type { ExposedReadable } from './types';
 import { user } from './user';
 
 
@@ -28,28 +29,31 @@ const FALLBACK_GAME: Game = {
 };
 
 
-function createGameStore() {
-    let _game: Game;
+function createGameStore(): ExposedReadable<Game> {
+    let _game: Game = FALLBACK_GAME;
 
-    const { subscribe, set } = writable<Game>(FALLBACK_GAME);
+    const { subscribe, set } = writable<Game>(_game);
 
-    room.subscribe((room) => {
-        _game = room?.game || FALLBACK_GAME;
+    room.subscribe(($room) => {
+        _game = $room?.game || FALLBACK_GAME;
         set(_game);
     });
 
     return {
-        init(game: Game) {
-            _game = game;
-            set(game);
-        },
-        get peek() {
+        subscribe,
+        get value() {
             return _game;
         },
-        subscribe,
-        set,
+        sync() {
+            set(_game);
+        },
+        mset(value: Game) {
+            _game = value;
+            set(value);
+        },
     };
 }
+
 
 export const game = createGameStore();
 
@@ -59,40 +63,39 @@ export const players = derived(game, ($game) => {
 
 
 socket.on('rate_next_player', ({ playerId }) => {
-    const _game = game.peek;
-    _game.ratingPlayer = playerId;
-    game.set(_game);
+    game.value.ratingPlayer = playerId;
+    game.sync();
 });
 
 
 export function isMe(player: Player) {
-    return player.userId === user.peek?.id;
+    return player.userId === user.value?.id;
 }
 
 export function ratePlayer(playerId: string, rate: PlayerRating) {
-    socket.emit('rate_player', { roomId: room.peek!.id, playerId: playerId, rate: rate });
+    socket.emit('rate_player', { roomId: room.value!.id, playerId: playerId, rate: rate });
 }
 
 export function setSelectedOption(option: Option) {
-    socket.emit('option_selected', { roomId: room.peek!.id, userId: user.peek!.id, option: option });
+    socket.emit('option_selected', { roomId: room.value!.id, userId: user.value!.id, option: option });
 }
 
 export function setFreestyle(text: string | string[]) {
-    socket.emit('freestyle_selected', { roomId: room.peek!.id, userId: user.peek!.id, freestyle: Array.isArray(text) ? text : [text] });
+    socket.emit('freestyle_selected', { roomId: room.value!.id, userId: user.value!.id, freestyle: Array.isArray(text) ? text : [text] });
 }
 
 // export function setReady() {
-//     socket.emit('player_ready', { roomId: room.peek!.id, userId: user.peek!.id });
+//     socket.emit('player_ready', { roomId: room.value!.id, userId: user.value!.id });
 // }
 
 // export function setUnready() {
-//     socket.emit('player_unready', { roomId: room.peek!.id, userId: user.peek!.id });
+//     socket.emit('player_unready', { roomId: room.value!.id, userId: user.value!.id });
 // }
 
 // export function startGame() {
-//     const userId = user.peek!.id;
-//     if (room.peek?.host.id !== userId) {
+//     const userId = user.value!.id;
+//     if (room.value?.host.id !== userId) {
 //         return;
 //     }
-//     socket.emit('start_game', { roomId: room.peek!.id, userId: userId });
+//     socket.emit('start_game', { roomId: room.value!.id, userId: userId });
 // }

@@ -8,14 +8,14 @@ import type { PageLoad } from './$types';
 export const ssr = false;
 
 export const load: PageLoad = async () => {
-    const _room = room.peek;
+    const _room = room.value;
     if (!_room) {
         redirect(302, '/');
     }
 
     updateAvailableDecks();
 
-    const isHost = user.peek?.id === _room.host.id;
+    const isHost = user.value?.id === _room.host.id;
 
     return {
         isHost: isHost,

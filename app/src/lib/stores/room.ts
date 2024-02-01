@@ -1,26 +1,31 @@
 import { goto } from '$app/navigation';
 import { socket } from '$lib/ws.js';
-import type { Room, User } from '$types';
+import type { Room } from '$types';
 import { derived, writable } from 'svelte/store';
+import type { ExposedReadable } from './types';
 import { user } from './user';
 
 
-function createRoomStore() {
-    let _room: Room | undefined;
-    const { subscribe, set } = writable<Room | undefined>(undefined);
+function createRoomStore(): ExposedReadable<Room | undefined> {
+    let _room: Room | undefined = undefined;
+
+    const { subscribe, set } = writable<Room | undefined>(_room);
 
     return {
-        init(room: Room) {
-            _room = room;
-            set(room);
-        },
-        get peek() {
+        subscribe,
+        get value() {
             return _room;
         },
-        subscribe,
-        set,
+        sync() {
+            set(_room);
+        },
+        mset(value?: Room) {
+            _room = value;
+            set(value);
+        },
     };
 }
+
 
 export const room = createRoomStore();
 
@@ -30,70 +35,70 @@ export const roomUsers = derived(room, ($roomStore) => {
     }
 
     return $roomStore.users;
-}, [] as User[]);
+}, []);
 
 
 socket.on('created_room', (data) => {
-    room.init(data);
+    room.mset(data);
 
     goto(`/${data.id}`);
 });
 
 socket.on('updated_room', (data) => {
-    room.init(data);
+    room.mset(data);
 });
 
 socket.on('joined_room', (data) => {
-    room.init(data);
+    room.mset(data);
 
     goto(`/${data.id}`);
 });
 
 socket.on('user_join_room', (data) => {
-    const _room = room.peek;
-    if (user.peek?.id === data.user.id || !_room) {
+    const _room = room.value;
+    if (user.value?.id === data.user.id || !_room) {
         return;
     }
 
     _room.users.push(data.user);
     _room.game.players.push(data.player);
-    room.set(_room);
+    room.mset(_room);
 });
 
 socket.on('game_deck_update', (data) => {
-    const _room = room.peek;
+    const _room = room.value;
     if (!_room) {
         return;
     }
     _room.game.deck = data;
-    room.set(_room);
+    room.mset(_room);
 });
 
 socket.on('game_started', (data) => {
-    room.peek!.game = data;
-    // socket.emit('get_new_round', { roomId: room.peek!.id, userId: user.peek!.id, options: room.peek!.game.maxOptions });
+    room.value!.game = data;
+    // socket.emit('get_new_round', { roomId: room.value!.id, userId: user.value!.id, options: room.value!.game.maxOptions });
 });
 
 socket.on('game_updated', (data) => {
-    const _room = room.peek;
+    const _room = room.value;
     if (!_room) {
         return;
     }
     _room.game = data;
-    room.set(_room);
+    room.mset(_room);
 });
 
 socket.on('game_status_update', (data) => {
-    const _room = room.peek;
+    const _room = room.value;
     if (!_room) {
         return;
     }
     _room.game.status = data.status;
-    room.set(_room);
+    room.mset(_room);
 });
 
 socket.on('player_updated', (data) => {
-    const _room = room.peek;
+    const _room = room.value;
     if (!_room) {
         return;
     }
@@ -102,7 +107,7 @@ socket.on('player_updated', (data) => {
         return;
     }
     _room.game.players[playerIndex] = data;
-    room.set(_room);
+    room.mset(_room);
 });
 
 
@@ -111,24 +116,24 @@ export function updateRoom(room: Room) {
 }
 
 export function setGameDeck(deckId: string) {
-    if (!room.peek) {
+    if (!room.value) {
         return;
     }
-    socket.emit('update_room_deck', { roomId: room.peek.id, deckId: deckId });
+    socket.emit('update_room_deck', { roomId: room.value.id, deckId: deckId });
 }
 
 export function setReady() {
-    socket.emit('player_ready', { roomId: room.peek!.id, userId: user.peek!.id });
+    socket.emit('player_ready', { roomId: room.value!.id, userId: user.value!.id });
 }
 
 export function setUnready() {
-    socket.emit('player_unready', { roomId: room.peek!.id, userId: user.peek!.id });
+    socket.emit('player_unready', { roomId: room.value!.id, userId: user.value!.id });
 }
 
 export function startGame() {
-    const userId = user.peek!.id;
-    if (room.peek?.host.id !== userId) {
+    const userId = user.value!.id;
+    if (room.value?.host.id !== userId) {
         return;
     }
-    socket.emit('start_game', { roomId: room.peek!.id, userId: userId });
+    socket.emit('start_game', { roomId: room.value!.id, userId: userId });
 }

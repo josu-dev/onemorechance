@@ -1,7 +1,7 @@
 <script lang="ts">
   import { DECK_TYPE } from '$lib/enums.js';
   import { audioPlayer } from '$lib/stores/audio';
-  import type { ExposedWritable } from '$lib/stores/types';
+  import type { ExposedReadable } from '$lib/stores/types';
   import { debounced } from '$lib/utils/client/functions';
   import type { Game, Option } from '$types';
   import { createEventDispatcher, onMount } from 'svelte';
@@ -9,7 +9,7 @@
   const DEBOUNCE_TIME = 500;
   const TIMER_UPDATE_RATE = 33;
 
-  export let game: ExposedWritable<Game>;
+  export let game: ExposedReadable<Game>;
   export let initTimerOnMount = false;
 
   let basePhrase = $game.phrase;
@@ -114,7 +114,8 @@
               (event, option) => {
                 dispatchOptions();
               },
-              { delay: DEBOUNCE_TIME, extraArgs: [option] },
+              DEBOUNCE_TIME,
+              option,
             )}
             style="cursor: pointer;"
           >
@@ -129,12 +130,9 @@
           autocomplete="off"
           class="!bg-black text-white p-2 rounded-lg mb-2 variant-outline-primary"
           bind:value={freestyle}
-          on:input={debounced(
-            (event) => {
-              dispatchFreestyle();
-            },
-            { delay: DEBOUNCE_TIME },
-          )}
+          on:input={debounced((event) => {
+            dispatchFreestyle();
+          }, DEBOUNCE_TIME)}
         />
       {/if}
     </div>

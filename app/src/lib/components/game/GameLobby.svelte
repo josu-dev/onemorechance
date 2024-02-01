@@ -2,13 +2,13 @@
   import CopyButton from '$comps/shared/CopyButton.svelte';
   import { GAME } from '$lib/configs';
   import { DECK_TYPE, PLAYER_ROLE } from '$lib/enums.js';
-  import type { ExposedWritable, Readable } from '$lib/stores/types';
+  import type { ExposedReadable, Readable } from '$lib/stores/types';
   import type { DeckIdentifier, Game, Player, Room, User } from '$types';
   import { createEventDispatcher } from 'svelte';
 
-  export let user: ExposedWritable<User>;
-  export let room: ExposedWritable<Room>;
-  export let game: ExposedWritable<Game>;
+  export let user: ExposedReadable<User>;
+  export let room: ExposedReadable<Room>;
+  export let game: ExposedReadable<Game>;
   export let players: Readable<Player[]>;
   export let availableDecks: Readable<DeckIdentifier[]>;
 

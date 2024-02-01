@@ -6,11 +6,11 @@
     type PlayerRating,
   } from '$lib/enums.js';
   import { audioPlayer } from '$lib/stores/audio';
-  import type { ExposedWritable, Readable } from '$lib/stores/types';
+  import type { ExposedReadable, Readable } from '$lib/stores/types';
   import type { Game } from '$types';
   import { createEventDispatcher } from 'svelte';
 
-  export let game: ExposedWritable<Game>;
+  export let game: ExposedReadable<Game>;
   export let players: Readable<Game['players']>;
 
   function fillSentence(

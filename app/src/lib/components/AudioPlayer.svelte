@@ -8,7 +8,9 @@
     if ($audioPlayer.isPlaying) {
       audioPlayer.stop();
     } else {
-      audioPlayer.play('music_lobby.mp3', true);
+      audioPlayer.play('music_lobby.mp3', {
+        loop: true,
+      });
     }
   }
 

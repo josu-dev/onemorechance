@@ -1,32 +1,37 @@
 import { socket } from '$lib/ws.js';
 import type { User } from '$types';
 import { writable } from 'svelte/store';
+import type { ExposedReadable } from './types';
 
 
-function createUserStore() {
+function createUserStore(): ExposedReadable<User | undefined> {
     let _user: User | undefined = undefined;
-    const { subscribe, set } = writable<User | undefined>(undefined);
+
+    const { subscribe, set } = writable<User | undefined>(_user);
 
     return {
-        init(user: User | undefined) {
-            _user = user;
-            set(user);
-        },
-        get peek() {
+        subscribe,
+        get value() {
             return _user;
         },
-        subscribe,
+        sync() {
+            set(_user);
+        },
+        mset(value?: User) {
+            _user = value;
+            set(value);
+        },
     };
 }
+
 
 export const user = createUserStore();
 
 
 socket.on('registered', (data) => {
-    user.init(data);
+    user.mset(data);
 });
 
 socket.on('unregistered', () => {
-    console.info('unregistered');
-    user.init(undefined);
+    user.mset(undefined);
 });

@@ -1,6 +1,7 @@
 import { writable } from 'svelte/store';
 import type { Readable } from './types';
 
+
 const audioLocation = '/audio/';
 
 type ValidTracks = 'music_lobby.mp3' | 'sfx_abucheo.mp3' | 'sfx_aplauso.mp3' | 'sfx_meh.mp3' | 'sfx_round.mp3';
@@ -66,6 +67,7 @@ function getTrackType(track: string): TrackType {
 
 
 const cachedAudio = new Map<string, HTMLAudioElement>();
+
 
 function createAudioStore(): AudioStore {
     const state: AudioState = {

@@ -1,8 +1,8 @@
 <script lang="ts">
-  import type { ExposedWritable, Readable } from '$lib/stores/types';
+  import type { ExposedReadable, Readable } from '$lib/stores/types';
   import type { Game, Player } from '$types';
 
-  export let game: ExposedWritable<Game>;
+  export let game: ExposedReadable<Game>;
   export let players: Readable<Player[]>;
 
   $: playersByScore = [...$players].sort((a, b) => b.score - a.score);

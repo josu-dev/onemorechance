@@ -26,18 +26,18 @@
       },
       body: JSON.stringify({ name: undefined, userId: undefined }),
     });
-    socket.emit('unregister_user', { userId: user.peek?.id! });
+    socket.emit('unregister_user', { userId: user.value?.id! });
   }
 
   function createRoom() {
-    const userId = user.peek?.id!;
+    const userId = user.value?.id!;
     socket.emit('create_room', { userId: userId });
   }
 
   let roomId = '';
 
   function joinRoom() {
-    const userId = user.peek?.id!;
+    const userId = user.value?.id!;
     socket.emit('join_room', { roomId: roomId, userId: userId });
   }
 </script>

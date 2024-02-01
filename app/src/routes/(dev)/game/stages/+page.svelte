@@ -4,6 +4,7 @@
   import GameLobby from '$comps/game/GameLobby.svelte';
   import GameRateSentence from '$comps/game/GameRateSentence.svelte';
   import GameScoreboard from '$comps/game/GameScoreboard.svelte';
+  import GameUnimplemented from '$comps/game/GameUnimplemented.svelte';
   import { GAME } from '$lib/configs.js';
   import {
     availibleDecks as availableDecks,
@@ -141,8 +142,6 @@
       </svelte:fragment>
     </GameScoreboard>
   {:else}
-    <h2 class="text-4xl text-white font-bold text-center mb-[1em]">
-      Unhandled game status: {gameStatus}, you shouldnt be seeing this 😅
-    </h2>
+    <GameUnimplemented {gameStatus} />
   {/if}
 </main>
