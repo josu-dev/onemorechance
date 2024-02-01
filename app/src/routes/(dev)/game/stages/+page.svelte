@@ -1,8 +1,9 @@
 <script lang="ts">
   import { debugData } from '$comps/HyperDebug.svelte';
-  import GamePhrase from '$comps/game/GameFillSentence.svelte';
+  import GameFillSentence from '$comps/game/GameFillSentence.svelte';
+  import GameLobby from '$comps/game/GameLobby.svelte';
+  import GameRateSentence from '$comps/game/GameRateSentence.svelte';
   import GameScoreboard from '$comps/game/GameScoreboard.svelte';
-  import RoomLobby from '$comps/game/RoomLobby.svelte';
   import {
     availibleDecks as availableDecks,
     game,
@@ -86,11 +87,13 @@
       Room not found, you shouldnt be seeing this 😅
     </h2>
   {:else if isNotStarted}
-    <RoomLobby user={_user} room={_room} {game} {players} {availableDecks} />
+    <GameLobby user={_user} room={_room} {game} {players} {availableDecks} />
   {:else if isPreRound || isPostRound}
     <h2 class="text-4xl text-white font-bold text-center">Cargando...</h2>
   {:else if isFillSentence}
-    <GamePhrase {game} initTimerOnMount />
+    <GameFillSentence {game} initTimerOnMount />
+  {:else if isRateSentence}
+    <GameRateSentence {game} {players} />
   {:else if isRoundWinner || isScoreboard || isEnded}
     <GameScoreboard {game} {players}>
       <svelte:fragment slot="actions">

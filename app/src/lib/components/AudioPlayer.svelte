@@ -1,28 +1,20 @@
 <script lang="ts">
-  import { isPlaying } from '$lib/stores/music.js';
+  import { audioPlayer } from '$lib/stores/audio.js';
   import { onMount } from 'svelte';
 
-  let audio: HTMLAudioElement;
+  $: a11yLabel = $audioPlayer.isPlaying ? 'Silenciar audio' : 'Activar audio';
 
   function toggleAudio() {
-    isPlaying.update((value) => !value);
+    if ($audioPlayer.isPlaying) {
+      audioPlayer.stop();
+    } else {
+      audioPlayer.play('music_lobby.mp3', true);
+    }
   }
 
   onMount(() => {
-    audio = new Audio('/audio/lobby_music.mp3');
-    audio.loop = true;
-
-    const unsubscribe = isPlaying.subscribe((value) => {
-      if (value) {
-        audio.play();
-      } else {
-        audio.pause();
-      }
-    });
-    return () => {
-      audio.pause();
-      unsubscribe();
-    };
+    audioPlayer.preLoadAudio('music_lobby.mp3');
+    audioPlayer.setVolume(0.5);
   });
 </script>
 
@@ -30,9 +22,9 @@
   class="fixed top-2 right-2 w-7 h-7 md:top-4 md:right-4 bg-transparent md:w-8 md:h-8 [&>img]:w-full [&>img]:h-full"
   on:click={toggleAudio}
 >
-  <span class="sr-only">Silenciar/Activar audio</span>
+  <span class="sr-only">{a11yLabel}</span>
   <div class="w-full h-full" style=" filter: brightness(0) invert(1);">
-    {#if $isPlaying}
+    {#if $audioPlayer.isPlaying}
       <svg
         xmlns="http://www.w3.org/2000/svg"
         width="24"
