@@ -6,7 +6,6 @@ on:
 jobs:
   render_deploy:
     runs-on: ubuntu-latest
-    needs: build_and_push
     steps:
       - name: use curl to trigger the Render deploy hook
         run: |
