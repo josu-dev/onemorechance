@@ -255,6 +255,16 @@ export function attach_sockets(
             io.to(roomId).emit('updated_room', data);
         });
 
+        socket.on('close_room', ({ roomId, userId }) => {
+            const room = rooms.get(roomId);
+            if (!room || room.host.id !== userId) {
+                return;
+            }
+
+            rooms.delete(roomId);
+            io.to(roomId).emit('closed_room', { roomId });
+        });
+
         socket.on('join_room', ({ roomId, userId }) => {
             const room = rooms.get(roomId);
             const user = users.get(userId);
@@ -310,6 +320,27 @@ export function attach_sockets(
             socket.leave(room.id);
         });
 
+        socket.on('kick_player', ({ roomId, userId }) => {
+            const room = rooms.get(roomId);
+            const user = users.get(userId);
+            if (!room || !user || room.host.id !== socket.id) {
+                return;
+            }
+
+            const userIndex = room.users.findIndex(u => u.id === user!.id);
+            if (userIndex > -1) {
+                room.users.splice(userIndex, 1);
+            }
+            const playerIndex = room.game.players.findIndex(p => p.userId === user!.id);
+            if (playerIndex > -1) {
+                room.game.players.splice(playerIndex, 1);
+            }
+            io.to(room.id).emit('user_left_room', user);
+            // socket.leave(room.id);
+            // TODO: Send a message to the kicked user
+            // socket.emit('kicked_from_room', room);
+        });
+
         socket.on('update_room_deck', ({ roomId, deckId }) => {
             const room = rooms.get(roomId);
             const deck = decks[deckId];
@@ -356,6 +387,7 @@ export function attach_sockets(
             }
 
             room.readyCount = 0;
+            room.status = ROOM_STATUS.PLAYING;
             room.game.status = GAME_STATUS.PRE_ROUND;
             room.game.round = 0;
             io.to(roomId).emit('game_started', room.game);

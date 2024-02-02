@@ -14,25 +14,30 @@
 
   $: isHost = $user?.id === $room?.host.id;
   $: isInvited = !isHost;
+  $: playersAreReady = $players.every((player) => player.ready);
 
-  let selectedSettings = {
+  let settings = {
     rounds: GAME.DEFAULT_ROUNDS,
     selectionTime: GAME.DEFAULT_SELECTION_TIME,
     options: GAME.DEFAULT_OPTIONS,
-    deckId: '',
+    deck: {
+      id: '',
+      name: '',
+      type: 'CHOOSE',
+      description: '',
+    } as DeckIdentifier,
   };
 
-  let selectedDeck: DeckIdentifier = {
-    id: '',
-    name: '',
-    type: 'CHOOSE',
-    description: '',
-  };
+  $: currentDeck = settings.deck;
+
+  $: if ($game.deck.id !== settings.deck.id) {
+    settings.deck = $game.deck;
+  }
 
   const dispatch = createEventDispatcher<{
     toggle_ready: boolean;
-    start_game: boolean;
-    close_room: boolean;
+    start_game: true;
+    close_room: true;
     kick_player: { userId: string };
     update_deck: { deckId: string };
     update_settings: {
@@ -59,7 +64,13 @@
     event: SubmitEvent & { currentTarget: EventTarget & HTMLFormElement },
   ) {
     event.preventDefault();
-    dispatch('update_settings', selectedSettings);
+
+    dispatch('update_settings', {
+      rounds: settings.rounds,
+      selectionTime: settings.selectionTime,
+      options: settings.options,
+      deckId: settings.deck.id,
+    });
   }
 
   function selectDeck(event: { deckId: string }) {
@@ -68,28 +79,32 @@
       console.error('Deck not found');
       return;
     }
-    selectedSettings.deckId = newDeck.id;
-    selectedDeck.id = newDeck.id;
-    selectedDeck.name = newDeck.name;
-    selectedDeck.type = newDeck.type;
-    selectedDeck.description = newDeck.description;
-  }
-
-  function askForCloseRoom() {
-    if (confirm('¿Estás seguro de cerrar la sala?')) {
-      dispatchCloseRoom();
-    }
+    settings.deck = newDeck;
   }
 
   function askForKickPlayer(player: Player) {
+    // TODO: Show modal
     if (confirm(`¿Estás seguro de expulsar a ${player.name}?`)) {
       dispatchKickPlayer({ userId: player.userId });
     }
   }
 
-  function triggerStartGame() {
-    // check for readys
-    triggerStartGame();
+  function askForCloseRoom() {
+    // TODO: Show modal
+    if (confirm('¿Estás seguro de cerrar la sala?')) {
+      dispatchCloseRoom();
+    }
+  }
+
+  function askForStartGame() {
+    if (!playersAreReady) {
+      // TODO: Show info message
+      return;
+    }
+    // TODO: Show modal
+    if (confirm('¿Estás seguro de iniciar la partida?')) {
+      dispatchStartGame();
+    }
   }
 </script>
 
@@ -101,8 +116,8 @@
     <p class="flex justify-center gap-2 text-xl leading-none text-primary-100">
       {$room.id}
       <CopyButton
+        copy={$room.id}
         a11yLabel="Copiar código de sala"
-        toCopy={$room.id}
         className="w-5 h-5"
       />
     </p>
@@ -171,7 +186,7 @@
             <input
               type="number"
               id="rounds"
-              bind:value={selectedSettings.rounds}
+              bind:value={settings.rounds}
               min="5"
               max="10"
               disabled={isInvited}
@@ -185,7 +200,7 @@
             <input
               type="number"
               id="timer"
-              bind:value={selectedSettings.selectionTime}
+              bind:value={settings.selectionTime}
               min="1"
               max="30"
               disabled={isInvited}
@@ -193,14 +208,14 @@
             />
           </label>
         </div>
-        {#if selectedDeck.type === DECK_TYPE.CHOOSE}
+        {#if currentDeck.type === DECK_TYPE.CHOOSE}
           <div class="w-full">
             <label class="flex items-center justify-between">
               Opciones
               <input
                 type="number"
                 id="options"
-                bind:value={selectedSettings.options}
+                bind:value={settings.options}
                 min="4"
                 max="8"
                 disabled={isInvited}
@@ -240,10 +255,11 @@
           {#if isHost}
             <button
               type="button"
-              on:click={triggerStartGame}
+              on:click={askForStartGame}
               class="btn variant-filled variant-filled-success variant-outline-primary"
+              disabled={!playersAreReady}
             >
-              Iniciar partida
+              {playersAreReady ? 'Iniciar partida' : 'Esperando listos'}
             </button>
             <button
               type="button"

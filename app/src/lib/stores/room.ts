@@ -75,7 +75,13 @@ socket.on('game_deck_update', (data) => {
 });
 
 socket.on('game_started', (data) => {
-    room.value!.game = data;
+    const _room = room.value;
+    if (!_room) {
+        return;
+    }
+    _room.status= 'PLAYING';
+    _room.game = data;
+    room.sync();
     // socket.emit('get_new_round', { roomId: room.value!.id, userId: user.value!.id, options: room.value!.game.maxOptions });
 });
 
@@ -122,8 +128,11 @@ export function setGameDeck(deckId: string) {
     socket.emit('update_room_deck', { roomId: room.value.id, deckId: deckId });
 }
 
-export function setReady() {
-    socket.emit('player_ready', { roomId: room.value!.id, userId: user.value!.id });
+export function setReady(ready?: boolean) {
+    socket.emit(
+        ready ? 'player_ready' : 'player_unready',
+        { roomId: room.value!.id, userId: user.value!.id }
+    );
 }
 
 export function setUnready() {
@@ -136,4 +145,20 @@ export function startGame() {
         return;
     }
     socket.emit('start_game', { roomId: room.value!.id, userId: userId });
+}
+
+export function closeRoom() {
+    const userId = user.value?.id;
+    if (!userId) {
+        return;
+    }
+    socket.emit('close_room', { roomId: room.value!.id, userId: userId });
+}
+
+export function kickPlayer(userId: string) {
+    const roomId = room.value?.id;
+    if (!roomId) {
+        return;
+    }
+    socket.emit('kick_player', { roomId, userId });
 }

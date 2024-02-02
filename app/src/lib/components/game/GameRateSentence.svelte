@@ -33,7 +33,7 @@
   }
 
   const dispatch = createEventDispatcher<{
-    rate: {
+    rate_sentence: {
       playerId: string;
       rate: PlayerRating;
     };
@@ -54,7 +54,7 @@
       audioPlayer.play('sfx_aplauso.mp3');
     }
 
-    dispatch('rate', {
+    dispatch('rate_sentence', {
       playerId: $game.ratingPlayer,
       rate: rate,
     });

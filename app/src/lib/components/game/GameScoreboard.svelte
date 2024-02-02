@@ -5,23 +5,23 @@
   export let game: ExposedReadable<Game>;
   export let players: Readable<Player[]>;
 
-  $: playersByScore = [...$players].sort((a, b) => b.score - a.score);
-  $: playersCount = $players.length;
+  $: playersByScore = $players.toSorted((a, b) => b.score - a.score);
+  $: playersCount = playersByScore.length;
 
-  function getRankEmoji(position: number) {
+  function positionEmoji(position: number) {
     if (position === 0) {
       return '🥵';
     }
-    if (position === playersCount - 1) {
+    if (position === (playersCount - 1)) {
       return '🥶';
     }
-    if (playersCount < 4 || position > 1 || position < playersCount - 2) {
+    if (playersCount < 4 || position > 1 || position < (playersCount - 2)) {
       return '😐';
     }
     if (position === 1) {
       return '🤤';
     }
-    if (position === playersCount - 2) {
+    if (position === (playersCount - 2)) {
       return '😴';
     }
     return '🤮';
@@ -52,7 +52,7 @@
                 >Puntaje total</label
               >
               <span>{player.totalScore}</span>
-              <span>{getRankEmoji(i)}</span>
+              <span>{positionEmoji(i)}</span>
             </div>
           </li>
         {/each}
