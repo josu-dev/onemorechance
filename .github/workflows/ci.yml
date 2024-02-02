@@ -8,6 +8,10 @@ on:
       - "app/**"
       - ".github/workflows/ci.yml"
 
+permissions:
+  actions: read
+  security-events: write
+
 jobs:
   gitleaks:
     uses: jd-apprentice/jd-workflows/.github/workflows/gitleaks.yml@main
