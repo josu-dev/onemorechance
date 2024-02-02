@@ -19,11 +19,9 @@ Based on the H.D.P game (Hasta donde puedas) omc is a boardgame made in the brow
 - Daisyui
 - Tailwindcss
 - Websockets
-- AWS
+- Render
 - Docker
 - Github Actions
-- Ansible
-- Terraform
 
 ## Folder Structure 📁
 
@@ -36,7 +34,6 @@ Based on the H.D.P game (Hasta donde puedas) omc is a boardgame made in the brow
 ┃ ┃ ┣ 📁 params/
 ┃ ┃ ┣ 📁 routes/
 ┣ 📁 docs/
-┣ 📁 infra/ -- Infrastructure as code
 ┣ 📔 LICENSE
 ┣ 📔 README.md
 ┣ 📔 Makefile - Shortcut linux commands

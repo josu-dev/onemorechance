@@ -5,7 +5,7 @@ on:
   push:
     branches: [main]
     paths:
-      - "app/src/**"
+      - "app/**"
       - ".github/workflows/ci.yml"
 
 jobs:
@@ -17,9 +17,15 @@ jobs:
     secrets:
       gh_token: ${{ secrets.GITHUB_TOKEN }}
 
+  codacy:
+    uses: jd-apprentice/jd-workflows/.github/workflows/codacy.yml@main
+    needs: [gitleaks]
+    with:
+      name: Codacy
+
   build_and_push:
     runs-on: ubuntu-22.04
-    needs: gitleaks
+    needs: [gitleaks, codacy]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
