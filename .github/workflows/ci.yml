@@ -17,10 +17,11 @@ jobs:
     secrets:
       gh_token: ${{ secrets.GITHUB_TOKEN }}
 
-  codacy:
+  codacy_scan:
     uses: jd-apprentice/jd-workflows/.github/workflows/codacy.yml@main
-    needs: [gitleaks]
+    needs: gitleaks
     with:
+      runs-on: ubuntu-latest
       name: Codacy
     secrets:
       project_token: ${{ secrets.CODACY_PROJECT_TOKEN }}
