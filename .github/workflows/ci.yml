@@ -22,6 +22,8 @@ jobs:
     needs: [gitleaks]
     with:
       name: Codacy
+    secrets:
+      project_token: ${{ secrets.CODACY_PROJECT_TOKEN }}
 
   build_and_push:
     runs-on: ubuntu-22.04
