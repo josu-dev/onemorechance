@@ -47,4 +47,4 @@ jobs:
     steps:
       - name: use curl to trigger the render deploy hook
         run: |
-          curl -X GET https://api.render.com/deploy/{{ secrets.RENDER_HOOK_URL }}
+          curl -X GET https://api.render.com/deploy/${{ secrets.RENDER_HOOK_URL }}
