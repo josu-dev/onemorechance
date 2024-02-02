@@ -1,4 +1,4 @@
-import { socket } from '$lib/ws';
+import { socket } from '$lib/ws.js';
 import type { DeckIdentifier } from '$types';
 import { writable } from 'svelte/store';
 

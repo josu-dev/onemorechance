@@ -39,19 +39,25 @@ export type Option = {
 
 
 export type DeckIdentifier = {
-    [x: string]: any;
     id: string,
     name: string,
     type: DeckType,
+    description?: string,
 };
 
-export type Deck = {
-    id: string,
-    name: string,
-    type: DeckType,
+export type DeckChoose = {
+    type: 'CHOOSE',
     phrases: Phrase[],
     options: Option[],
 };
+
+export type DeckComplete = {
+    type: 'COMPLETE',
+    phrases: Phrase[],
+};
+
+export type Deck = DeckIdentifier & (DeckChoose | DeckComplete);
+
 
 export type Game = {
     id: string;
@@ -93,7 +99,7 @@ export type ServerToClientEvents = {
     selection_end: (data: Game) => void;
     player_updated: (data: Player) => void;
     game_updated: (data: Game) => void;
-    rate_player: (data: { playerId: string;}) => void;
+    rate_next_player: (data: { playerId: string;}) => void;
     game_status_update: (data: { status: GameStatus; }) => void;
     game_deck_update: (data: DeckIdentifier) => void;
 };

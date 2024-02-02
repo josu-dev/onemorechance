@@ -1,5 +1,5 @@
 import { goto } from '$app/navigation';
-import { socket } from '$lib/ws';
+import { socket } from '$lib/ws.js';
 import type { Room, User } from '$types';
 import { derived, writable } from 'svelte/store';
 import { user } from './user';

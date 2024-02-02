@@ -1,7 +1,7 @@
 import type { IncomingMessage, Server, ServerResponse } from "http";
 import { customRandom, nanoid, random } from 'nanoid';
 import { Socket, Server as ioServer } from "socket.io";
-import { GAME } from '../src/lib/defaults.js';
+import { GAME } from '../src/lib/configs.js';
 import { DECK_TYPE, GAME_STATUS, ROOM_STATUS, type DeckType } from '../src/lib/enums.js';
 import type {
     ClientToServerEvents,
@@ -13,10 +13,16 @@ import type {
     SocketData,
     User
 } from "../src/types.js";
-import decks from '../static/decks/default.json' with { type: "json" };
+
+import importedDecks from '../static/decks/default.json' with { type: "json" };
+
+const decks = importedDecks as Record<string, Deck>;
+
+const DEFAULT_DECK = decks[GAME.DEFAULT_DECK_ID];
 
 
 const randomRoomId = customRandom('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz', 6, random);
+
 
 const users = new Map<string, User>();
 
@@ -35,8 +41,14 @@ type _Socket = Socket<ClientToServerEvents, ServerToClientEvents, InterServerEve
 
 function newRound(io: _IoServer, socket: _Socket, room: Room) {
     room.game.round += 1;
-    // @ts-ignore
-    const deck: Deck = decks[room.game.deck.id];
+
+    for (const player of room.game.players) {
+        player.selectedOption = undefined;
+        player.freestyle = undefined;
+        player.score = 0;
+    }
+
+    const deck = decks[room.game.deck.id];
 
     let phrase = deck.phrases[Math.floor(Math.random() * deck.phrases.length)]!;
     while (room.game.usedPhrases.includes(phrase.id)) {
@@ -59,30 +71,30 @@ function newRound(io: _IoServer, socket: _Socket, room: Room) {
         }
     }
 
-    room.game.status = GAME_STATUS.CHOOSING_OPTION;
+    room.game.status = GAME_STATUS.FILL_SENTENCE;
     io.to(room.id).emit('game_updated', room.game);
 
     setTimeout(() => {
-        room.game.status = GAME_STATUS.RATING_PLAYS;
+        room.game.status = GAME_STATUS.RATE_SENTENCE;
         io.to(room.id).emit('game_updated', room.game);
 
         const playerCount = room.game.players.length;
         for (let i = 0; i < playerCount; i++) {
             setTimeout(() => {
                 const player = room.game.players[i];
-                io.to(player.userId).emit('rate_player', { playerId: player.userId });
-            }, i * GAME.ROUND_RATE_TIME);
+                io.to(room.id).emit('rate_next_player', { playerId: player.userId });
+            }, i * GAME.DEFAULT_RATE_TIME);
         }
 
         setTimeout(() => {
-            room.game.status = GAME_STATUS.ROUND_WINNER;
             let winnerId = '';
-            let winnerScore = 0;
+            let winnerScore = -1;
             for (const player of room.game.players) {
                 if (player.score > winnerScore) {
                     winnerId = player.userId;
                     winnerScore = player.score;
                 }
+                player.totalScore += player.score;
             }
             room.game.lastWinner = winnerId;
             room.game.status = GAME_STATUS.ROUND_WINNER;
@@ -91,7 +103,7 @@ function newRound(io: _IoServer, socket: _Socket, room: Room) {
             if (room.game.round < room.game.maxRounds) {
                 setTimeout(
                     newRound,
-                    GAME.ROUND_RESULTS_TIME,
+                    GAME.DEFAULT_RESULTS_TIME,
                     io,
                     socket,
                     room
@@ -104,12 +116,12 @@ function newRound(io: _IoServer, socket: _Socket, room: Room) {
                 io.to(room.id).emit('game_status_update', { status: room.game.status });
 
                 setTimeout(() => {
-                    room.game.status = GAME_STATUS.FINISHED;
+                    room.game.status = GAME_STATUS.ENDED;
                     io.to(room.id).emit('game_updated', room.game);
-                }, GAME.GAME_RESULTS_TIME);
-            }, GAME.ROUND_RESULTS_TIME);
-        }, room.game.players.length * GAME.ROUND_RATE_TIME);
-    }, GAME.ROUND_CHOOSE_TIME);
+                }, GAME.DEFAULT_SCOREBOARD_TIME);
+            }, GAME.DEFAULT_RESULTS_TIME);
+        }, room.game.players.length * GAME.DEFAULT_RATE_TIME);
+    }, GAME.DEFAULT_SELECTION_TIME);
 }
 
 
@@ -212,14 +224,14 @@ export function attach_sockets(
                 game: {
                     status: GAME_STATUS.NOT_STARTED,
                     id: nanoid(),
-                    maxRounds: GAME.ROUNDS,
-                    chooseTime: GAME.COMPLETE_ROUND_TIME,
-                    maxOptions: GAME.OPTIONS,
+                    maxRounds: GAME.DEFAULT_ROUNDS,
+                    chooseTime: GAME.DEFAULT_SELECTION_TIME,
+                    maxOptions: GAME.DEFAULT_OPTIONS,
                     round: 0,
                     deck: {
-                        id: '2',
-                        name: 'Refranes inventados',
-                        type: DECK_TYPE.COMPLETE,
+                        id: DEFAULT_DECK.id,
+                        name: DEFAULT_DECK.name,
+                        type: DEFAULT_DECK.type,
                     },
                     phrase: {
                         id: 'default',
@@ -300,8 +312,7 @@ export function attach_sockets(
 
         socket.on('update_room_deck', ({ roomId, deckId }) => {
             const room = rooms.get(roomId);
-            // @ts-ignore
-            const deck: Deck = decks[deckId];
+            const deck = decks[deckId];
             if (!room || !deck) {
                 return;
             }
@@ -382,6 +393,21 @@ export function attach_sockets(
 
             const player = room.game.players.find(p => p.userId === userId)!;
             player.freestyle = freestyle;
+            socket.emit('player_updated', player);
+        });
+
+        socket.on('rate_player', ({ roomId, playerId, rate }) => {
+            const room = rooms.get(roomId);
+            if (!room) {
+                return;
+            }
+
+            const player = room.game.players.find(p => p.userId === playerId);
+            if (!player) {
+                return;
+            }
+
+            player.score += rate === 'BAD' ? -10 : rate === 'GOOD' ? 10 : 0;
             socket.emit('player_updated', player);
         });
     });

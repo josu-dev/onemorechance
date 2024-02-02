@@ -1,21 +1,21 @@
 <script lang="ts">
-  import { dev } from "$app/environment";
-  import { debugData } from "$lib/components/HyperDebug.svelte";
-  import { GAME } from "$lib/defaults";
+  import { dev } from '$app/environment';
+  import { debugData } from '$lib/components/HyperDebug.svelte';
+  import { GAME } from '$lib/configs';
   import {
     DECK_TYPE,
     GAME_STATUS,
     PLAYER_RATING,
     type GameStatus,
     type PlayerRating,
-  } from "$lib/enums.js";
-  import * as g from "$lib/stores/game.js";
-  import { game, players } from "$lib/stores/game.js";
-  import * as r from "$lib/stores/room.js";
-  import { room } from "$lib/stores/room.js";
-  import { user } from "$lib/stores/user.js";
-  import type { Option } from "$types";
-  import { clipboard } from "@skeletonlabs/skeleton";
+  } from '$lib/enums.js';
+  import * as g from '$lib/stores/game.js';
+  import { game, players } from '$lib/stores/game.js';
+  import * as r from '$lib/stores/room.js';
+  import { room } from '$lib/stores/room.js';
+  import { user } from '$lib/stores/user.js';
+  import type { Option, Player } from '$types';
+  import { clipboard } from '@skeletonlabs/skeleton';
 
   export let data;
 
@@ -27,9 +27,9 @@
     $room?.status === 'PLAYING' ? 'Jugando' : 'Sala de espera'
   } - One More Chance`;
 
-  let rounds = GAME.ROUNDS;
-  let timer = GAME.ROUND_CHOOSE_TIME / 1000;
-  let numOptions = GAME.OPTIONS;
+  let rounds = GAME.DEFAULT_ROUNDS;
+  let timer = GAME.DEFAULT_SELECTION_TIME / 1000;
+  let numOptions = GAME.DEFAULT_OPTIONS;
 
   let gameStatus: GameStatus = GAME_STATUS.NOT_STARTED;
   let isNotStarted = true;
@@ -39,25 +39,27 @@
   let isRoundWinner = false;
   let isOptionRefill = false;
   let isScoreboard = false;
-  let voted = false;
+  let isEnded = false;
+
   $: if ($game.status !== gameStatus) {
     gameStatus = $game.status;
     isNotStarted = gameStatus === GAME_STATUS.NOT_STARTED;
-    isChoosingOption = gameStatus === GAME_STATUS.CHOOSING_OPTION;
-    isRatingPlays = gameStatus === GAME_STATUS.RATING_PLAYS;
-    isScoreboard = gameStatus === GAME_STATUS.SCOREBOARD;
-    isOptionRefill = gameStatus === GAME_STATUS.OPTION_REFILL;
     isPreRound = gameStatus === GAME_STATUS.PRE_ROUND;
+    isChoosingOption = gameStatus === GAME_STATUS.FILL_SENTENCE;
+    isRatingPlays = gameStatus === GAME_STATUS.RATE_SENTENCE;
     isRoundWinner = gameStatus === GAME_STATUS.ROUND_WINNER;
+    isOptionRefill = gameStatus === GAME_STATUS.POS_ROUND;
+    isScoreboard = gameStatus === GAME_STATUS.SCOREBOARD;
+    isEnded = gameStatus === GAME_STATUS.ENDED;
   }
 
   $: if (isChoosingOption) {
-    startTimer("choose", ($game?.chooseTime ?? 0) / 1000);
+    startTimer('choose', ($game?.chooseTime ?? 0) / 1000);
   } else {
-    endTimer("choose");
+    endTimer('choose');
   }
 
-  $: basePhrase = $game?.phrase.text ?? "Missing frase";
+  $: basePhrase = $game?.phrase.text ?? 'Missing frase';
 
   $: options = $game.players.find((p) => p.userId === $user?.id)?.options ?? [];
 
@@ -97,39 +99,61 @@
         if (timer <= 0) {
           endTimer(key);
         }
-      }, 1000)
+      }, 1000),
     );
   }
   function endTimer(key: string) {
-    clearInterval(timerMap.get(key));
+    const id = timerMap.get(key);
+    if (!id) {
+      return;
+    }
+
+    clearInterval(id);
+    timerMap.delete(key);
   }
 
   function vote(vote: PlayerRating) {
-    if (!voted) {
-      voted = true;
-      let audio ;
-      if (vote === PLAYER_RATING.BAD) {
-        audio = new Audio("/audio/sfx_abucheo.mp3");
-      } else if (vote === PLAYER_RATING.MEH) {
-        audio = new Audio("/audio/sfx_meh.mp3");
-      }else {
-        audio = new Audio("/audio/sfx_aplauso.mp3");
-      }
-      audio.volume = 0.5;
-      audio.play();
-      g.ratePlayer($game?.ratingPlayer ?? "", vote);
+    let audio;
+    if (vote === PLAYER_RATING.BAD) {
+      audio = new Audio('/audio/sfx_abucheo.mp3');
+    } else if (vote === PLAYER_RATING.MEH) {
+      audio = new Audio('/audio/sfx_meh.mp3');
+    } else {
+      audio = new Audio('/audio/sfx_aplauso.mp3');
     }
+    audio.volume = 0.5;
+    audio.play();
+    g.ratePlayer($game?.ratingPlayer ?? '', vote);
+  }
+
+  let lastWinner: Player | undefined = undefined;
+  $: if (isRoundWinner) {
+    lastWinner = $players.find((p) => p.userId === $game?.lastWinner);
+  }
+
+  let playersByScore: Player[] = [];
+  $: if (isScoreboard) {
+    const temp: Player[] = [];
+    for (const player of $players) {
+      for (let i = 0; i < temp.length; i++) {
+        if (temp[i].totalScore < player.totalScore) {
+          temp.splice(i, 0, player);
+          break;
+        }
+      }
+    }
+    playersByScore = temp;
   }
 
   function chooseOption(option: Option) {
     selectedOption = option;
   }
 
-  let copyText = "Copiar";
+  let copyText = 'Copiar';
   function copyRoomCode() {
-    copyText = "Copiado! 👍";
+    copyText = 'Copiado! 👍';
     setTimeout(() => {
-      copyText = "Copiar";
+      copyText = 'Copiar';
     }, 2000);
   }
 </script>
@@ -141,59 +165,57 @@
 <main
   class="h-full flex flex-col items-center justify-center overflow-y-auto p-1"
 >
+  <h1 class="sr-only">A jugar One More Chance!</h1>
   {#if !$room || !$user}
-    <h1 class="text-4xl text-white font-bold text-center">
+    <h2 class="text-4xl text-white font-bold text-center">
       Room not found, you shouldnt be seeing this 😅
-    </h1>
+    </h2>
   {:else if data.isHost && isNotStarted}
-    <h1 class="text-4xl text-white font-bold text-center mb-[1em]">
-      Lobby de la sala
-    </h1>
+    <h2 class="text-4xl text-white font-bold text-center mb-[1em]">
+      Sala de espera
+    </h2>
 
     <div
       class="previewer-preview flex justify-center items-center mx-auto transition-[width] duration-200 w-full"
     >
-      <h2 class="text-3xl text-white mb-4 mr-4">Id de la sala:</h2>
-      <h2 class="text-3xl text-white mb-4" data-clipboard="roomId">
-        {$room.id}
-      </h2>
-      <button
-        class="btn variant-filled text-white bg-black rounded-lg ml-4"
-        style="box-shadow: 0 0 0 2px white;"
-        on:click={copyRoomCode}
-        use:clipboard={$room.id}>{copyText}</button
-      >
+      <p class="text-3xl text-white mb-4 mr-4">
+        ID - <span data-clipboard="roomId">{$room.id}</span>
+        <button
+          class="btn btn-sm variant-filled text-white bg-black rounded-lg ml-4"
+          style="box-shadow: 0 0 0 2px white;"
+          on:click={copyRoomCode}
+          use:clipboard={$room.id}>{copyText}</button
+        >
+      </p>
     </div>
 
-    <h1 class="text-3xl text-white mb-4">Jugadores</h1>
+    <h3 class="text-3xl text-white mb-4">Jugadores</h3>
     <div class="flex flex-col items-left mb-4 space-y-4">
       {#each $players as player}
         <div class="flex items-center space-x-4">
           <div class="w-10 h-10 rounded-full bg-white"></div>
           <div class="text-lg text-white">{player.name}</div>
-          {#if player.userId == $user.id}
+          {#if player.userId === $user.id}
             <input
               type="checkbox"
               on:change={(e) => {
-                confirmPlayer(e.currentTarget?.checked ?? false);
+                confirmPlayer(e.currentTarget.checked);
               }}
               class="form-checkbox text-black w-6 h-6"
             />
-          {:else if player.ready}
+          {:else}
             <input
               type="checkbox"
               class="form-checkbox text-black w-6 h-6"
               checked={player.ready}
               disabled
             />
-          {:else}
-            <span class="text-white text-xl">X</span>
           {/if}
         </div>
       {/each}
     </div>
 
-    <h2 class="text-2xl text-white mb-4">Configuración de la partida</h2>
+    <h3 class="text-2xl text-white mb-4">Configuración de la partida</h3>
     <form
       on:submit|preventDefault={startGame}
       class="flex flex-col items-center space-y-4 mb-8"
@@ -269,18 +291,16 @@
         Iniciar Partida
       </button>
     </form>
-  {:else if (data.isHost && isPreRound) || isOptionRefill}
-    <h1 class="text-4xl text-white font-bold text-center">Cargando...</h1>
   {:else if isNotStarted}
-    <h1 class="text-4xl text-white font-bold text-center mb-[1em]">
+    <h2 class="text-4xl text-white font-bold text-center mb-[1em]">
       Sala de espera
-    </h1>
+    </h2>
     <div class="flex flex-col items-left mb-4 space-y-4">
       {#each $players as player}
         <div class="flex items-center space-x-4">
           <div class="w-10 h-10 rounded-full bg-white"></div>
           <div class="text-lg text-white">{player.name}</div>
-          {#if player.userId == $user.id}
+          {#if player.userId === $user.id}
             <input
               type="checkbox"
               on:change={(e) => {
@@ -288,20 +308,18 @@
               }}
               class="form-checkbox text-black w-6 h-6"
             />
-          {:else if player.ready}
+          {:else}
             <input
               type="checkbox"
               class="form-checkbox text-black w-6 h-6"
               checked={player.ready}
               disabled
             />
-          {:else}
-            <span class="text-white text-xl">X</span>
           {/if}
         </div>
       {/each}
     </div>
-    <h2 class="text-2xl text-white mb-4">Configuración de la partida</h2>
+    <h3 class="text-2xl text-white mb-4">Configuración de la partida</h3>
     <form
       on:submit|preventDefault={startGame}
       class="flex flex-col items-center space-y-4 mb-8"
@@ -377,8 +395,10 @@
         </tr>
       </table>
     </form>
+  {:else if isPreRound || isOptionRefill}
+    <h2 class="text-4xl text-white font-bold text-center">Cargando...</h2>
   {:else if isChoosingOption}
-    <h1 class="text-4xl text-white font-bold text-center mb-[1em]">A jugar!</h1>
+    <h2 class="text-4xl text-white font-bold text-center mb-[1em]">A jugar!</h2>
     <div
       class="flex items-center justify-center w-20 h-20 rounded-full bg-white mb-4"
     >
@@ -418,44 +438,63 @@
       {/if}
     </div>
   {:else if isRatingPlays}
-    <h1 class="text-4xl text-white font-bold text-center mb-[1em]">
-      A puntuar!
-    </h1>
+    <div class="flex flex-col">
+      <h2 class="text-4xl text-white font-bold text-center mb-[1em]">
+        A puntuar!
+      </h2>
+      {#each $players as player (player.userId)}
+        {#if player.userId === $game.ratingPlayer}
+          <div class="flex justify-center items-center w-128">
+            <div
+              class="card bg-black border-white border-2 p-4 rounded-lg"
+              style="width: 300px; height: 400px;"
+            >
+              <p class="text-white text-center text-2xl mt-6">
+                “{basePhrase}
+                {player.freestyle}“
+              </p>
+            </div>
+          </div>
+          <div class="flex justify-center mt-4">
+            <button
+              class="mx-2 p-4 text-3xl"
+              on:click={() => vote(PLAYER_RATING.GOD)}>👍</button
+            >
+            <button
+              class="mx-2 p-4 text-3xl"
+              on:click={() => vote(PLAYER_RATING.MEH)}>😐</button
+            >
+            <button
+              class="mx-2 p-4 text-3xl"
+              on:click={() => vote(PLAYER_RATING.BAD)}>👎</button
+            >
+          </div>
+        {/if}
+      {/each}
+    </div>
+  {:else if isRoundWinner}
+    <h2 class="text-4xl text-white font-bold text-center mb-[1em]">
+      Ganador de la ronda!
+    </h2>
+    <p class="text-white font-semibold text-2xl">
+      El ganar de la ronda es {lastWinner?.name} con
+    </p>
     <div class="flex justify-center items-center w-128">
       <div
         class="card bg-black border-white border-2 p-4 rounded-lg"
         style="width: 300px; height: 400px;"
       >
         <p class="text-white text-center text-2xl mt-6">
-          {`“${filledPhrase}“`}
+          “{basePhrase}
+          {lastWinner?.freestyle}“
         </p>
       </div>
     </div>
-    {#if !voted}
-      <div class="flex justify-center mt-4">
-        <button
-          class="mx-2 p-4 text-3xl"
-          on:click={() => vote(PLAYER_RATING.GOOD)}>👍</button
-        >
-        <button
-          class="mx-2 p-4 text-3xl"
-          on:click={() => vote(PLAYER_RATING.MEH)}>😐</button
-        >
-        <button
-          class="mx-2 p-4 text-3xl"
-          on:click={() => vote(PLAYER_RATING.BAD)}>👎</button
-        >
-      </div>
-    {/if}
-  {:else if isRoundWinner}
-    <h1 class="text-4xl text-white font-bold text-center mb-[1em]">
-      Ganador de la ronda!
-    </h1>
-  {:else if isScoreboard}
-    <h1 class="text-4xl text-white font-bold text-center mb-[1em]">
+  {:else if isScoreboard || isEnded}
+    <h2 class="text-4xl text-white font-bold text-center mb-[1em]">
       Tabla de puntajes Final
-    </h1>
-    {#each $players as player}
+    </h2>
+    {#each playersByScore as player}
       <div class="flex items-center space-x-4">
         <div class="w-10 h-10 rounded-full bg-white"></div>
         <div class="text-lg text-white">{player.name}</div>
@@ -463,8 +502,8 @@
       </div>
     {/each}
   {:else}
-    <h1 class="text-4xl text-white font-bold text-center mb-[1em]">
+    <h2 class="text-4xl text-white font-bold text-center mb-[1em]">
       Esperando... {dev ? gameStatus : ''}
-    </h1>
+    </h2>
   {/if}
 </main>

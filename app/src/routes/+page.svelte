@@ -1,6 +1,6 @@
 <script lang="ts">
   import { user } from '$lib/stores/user.js';
-  import { socket } from '$lib/ws/index.js';
+  import { socket } from '$lib/ws.js';
 
   export let data;
 
@@ -54,7 +54,7 @@
   <div class="flex flex-col md:flex-row items-center justify-center md:gap-8">
     <div class="">
       <img
-        src="/logo.png"
+        src="/logo/logo-896x896.png"
         alt="Logo de One More Chance"
         class="mb-6 max-w-full max-h-64 md:max-h-96"
       />

@@ -15,20 +15,23 @@ body > div {
 }
 
 body {
-    @apply bg-black;
-    /* background-image: radial-gradient(at 12% 11%, hsl(264, 69%, 16%) 0, transparent 51%), radial-gradient(at 96% 19%, rgb(47, 15, 71) 0, transparent 43%), radial-gradient(at 61% 64%, rgb(45, 13, 70) 0, transparent 99%); */
+    background-color: hsl(0, 0%, 0%);
     background-image:
         radial-gradient(at 12% 11%, hsl(264, 67%, 7.5%) 0, transparent 51%),
         radial-gradient(at 96% 19%, hsl(274, 66%, 7.5%) 0, transparent 43%),
         radial-gradient(at 61% 64%, hsl(274, 66%, 7.5%) 0, transparent 99%);
+	background-attachment: fixed;
+	background-position: center;
+	background-repeat: no-repeat;
+	background-size: cover;
 }
 
 @font-face {
-    font-family: 'Inter';
+    font-family: 'JosefinSans';
     src: url('/fonts/JosefinSans-VariableFont_wght.ttf');
 }
 
 :root [data-theme='one-more-chance'] {
-    --theme-font-family-base: 'Inter', sans-serif;
-    --theme-font-family-heading: 'Inter', sans-serif;
+    --theme-font-family-base: 'JosefinSans', sans-serif;
+    --theme-font-family-heading: 'JosefinSans', sans-serif;
 }
