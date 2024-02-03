@@ -48,17 +48,14 @@ export function createDecksStore(): DecksStore {
     };
 }
 
-
-export function createDecksActions(decks: DecksStore, socket: SocketInstance) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function createDecksActions(socket: SocketInstance, decks: DecksStore) {
     return {
-        updateDecks() {
-            socket.emit('trigger_decks_update');
-        },
     };
 }
 
-export function attachDecksListeners(decks: DecksStore, socket: SocketInstance) {
-    socket.on('availible_decks_update', (data: DeckIdentifier[]) => {
-        decks.mset(data);
+export function attachDecksListeners(socket: SocketInstance, decks: DecksStore) {
+    socket.on('decks_update', (data) => {
+        decks.mset(data.decks);
     });
 }

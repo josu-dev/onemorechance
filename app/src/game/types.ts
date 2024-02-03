@@ -1,7 +1,8 @@
-import type { DeckType, GameStatus, PlayerRating } from '$game/enums';
-import type * as Client from '$game/types.client';
-import type * as SocketIO from 'socket.io';
+import type { DeckType, GameStatus, PlayerRating } from './enums.js';
+import type * as Client from './types.client.js';
 
+
+export type EmptyObject = Record<string, never>;
 
 export type User = {
     id: string,
@@ -49,75 +50,63 @@ export type Deck = DeckIdentifier & (DeckChoose | DeckComplete);
 
 
 export type ClientToServerEvents = {
-    register_user: (data: { userId?: string, name: string; }) => void;
-    unregister_user: (data: { userId: string; }) => void;
+    user_register: (data: { id?: string, name: string; }) => void;
+    user_unregister: (data: { id: string; }) => void;
 
-    create_room: (data: { userId: string; }) => void;
-    update_room: (data: { roomId: string; data: Client.Room; }) => void;
-    close_room: (data: { roomId: string; userId: string; }) => void;
-    join_room: (data: { roomId: string; userId: string; }) => void;
-    leave_room: (data: { roomId: string; userId: string; }) => void;
-    kick_player: (data: { roomId: string; userId: string; }) => void;
-    trigger_decks_update: () => void;
-    update_room_deck: (data: { roomId: string; deckId: string; }) => void;
-    player_ready: (data: { roomId: string; userId: string; }) => void;
-    player_unready: (data: { roomId: string; userId: string; }) => void;
+    room_create: (data: EmptyObject) => void;
+    room_update: (data: { room: Client.Room; }) => void;
+    room_close: (data: { roomId: string; }) => void;
+    room_join: (data: { roomId: string; }) => void;
+    room_leave: (data: { roomId: string; }) => void;
+    room_kick_player: (data: { roomId: string; playerId: string; }) => void;
 
-    start_game: (data: { roomId: string; userId: string; }) => void;
-    get_new_round: (data: { roomId: string; userId: string; options: number; }) => void;
-    option_selected: (data: { roomId: string; userId: string; option: Option[]; }) => void;
-    freestyle_selected: (data: { roomId: string; userId: string; freestyle: string[]; }) => void;
     player_update: (data: { roomId: string; player: Client.Player; }) => void;
-    rate_player: (data: { roomId: string; playerId: string; rate: PlayerRating; }) => void;
-    game_update: (data: { roomId: string; game: Client.Game; }) => void;
+    player_set_name: (data: { roomId: string; name: string; }) => void;
+    player_set_ready: (data: { roomId: string; state: boolean; }) => void;
+
+    game_start: (data: { roomId: string; }) => void;
+    // game_update: (data: { roomId: string; game: Client.Game; }) => void;
+    game_set_settings: (data: { roomId: string; game: Client.Game; }) => void;
+    game_set_deck: (data: { roomId: string; deckId: string; }) => void;
+    game_set_freestyle: (data: { roomId: string; freestyle: string[]; }) => void;
+    game_set_option: (data: { roomId: string; option: Option[]; }) => void;
+    game_rate_player: (data: { roomId: string; playerId: string; rate: PlayerRating; }) => void;
 };
 
 
 export type ServerToClientEvents = {
-    registered: (data: User) => void;
-    unregistered: () => void;
+    user_registered: (data: { user: User; }) => void;
+    user_unregistered: (data: EmptyObject) => void;
 
-    room_create: (data: Client.Room) => void;
-    room_update: (data: Client.Room) => void;
-    room_close: (data: { roomId: string; }) => void;
-    room_join: (data: Client.Room) => void;
-    room_full: (data: { maxPlayers: number; }) => void;
-    player_join: (data: { player: Client.Player; }) => void;
-    player_left: (data: { id: string; }) => void;
-    player_kick: (data: { id: string; }) => void;
-    player_disconnect: (data: { id: string; }) => void;
+    room_created: (data: {
+        room: Client.Room,
+        game: Client.Game,
+        players: Client.Player[];
+    }) => void;
+    room_joined: (data: {
+        room: Client.Room,
+        game: Client.Game,
+        players: Client.Player[];
+    }) => void;
+    room_updated: (data: { room: Client.Room; }) => void;
+    room_closed: (data: { roomId: string; }) => void;
+    room_left: (data: { roomId: string; }) => void;
+    room_full: (data: { roomId: string; maxPlayers: number; }) => void;
 
-    availible_decks_update: (data: DeckIdentifier[]) => void;
+    player_updated: (data: { player: Client.Player; }) => void;
+    player_joined: (data: { player: Client.Player; }) => void;
+    player_left: (data: { playerId: string; }) => void;
+    player_kicked: (data: { roomId: string, playerId: string; }) => void;
+    player_disconnected: (data: { playerId: string; }) => void;
 
-    game_started: (data: Client.Game) => void;
-    updated_round: (data: Client.Game) => void;
-    selection_end: (data: Client.Game) => void;
-    player_updated: (data: Client.Player) => void;
-    game_updated: (data: Client.Game) => void;
-    rate_next_player: (data: { playerId: string; }) => void;
-    game_status_update: (data: { status: GameStatus; }) => void;
-    game_deck_update: (data: DeckIdentifier) => void;
+    decks_update: (data: { decks: DeckIdentifier[]; }) => void;
+
+    // game_fill_ended: (data: { game: Client.Game; }) => void;
+    game_rate_player: (data: { playerId: string; }) => void;
+    game_started: (data: {
+        game: Client.Game,
+        players: Client.Player[];
+    }) => void;
+    game_status_updated: (data: { status: GameStatus; }) => void;
+    game_updated: (data: { game: Client.Game; }) => void;
 };
-
-
-export type InterServerEvents = Record<string, never>;
-
-
-export type SocketData = {
-    name: string;
-};
-
-
-export type WebSocketServer = SocketIO.Server<
-    ClientToServerEvents,
-    ServerToClientEvents,
-    InterServerEvents,
-    SocketData
->;
-
-export type WebSocketServerSocket = SocketIO.Socket<
-    ClientToServerEvents,
-    ServerToClientEvents,
-    InterServerEvents,
-    SocketData
->;

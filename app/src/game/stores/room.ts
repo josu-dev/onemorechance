@@ -1,4 +1,3 @@
-import { goto } from '$app/navigation';
 import { ROOM_STATUS } from '$game/enums';
 import type { Room, RoomStore, SelfStore, SocketInstance } from '$game/types.client.js';
 import { uniqueLettersId } from '$lib/utils';
@@ -43,48 +42,50 @@ export function createRoomActions(socket: SocketInstance, self: SelfStore, room:
             if (!self.value.registered) {
                 return;
             }
-            socket.emit('create_room', { userId: self.value.id });
+            socket.emit('room_create', {});
         },
         updateRoom(room: Room) {
-            socket.emit('update_room', { roomId: room.id, data: room });
+            socket.emit('room_update', { room: room });
         },
         closeRoom() {
             if (!self.value.registered) {
                 return;
             }
-            socket.emit('close_room', { roomId: room.value!.id, userId: self.value.id });
+            socket.emit('room_close', { roomId: room.value.id });
         },
         joinRoom(roomId: string) {
             if (!self.value.registered) {
                 return;
             }
-            socket.emit('join_room', { roomId: roomId, userId: self.value.id });
+
+            room.value.status = ROOM_STATUS.CONNECTING;
+            room.sync();
+
+            socket.emit('room_join', { roomId: roomId });
         },
         leaveRoom() {
             if (!self.value.registered || room.value.status === ROOM_STATUS.NO_ROOM) {
                 return;
             }
-            socket.emit('leave_room', { roomId: room.value!.id, userId: self.value.id });
+            socket.emit('room_leave', { roomId: room.value.id });
         },
         setDeck(deckId: string) {
             if (!room.value) {
                 return;
             }
-
-            socket.emit('update_room_deck', { roomId: room.value.id, deckId: deckId });
+            socket.emit('game_set_deck', { roomId: room.value.id, deckId: deckId });
         },
-        setReady(ready?: boolean) {
+        setReady(ready: boolean = true) {
             socket.emit(
-                ready ? 'player_ready' : 'player_unready',
-                { roomId: room.value!.id, userId: self.value.id }
+                'player_set_ready',
+                { roomId: room.value!.id, state: ready }
             );
         },
-        kickPlayer(userId: string) {
-            const roomId = room.value?.id;
-            if (!roomId) {
-                return;
-            }
-            socket.emit('kick_player', { roomId, userId });
+        kickPlayer(playerId: string) {
+            socket.emit(
+                'room_kick_player',
+                { roomId: room.value.id, playerId: playerId }
+            );
         },
         startGame() {
             const hostId = room.value.hostId;
@@ -92,36 +93,20 @@ export function createRoomActions(socket: SocketInstance, self: SelfStore, room:
             if (!hostId || hostId !== playerId) {
                 return;
             }
-            socket.emit('start_game', { roomId: room.value!.id, userId: playerId });
+            socket.emit('game_start', { roomId: room.value.id });
         },
     };
 }
 
 
 export function attachRoomListeners(room: RoomStore, socket: SocketInstance) {
-    socket.on('room_create', (data) => {
-        room.mset(data);
-
-        goto(`/${data.id}`);
+    socket.on('room_updated', (data) => {
+        room.mset(data.room);
     });
 
-    socket.on('room_create', (data) => {
-        room.mset(data);
+    socket.on('room_full', (data) => {
+        console.debug(`room_full: ${room.value.id} maxPlayers: ${data.maxPlayers}`);
+        room.value.status = ROOM_STATUS.FULL;
+        room.sync();
     });
-
-    socket.on('room_join', (data) => {
-        room.mset(data);
-
-        goto(`/${data.id}`);
-    });
-
-    // socket.on('player_join', ({player}) => {
-    //     const r = room.value;
-    //     if (!r || user.value?.id === player.id) {
-    //         return;
-    //     }
-
-    //     r.
-    //     room.mset(r);
-    // });
 }

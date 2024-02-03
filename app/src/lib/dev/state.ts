@@ -1,4 +1,4 @@
-
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { GAME } from '$game/configs';
 import { GAME_STATUS } from '$game/enums';
 import { createSocket } from '$game/socket';
@@ -54,7 +54,7 @@ const INITIAL_GAME: Game = {
     },
 };
 
-const INITIAL_PLAYERS : Player[] = [
+const INITIAL_PLAYERS: Player[] = [
     {
         id: '1',
         name: 'Josu',
@@ -128,17 +128,16 @@ export const socket = createSocket();
 
 export const self = _player.createSelfStore();
 
-export const selfActions = _player.createSelfActions(self, socket);
+export const selfActions = _player.createSelfActions(socket, self);
 
-_player.attachSelfListeners(self, socket);
+_player.attachSelfListeners(socket, self);
 
 
 export const players = _player.createPlayersStore();
 
-export const playersActions = _player.createPlayersActions(players, socket);
+export const playersActions = _player.createPlayersActions(socket, players);
 
-_player.attachPlayersListeners(players, socket);
-
+_player.attachPlayersListeners(socket, players);
 
 
 export const room = _room.createRoomStore();
@@ -154,14 +153,14 @@ export const gameStatus = _game.createGameStatusStore(game);
 
 export const gameActions = _game.createGameActions(socket, self, game);
 
-_game.attachGameListeners(game, socket);
+_game.attachGameListeners(socket, game);
 
 
 export const decks = _decks.createDecksStore();
 
-export const decksActions = _decks.createDecksActions(decks, socket);
+export const decksActions = _decks.createDecksActions(socket, decks);
 
-_decks.attachDecksListeners(decks, socket);
+_decks.attachDecksListeners(socket, decks);
 
 
 // TODO: attach common listeners between stores

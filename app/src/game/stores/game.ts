@@ -55,29 +55,28 @@ export function createGameStore(): GameStore {
     };
 }
 
-
 export function createGameActions(socket: SocketInstance, self: SelfStore, game: GameStore,) {
     return {
         ratePlayer(playerId: string, rate: PlayerRating) {
-            socket.emit('rate_player', { roomId: game.value.roomId, playerId: playerId, rate: rate });
+            socket.emit('game_rate_player', { roomId: game.value.roomId, playerId: playerId, rate: rate });
         },
         setSelectedOption(option: Option[]) {
-            socket.emit('option_selected', { roomId: game.value.roomId, userId: self.value.id, option: option });
-        }, setFreestyle(text: string | string[]) {
-            socket.emit('freestyle_selected', { roomId: game.value.roomId, userId: self.value.id, freestyle: Array.isArray(text) ? text : [text] });
+            socket.emit('game_set_option', { roomId: game.value.roomId, option: option });
+        },
+        setFreestyle(text: string[]) {
+            socket.emit('game_set_freestyle', { roomId: game.value.roomId, freestyle: text });
         }
     };
 }
 
-
-export function attachGameListeners(game: GameStore, socket: SocketInstance) {
-    socket.on('game_updated', (data) => {
-        game.mset(data);
-    });
-
-    socket.on('rate_next_player', ({ playerId }) => {
+export function attachGameListeners(socket: SocketInstance, game: GameStore) {
+    socket.on('game_rate_player', ({ playerId }) => {
         game.value.current.ratingPlayer = playerId;
         game.sync();
+    });
+    
+    socket.on('game_updated', (data) => {
+        game.mset(data.game);
     });
 }
 

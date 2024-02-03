@@ -1,11 +1,11 @@
-import type { IncomingMessage, Server, ServerResponse } from "http";
+import type { Server as HttpServer } from "http";
 import { customRandom, nanoid, random } from 'nanoid';
-import { Server as SocketIOServer } from 'socket.io';
-import * as T from './types.js';
+import { Server } from 'socket.io';
 import { GAME } from '../src/game/configs.js';
-import { DECK_TYPE, GAME_STATUS, PLAYER_ROLE, ROOM_STATUS } from '../src/game/enums.js';
-
+import { DECK_TYPE, GAME_STATUS, PLAYER_RATING, PLAYER_ROLE, ROOM_STATUS } from '../src/game/enums.js';
 import importedDecks from '../static/decks/default.json' with { type: "json" };
+import type * as T from './types.js';
+
 
 const decks = importedDecks as Record<string, T.Deck>;
 
@@ -17,8 +17,70 @@ const randomRoomId = customRandom('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghi
 
 const users = new Map<string, T.User>();
 
+// const players = new Map<string, T.Player>();
+
 const rooms = new Map<string, T.Room>();
 
+
+function removePlayerFromRoom(io: T.WebSocketServer, socket: T.WebSocketServerSocket, user: T.User, room: T.Room, playerId: string) {
+    let roomIndex = -1;
+    for (let i = 0; i < user.rooms.length; i++) {
+        if (user.rooms[i] === room.room.id) {
+            roomIndex = i;
+            break;
+        }
+    }
+    if (roomIndex > -1) {
+        user.rooms.splice(roomIndex, 1);
+    }
+
+    let playerIndex = -1;
+    for (let i = 0; i < room.players.length; i++) {
+        if (room.players[i].id === playerId) {
+            playerIndex = i;
+            break;
+        }
+    }
+    if (playerIndex > -1) {
+        room.players.splice(playerIndex, 1);
+    }
+
+    if (room.players.length === 0) {
+        rooms.delete(room.room.id);
+        return;
+    }
+
+    if (room.room.hostId === playerId) {
+        const hostPlayer = room.players[0];
+        hostPlayer.role = PLAYER_ROLE.HOST;
+        room.room.hostId = hostPlayer.id;
+    }
+    io.to(room.room.id).emit('room_updated', { room: room.room });
+}
+
+function setupNewGame(room: T.Room) {
+    room.game.status = GAME_STATUS.NOT_STARTED;
+    room.game.round = 0;
+    room.game.used.options = [];
+    room.game.used.phrases = [];
+    room.game.current.phrase = {
+        id: '',
+        text: '',
+    };
+    room.game.current.winner = undefined;
+    room.game.current.ratingPlayer = undefined;
+    for (const player of room.players) {
+        player.ready = false;
+        player.score = 0;
+        player.totalScore = 0;
+        player.current.option = undefined;
+        player.current.freestyle = undefined;
+        player.current.modifier = undefined;
+        player.used.freestyle = [];
+        player.used.options = [];
+        player.used.modifiers = [];
+    }
+}
 
 function newRound(io: T.WebSocketServer, socket: T.WebSocketServerSocket, room: T.Room) {
     room.game.round += 1;
@@ -42,9 +104,11 @@ function newRound(io: T.WebSocketServer, socket: T.WebSocketServerSocket, room: 
         for (const player of room.players) {
             const missingOptions = room.game.maxOptions - player.stock.options.length;
             for (let i = 0; i < missingOptions; i++) {
-                let option = deck.options[Math.floor(Math.random() * deck.options.length)]!;
+                // @ts-ignore - We know that deck is a DeckChoose
+                let option = deck.options[Math.floor(Math.random() * deck.options.length)];
                 while (room.game.used.options.includes(option.id)) {
-                    option = deck.options[Math.floor(Math.random() * deck.options.length)]!;
+                    // @ts-ignore - We know that deck is a DeckChoose
+                    option = deck.options[Math.floor(Math.random() * deck.options.length)];
                 }
                 player.stock.options.push(option);
                 room.game.used.options.push(option.id);
@@ -53,18 +117,21 @@ function newRound(io: T.WebSocketServer, socket: T.WebSocketServerSocket, room: 
     }
 
     room.game.status = GAME_STATUS.FILL_SENTENCE;
-    io.to(room.room.id).emit('game_updated', room.game);
+    io.to(room.room.id).emit('game_updated', { game: room.game });
 
     setTimeout(() => {
         room.game.status = GAME_STATUS.RATE_SENTENCE;
-        io.to(room.room.id).emit('game_updated', room.game);
+        io.to(room.room.id).emit('game_status_updated', { status: room.game.status });
 
         const playerCount = room.players.length;
         for (let i = 0; i < playerCount; i++) {
-            setTimeout(() => {
-                const player = room.players[i];
-                io.to(room.room.id).emit('rate_next_player', { playerId: player.id });
-            }, i * GAME.DEFAULT_RATE_TIME);
+            setTimeout(
+                (playerId) => {
+                    io.to(room.room.id).emit('game_rate_player', { playerId: playerId });
+                },
+                i * GAME.DEFAULT_RATE_TIME,
+                room.players[i].id
+            );
         }
 
         setTimeout(() => {
@@ -79,7 +146,7 @@ function newRound(io: T.WebSocketServer, socket: T.WebSocketServerSocket, room: 
             }
             room.game.current.winner = winnerId;
             room.game.status = GAME_STATUS.ROUND_WINNER;
-            io.to(room.room.id).emit('game_updated', room.game);
+            io.to(room.room.id).emit('game_updated', { game: room.game });
 
             if (room.game.round < room.game.maxRounds) {
                 setTimeout(
@@ -94,125 +161,138 @@ function newRound(io: T.WebSocketServer, socket: T.WebSocketServerSocket, room: 
 
             setTimeout(() => {
                 room.game.status = GAME_STATUS.END_SCOREBOARD;
-                io.to(room.room.id).emit('game_status_update', { status: room.game.status });
+                io.to(room.room.id).emit('game_status_updated', { status: room.game.status });
 
                 setTimeout(() => {
                     room.game.status = GAME_STATUS.ENDED;
-                    io.to(room.room.id).emit('game_updated', room.game);
+                    io.to(room.room.id).emit('game_status_updated', { status: room.game.status });
                 }, GAME.DEFAULT_SCOREBOARD_TIME);
             }, GAME.DEFAULT_RESULTS_TIME);
-        }, room.players.length * GAME.DEFAULT_RATE_TIME);
+
+        }, playerCount * GAME.DEFAULT_RATE_TIME);
+
     }, GAME.DEFAULT_SELECTION_TIME);
 }
 
 
-export function attach_sockets(
-    server: Server<typeof IncomingMessage, typeof ServerResponse>
+export function attach_socket_server(
+    server: HttpServer
 ) {
-    const io = new SocketIOServer<
-    T.ClientToServerEvents,
-    T.ServerToClientEvents,
-    T.InterServerEvents,
-    T.SocketData
+    const io = new Server<
+        T.ClientToServerEvents,
+        T.ServerToClientEvents,
+        T.InterServerEvents,
+        T.SocketData
     >(server);
 
     io.on('connection', (socket) => {
         socket.on('disconnect', () => {
-            let user: T.User | undefined;
-            for (const [, u] of users) {
-                if (u.socketId === socket.id) {
-                    user = u;
-                    break;
-                }
-            }
-            if (!user) return;
-            let room: T.Room | undefined;
-            for (const [, r] of rooms) {
-                if (r.players.some(p => p.id === user!.id)) {
-                    room = r;
-                    break;
-                }
-            }
-            if (room) {
-                socket.leave(room.room.id);
-                const playerIndex = room.players.findIndex(p => p.id === user!.id);
-                if (playerIndex > -1) {
-                    room.players.splice(playerIndex, 1);
-                }
-                if (room.players.length === 0) {
-                    rooms.delete(room.room.id);
-                } else {
-                    if (room.room.hostId === user!.id) {
-                        const hostPlayer = room.players[0];
-                        hostPlayer.role = 'HOST';
-                        room.room.hostId = hostPlayer.id;
-                    }
-                    io.to(room.room.id).emit('room_update', room.room);
-                }
+            if (!socket.data.userId) {
+                return;
             }
 
+            const user = users.get(socket.data.userId);
+            if (!user) {
+                return;
+            }
+
+            for (const roomId of user.rooms) {
+                const room = rooms.get(roomId);
+                if (!room) {
+                    continue;
+                }
+                removePlayerFromRoom(io, socket, user, room, user.id);
+                io.sockets.sockets.get(user.client.socketId)?.leave(roomId);
+                io.to(roomId).emit('player_disconnected', { playerId: user.id });
+            }
+
+            socket.data.userId = '';
             users.delete(user.id);
         });
 
-        socket.on('register_user', ({ userId, name }) => {
-            if (!userId) {
-                userId = nanoid();
+        socket.on('user_register', ({ id, name }) => {
+            if (!id) {
+                id = nanoid();
+            }
+            const user: T.User = {
+                id: id,
+                client: {
+                    id: id,
+                    name: name,
+                    socketId: socket.id,
+                },
+                rooms: [],
+            };
+            socket.data.userId = id;
+            users.set(id, user);
+            socket.emit('user_registered', { user: user.client });
+        });
+
+        socket.on('user_unregister', ({ id }) => {
+            const user = users.get(id);
+            if (!user) {
+                return;
             }
 
-            const user: T.User = {
-                id: userId,
-                name: name,
-                socketId: socket.id,
-            };
-            users.set(userId, user);
-            socket.emit('registered', user);
-        });
-
-        socket.on('unregister_user', ({ userId }) => {
-            const user = users.get(userId);
-            if (!user) return;
-
-            users.delete(userId);
-        });
-
-        socket.on('create_room', ({ userId }) => {
-            const user = users.get(userId);
-            if (!user) return;
-
-            const player: T.Client.Player = {
-                id: user.id,
-                name: user.name,
-                role: 'HOST',
-                score: 0,
-                totalScore: 0,
-                ready: false,
-                current: {
-                    option: undefined,
-                    freestyle: undefined,
-                },
-                stock: {
-                    options: [],
-                    modifiers: [],
-                },
-                used: {
-                    freestyle: [],
-                    options: [],
-                    modifiers: [],
+            for (const roomId of user.rooms) {
+                const room = rooms.get(roomId);
+                if (!room) {
+                    continue;
                 }
-            };
+                removePlayerFromRoom(io, socket, user, room, id);
+            }
+
+            users.delete(id);
+            socket.data.userId = '';
+            socket.emit('user_unregistered', {});
+        });
+
+        socket.on('room_create', () => {
+            const user = users.get(socket.data.userId);
+            if (!user) {
+                return;
+            }
 
             const roomId = randomRoomId();
+
+            const player: T.Player = {
+                userId: user.client.id,
+                roomId: roomId,
+                client: {
+                    id: user.client.id,
+                    name: user.client.name,
+                    role: PLAYER_ROLE.HOST,
+                    score: 0,
+                    totalScore: 0,
+                    ready: false,
+                    current: {
+                        option: undefined,
+                        freestyle: undefined,
+                    },
+                    stock: {
+                        options: [],
+                        modifiers: [],
+                    },
+                    used: {
+                        freestyle: [],
+                        options: [],
+                        modifiers: [],
+                    }
+                },
+            };
+
             const room: T.Room = {
+                id: roomId,
                 room: {
                     id: roomId,
-                status: ROOM_STATUS.IN_LOBBY,
-                hostId: player.id,
-                maxPlayers: GAME.MAX_PLAYERS
+                    status: ROOM_STATUS.IN_LOBBY,
+                    hostId: player.userId,
+                    maxPlayers: GAME.MAX_PLAYERS
                 },
                 game: {
+                    id: nanoid(),
                     roomId: roomId,
                     status: GAME_STATUS.NOT_STARTED,
-                    id: nanoid(),
                     maxRounds: GAME.DEFAULT_ROUNDS,
                     chooseTime: GAME.DEFAULT_SELECTION_TIME,
                     maxOptions: GAME.DEFAULT_OPTIONS,
@@ -235,41 +315,71 @@ export function attach_sockets(
                     }
 
                 },
-                players: [player],
+                players: [player.client],
             };
+
+            user.rooms.push(roomId);
             rooms.set(roomId, room);
             socket.join(roomId);
-            socket.emit('room_create', room.room);
+            socket.emit('room_created', {
+                room: room.room,
+                game: room.game,
+                players: room.players
+            });
         });
 
-        socket.on('update_room', ({ roomId, data }) => {
-            const room = rooms.get(roomId);
-            if (!room) return;
-            room.room = data;
+        socket.on('room_update', ({ room }) => {
+            const _room = rooms.get(room.id);
+            if (!_room) {
+                return;
+            }
+            _room.room = room;
 
-            io.to(roomId).emit('room_update', data);
+            io.to(room.id).emit('room_updated', { room: room });
         });
 
-        socket.on('close_room', ({ roomId, userId }) => {
+        socket.on('room_close', ({ roomId }) => {
+            const user = users.get(socket.data.userId);
             const room = rooms.get(roomId);
-            if (!room || room.room.hostId !== userId) {
+            if (!user || !room || room.room.hostId !== user.client.id) {
                 return;
             }
 
             rooms.delete(roomId);
-            io.to(roomId).emit('room_close', { roomId });
+            io.to(roomId).emit('room_closed', { roomId });
+            io.in(roomId).socketsLeave(roomId);
         });
 
-        socket.on('join_room', ({ roomId, userId }) => {
+        socket.on('room_join', ({ roomId }) => {
+            const user = users.get(socket.data.userId);
             const room = rooms.get(roomId);
-            const user = users.get(userId);
             if (!room || !user) {
                 return;
             }
 
+            if (room.players.length >= room.room.maxPlayers) {
+                socket.emit('room_full', {
+                    roomId: room.id,
+                    maxPlayers: room.room.maxPlayers
+                });
+                return;
+            }
+
+            for (const player of room.players) {
+                if (player.id === user.id) {
+                    return;
+                }
+            }
+            for (const roomId of user.rooms) {
+                const _room = rooms.get(roomId);
+                if (_room) {
+                    return;
+                }
+            }
+
             const player: T.Client.Player = {
                 id: user.id,
-                name: user.name,
+                name: user.client.name,
                 role: PLAYER_ROLE.GUEST,
                 score: 0,
                 totalScore: 0,
@@ -290,158 +400,224 @@ export function attach_sockets(
             };
 
             socket.join(roomId);
+            user.rooms.push(roomId);
             room.players.push(player);
-            socket.emit('room_join', room.room);
-            io.to(roomId).emit('player_join', { player });
+            socket.emit('room_joined', {
+                room: room.room,
+                game: room.game,
+                players: room.players
+            });
+            io.to(roomId).emit('player_joined', { player });
         });
 
-        socket.on('leave_room', ({ roomId, userId }) => {
+        socket.on('room_leave', ({ roomId }) => {
+            const user = users.get(socket.data.userId);
             const room = rooms.get(roomId);
-            const user = users.get(userId);
-            if (!room || !user) {
+            if (!user || !room) {
                 return;
             }
 
-            const userIndex = room.players.findIndex(u => u.id === user!.id);
-            if (userIndex > -1) {
-                room.players.splice(userIndex, 1);
-            }
-            const playerIndex = room.players.findIndex(p => p.id === user!.id);
-            if (playerIndex > -1) {
-                room.players.splice(playerIndex, 1);
-            }
-            if (room.players.length === 0) {
-                rooms.delete(room.room.id);
-            } else {
-                if (room.room.hostId === user!.id) {
-                    const hostPlayer = room.players[0];
-                    hostPlayer.role = PLAYER_ROLE.HOST;
-                    room.room.hostId = hostPlayer.id;
-                }
-                io.to(room.room.id).emit('room_update', room.room);
-            }
+            removePlayerFromRoom(io, socket, user, room, user.id);
 
             socket.leave(room.room.id);
+            socket.emit('room_left', { roomId: room.room.id });
+            io.to(room.room.id).emit('player_left', { playerId: user.id });
         });
 
-        socket.on('kick_player', ({ roomId, userId }) => {
+        socket.on('room_kick_player', ({ roomId, playerId }) => {
+            const user = users.get(socket.data.userId);
             const room = rooms.get(roomId);
-            const user = users.get(userId);
-            if (!room || !user || room.room.hostId !== socket.id) {
+            const kickedUser = users.get(playerId);
+            if (!user || !room || !kickedUser) {
                 return;
             }
 
-            const userIndex = room.players.findIndex(u => u.id === user!.id);
-            if (userIndex > -1) {
-                room.players.splice(userIndex, 1);
-            }
-            const playerIndex = room.players.findIndex(p => p.id === user!.id);
-            if (playerIndex > -1) {
-                room.players.splice(playerIndex, 1);
-            }
-            io.to(room.room.id).emit('player_disconnect', user);
-            // socket.leave(room.room.id);
-            // TODO: Send a message to the kicked user
-            // socket.emit('kicked_from_room', room);
-        });
-
-        socket.on('update_room_deck', ({ roomId, deckId }) => {
-            const room = rooms.get(roomId);
-            const deck = decks[deckId];
-            if (!room || !deck) {
+            const userId = user.id;
+            if (userId !== room.room.hostId || userId === playerId) {
                 return;
             }
 
-            room.game.deck = {
-                id: deck.id,
-                name: deck.name,
-                type: deck.type,
-            };
-            io.to(roomId).emit('game_deck_update', room.game.deck);
+            removePlayerFromRoom(io, socket, kickedUser, room, playerId);
+            io.to(room.room.id).emit('player_kicked', { roomId: room.id, playerId: playerId });
+            io.sockets.sockets.get(kickedUser.client.socketId)?.leave(roomId);
         });
 
-        socket.on('player_ready', ({ roomId, userId }) => {
+        socket.on('player_update', ({ roomId, player }) => {
+            const user = users.get(socket.data.userId);
             const room = rooms.get(roomId);
-            if (!room) return;
-
-            const player = room.players.find(p => p.id === userId);
-            if (!player) return;
-
-            player.ready = true;
-            io.to(roomId).emit('room_update', room.room);
-        });
-
-        socket.on('player_unready', ({ roomId, userId }) => {
-            const room = rooms.get(roomId);
-            if (!room) return;
-
-            const player = room.players.find(p => p.id === userId);
-            if (!player) return;
-
-            player.ready = false;
-            io.to(roomId).emit('room_update', room.room);
-        });
-
-        socket.on('start_game', ({ roomId, userId }) => {
-            const room = rooms.get(roomId);
-            if (!room || room.room.hostId !== userId) {
+            if (!user || !room || user.id !== player.id) {
                 return;
             }
 
-            room.room.status = ROOM_STATUS.IN_GAME;
-            room.game.status = GAME_STATUS.PRE_ROUND;
-            room.game.round = 0;
-            io.to(roomId).emit('game_started', room.game);
+            let playerIndex = -1;
+            for (let i = 0; i < room.players.length; i++) {
+                if (room.players[i].id === player.id) {
+                    playerIndex = i;
+                    break;
+                }
+            }
+            if (playerIndex === -1) {
+                return;
+            }
+
+            room.players[playerIndex] = player;
+            io.to(roomId).emit('player_updated', { player: player });
+        });
+
+        socket.on('player_set_name', ({ roomId, name }) => {
+            const user = users.get(socket.data.userId);
+            const room = rooms.get(roomId);
+            if (!user || !room) {
+                return;
+            }
+
+            let playerIndex = -1;
+            for (let i = 0; i < room.players.length; i++) {
+                if (room.players[i].id === user.id) {
+                    playerIndex = i;
+                    break;
+                }
+            }
+            if (playerIndex === -1) {
+                return;
+            }
+
+            const player = room.players[playerIndex];
+            player.name = name;
+            io.to(roomId).emit('player_updated', { player: player });
+        });
+
+        socket.on('player_set_ready', ({ roomId, state }) => {
+            const user = users.get(socket.data.userId);
+            const room = rooms.get(roomId);
+            if (!user || !room) {
+                return;
+            }
+
+            let playerIndex = -1;
+            for (let i = 0; i < room.players.length; i++) {
+                if (room.players[i].id === user.id) {
+                    playerIndex = i;
+                    break;
+                }
+            }
+            if (playerIndex === -1) {
+                return;
+            }
+
+            const player = room.players[playerIndex];
+            player.ready = state;
+            io.to(roomId).emit('player_updated', { player: player });
+        });
+
+        socket.on('game_start', ({ roomId }) => {
+            const room = rooms.get(roomId);
+            if (!room || room.room.hostId !== socket.data.userId) {
+                return;
+            }
+
+            setupNewGame(room);
+            io.to(roomId).emit('game_started', { game: room.game, players: room.players });
             newRound(io, socket, room);
         });
 
-        socket.on('trigger_decks_update', () => {
-            socket.emit('availible_decks_update', Object.values(decks).map(d => {
-                return {
-                    id: d.id,
-                    name: d.name,
-                    type: d.type as T.DeckType,
-                };
-            }));
-        });
-
-        socket.on('option_selected', ({ roomId, userId, option }) => {
+        socket.on('game_set_settings', ({ roomId, game }) => {
             const room = rooms.get(roomId);
-            const user = users.get(userId);
-            if (!room || !user) {
+            if (!room || room.room.hostId !== socket.data.userId) {
                 return;
             }
 
-            const player = room.players.find(p => p.id === userId)!;
-            player.current.option = option;
-            socket.emit('player_updated', player);
+            room.game.maxRounds = game.maxRounds;
+            room.game.chooseTime = game.chooseTime;
+            room.game.maxOptions = game.maxOptions;
+            room.game.deck = game.deck;
+            io.to(roomId).emit('game_updated', { game: room.game });
         });
 
-        socket.on('freestyle_selected', ({ roomId, userId, freestyle }) => {
+        socket.on('game_set_deck', ({ roomId, deckId }) => {
             const room = rooms.get(roomId);
-            const user = users.get(userId);
-            if (!room || !user) {
+            if (!room || room.room.hostId !== socket.data.userId) {
                 return;
             }
 
-            const player = room.players.find(p => p.id === userId)!;
+            const deck = decks[deckId];
+            if (!deck) {
+                return;
+            }
+
+            room.game.deck.id = deck.id;
+            room.game.deck.name = deck.name;
+            room.game.deck.type = deck.type;
+            room.game.deck.description = deck.description;
+            io.to(roomId).emit('game_updated', { game: room.game });
+        });
+
+        socket.on('game_set_freestyle', ({ roomId, freestyle }) => {
+            const user = users.get(socket.data.userId);
+            const room = rooms.get(roomId);
+            if (!user || !room) {
+                return;
+            }
+
+            let playerIndex = -1;
+            for (let i = 0; i < room.players.length; i++) {
+                if (room.players[i].id === user.id) {
+                    playerIndex = i;
+                    break;
+                }
+            }
+            if (playerIndex === -1) {
+                return;
+            }
+
+            const player = room.players[playerIndex];
             player.current.freestyle = freestyle;
-            socket.emit('player_updated', player);
+            socket.emit('player_updated', { player: player });
         });
 
-        socket.on('rate_player', ({ roomId, playerId, rate }) => {
+        socket.on('game_set_option', ({ roomId, option }) => {
+            const user = users.get(socket.data.userId);
             const room = rooms.get(roomId);
-            if (!room) {
+            if (!user || !room) {
                 return;
             }
 
-            const player = room.players.find(p => p.id === playerId);
-            if (!player) {
+            let playerIndex = -1;
+            for (let i = 0; i < room.players.length; i++) {
+                if (room.players[i].id === user.id) {
+                    playerIndex = i;
+                    break;
+                }
+            }
+            if (playerIndex === -1) {
                 return;
             }
 
-            player.score += rate === 'BAD' ? -10 : rate === 'GOOD' ? 10 : 0;
-            socket.emit('player_updated', player);
+            const player = room.players[playerIndex];
+            player.current.option = option;
+            socket.emit('player_updated', { player: player });
+        });
+
+        socket.on('game_rate_player', ({ roomId, playerId, rate }) => {
+            const user = users.get(socket.data.userId);
+            const room = rooms.get(roomId);
+            if (!user || !room) {
+                return;
+            }
+
+            let playerIndex = -1;
+            for (let i = 0; i < room.players.length; i++) {
+                if (room.players[i].id === playerId) {
+                    playerIndex = i;
+                    break;
+                }
+            }
+            if (playerIndex === -1) {
+                return;
+            }
+
+            const player = room.players[playerIndex];
+            player.score += rate === PLAYER_RATING.GOD ? 10 : rate === PLAYER_RATING.MEH ? 0 : -10;
         });
     });
 }

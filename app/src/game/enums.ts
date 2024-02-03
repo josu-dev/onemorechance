@@ -1,5 +1,7 @@
 export const ROOM_STATUS = {
     NO_ROOM: 'NO_ROOM',
+    CONNECTING: 'CONNECTING',
+    FULL: 'FULL',
     IN_LOBBY: 'IN_LOBBY',
     IN_GAME: 'IN_GAME',
     CLOSED: 'CLOSED',

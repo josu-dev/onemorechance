@@ -1,12 +1,16 @@
-import type { GameStatus, PlayerRole, RoomStatus } from '$game/enums';
-import type { DeckIdentifier, Option, Phrase } from '$game/types';
-import type { ClientToServerEvents, ServerToClientEvents } from '$game/types';
-import type { ExposedReadable } from '$lib/stores/types';
 import type { Socket } from 'socket.io-client';
+import type { ExposedReadable } from '../lib/stores/types.js';
+import type { GameStatus, PlayerRole, RoomStatus } from './enums.js';
+import type { ClientToServerEvents, DeckIdentifier, Option, Phrase, ServerToClientEvents } from './types.js';
 
 
 export type SocketInstance = Socket<ServerToClientEvents, ClientToServerEvents>;
 
+export type User = {
+    id: string,
+    name: string,
+    socketId: string,
+};
 
 // #region Room
 
@@ -21,7 +25,6 @@ export type Room = {
 export type RoomStore = ExposedReadable<Room>;
 
 // #endregion
-
 
 // #region Game
 
@@ -47,7 +50,6 @@ export type Game = {
 
 export type GameStore = ExposedReadable<Game>;
 
-
 export type Player = {
     id: string,
     name: string,
@@ -61,7 +63,7 @@ export type Player = {
         freestyle?: string[],
     },
     stock: {
-        options: Option[]
+        options: Option[];
         modifiers: string[],
     },
     used: {
@@ -82,7 +84,8 @@ export type PlayersStore = ExposedReadable<Player[]>;
 
 // #endregion
 
-
 // #region Decks
 
 export type DecksStore = ExposedReadable<DeckIdentifier[]>;
+
+// #endregion

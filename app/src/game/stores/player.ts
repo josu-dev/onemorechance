@@ -52,33 +52,33 @@ export function createSelfStore(): SelfStore {
 }
 
 
-export function createSelfActions(self: SelfStore, socket: SocketInstance) {
+export function createSelfActions(socket: SocketInstance, self: SelfStore) {
     return {
         register(name: string) {
             if (self.value.registered) {
                 return;
             }
-            socket.emit('register_user', { name: name });
+            socket.emit('user_register', { name: name });
         },
         unregister() {
             if (!self.value.registered) {
                 return;
             }
-            socket.emit('unregister_user', { userId: self.value.id });
+            socket.emit('user_unregister', { id: self.value.id });
         },
     };
 }
 
 
-export function attachSelfListeners(self: SelfStore, socket: SocketInstance) {
-    socket.on('registered', (data) => {
+export function attachSelfListeners(socket: SocketInstance, self: SelfStore) {
+    socket.on('user_registered', (data) => {
         self.value.registered = true;
-        self.value.id = data.id;
-        self.value.name = data.name;
+        self.value.id = data.user.id;
+        self.value.name = data.user.name;
         self.sync();
     });
 
-    socket.on('unregistered', () => {
+    socket.on('user_unregistered', () => {
         self.mset(defaultSelf());
     });
 }
@@ -109,18 +109,56 @@ export function createPlayersStore(): PlayersStore {
     };
 }
 
-
-export function createPlayersActions(players: PlayersStore, socket: SocketInstance) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function createPlayersActions(socket: SocketInstance, players: PlayersStore) {
     return {};
 }
 
-
-export function attachPlayersListeners(players: PlayersStore, socket: SocketInstance) {
-    socket.on('player_updated', (data) => {
-        const index = players.value.findIndex((player) => player.id === data.id);
-        if (index !== -1) {
-            players.value[index] = data;
-            players.sync();
+export function attachPlayersListeners(socket: SocketInstance, players: PlayersStore) {
+    socket.on('player_joined', (data) => {
+        let foundIndex = -1;
+        for (let i = 0; i < players.value.length; i++) {
+            if (players.value[i].id === data.player.id) {
+                foundIndex = i;
+                break;
+            }
         }
+        if (foundIndex === -1) {
+            players.value.push(data.player);
+        }
+        else {
+            players.value[foundIndex] = data.player;
+        }
+        players.sync();
+    });
+
+    socket.on('player_left', (data) => {
+        let foundIndex = -1;
+        for (let i = 0; i < players.value.length; i++) {
+            if (players.value[i].id === data.playerId) {
+                foundIndex = i;
+                break;
+            }
+        }
+        if (foundIndex === -1) {
+            return;
+        }
+        players.value.splice(foundIndex, 1);
+        players.sync();
+    });
+
+    socket.on('player_disconnected', (data) => {
+        let foundIndex = -1;
+        for (let i = 0; i < players.value.length; i++) {
+            if (players.value[i].id === data.playerId) {
+                foundIndex = i;
+                break;
+            }
+        }
+        if (foundIndex === -1) {
+            return;
+        }
+        players.value.splice(foundIndex, 1);
+        players.sync();
     });
 }

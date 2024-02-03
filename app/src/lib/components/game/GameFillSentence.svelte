@@ -61,7 +61,7 @@
   });
 
   const dispatch = createEventDispatcher<{
-    freestyle: string;
+    freestyle: string[];
     option: Option[];
   }>();
 
@@ -70,7 +70,8 @@
       return;
     }
 
-    dispatch('freestyle', freestyle);
+    // TODO: correctly handled multiple freestyle completions
+    dispatch('freestyle', [freestyle]);
   }
   function dispatchOptions() {
     dispatch('option', options);

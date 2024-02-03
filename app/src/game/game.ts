@@ -3,6 +3,7 @@ import * as _player from '$game/stores/player';
 import * as _room from '$game/stores/room';
 import * as _game from '$game/stores/game';  
 import * as _decks from '$game/stores/decks';
+import * as _shared from '$game/stores/shared';
 
 
 export const socket = createSocket();
@@ -10,16 +11,16 @@ export const socket = createSocket();
 
 export const self = _player.createSelfStore();
 
-export const selfActions = _player.createSelfActions(self, socket);
+export const selfActions = _player.createSelfActions(socket, self);
 
-_player.attachSelfListeners(self, socket);
+_player.attachSelfListeners(socket, self);
 
 
 export const players = _player.createPlayersStore();
 
-export const playersActions = _player.createPlayersActions(players, socket);
+export const playersActions = _player.createPlayersActions(socket, players);
 
-_player.attachPlayersListeners(players, socket);
+_player.attachPlayersListeners(socket, players);
 
 
 
@@ -36,14 +37,14 @@ export const gameStatus = _game.createGameStatusStore(game);
 
 export const gameActions = _game.createGameActions(socket, self, game);
 
-_game.attachGameListeners(game, socket);
+_game.attachGameListeners(socket, game);
 
 
 export const decks = _decks.createDecksStore();
 
-export const decksActions = _decks.createDecksActions(decks, socket);
+export const decksActions = _decks.createDecksActions(socket, decks);
 
-_decks.attachDecksListeners(decks, socket);
+_decks.attachDecksListeners(socket, decks);
 
 
-// TODO: attach common listeners between stores
+_shared.attachSharedListeners(socket, self, room, game, players);
