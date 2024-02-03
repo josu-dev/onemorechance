@@ -1,5 +1,7 @@
 <script lang="ts">
-  import { roomActions, self, selfActions } from '$game/game.js';
+  import { goto } from '$app/navigation';
+  import { ROOM_STATUS } from '$game/enums.js';
+  import { room, roomActions, self, selfActions } from '$game/game.js';
 
   export let data;
 
@@ -15,6 +17,10 @@
 
   async function signIn() {
     registerUser({ name: name });
+  }
+
+  $: if ($room.status === ROOM_STATUS.IN_LOBBY) {
+    goto(`/${$room.id}`);
   }
 
   async function signOut() {

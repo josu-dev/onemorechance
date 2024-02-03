@@ -109,4 +109,5 @@ export type ServerToClientEvents = {
     }) => void;
     game_status_updated: (data: { status: GameStatus; }) => void;
     game_updated: (data: { game: Client.Game; }) => void;
+    game_updated_all: (data: { game: Client.Game; players: Client.Player[] }) => void;
 };

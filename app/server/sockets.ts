@@ -117,11 +117,11 @@ function newRound(io: T.WebSocketServer, socket: T.WebSocketServerSocket, room: 
     }
 
     room.game.status = GAME_STATUS.FILL_SENTENCE;
-    io.to(room.room.id).emit('game_updated', { game: room.game });
+    io.to(room.room.id).emit('game_updated_all', { game: room.game, players: room.players });
 
     setTimeout(() => {
         room.game.status = GAME_STATUS.RATE_SENTENCE;
-        io.to(room.room.id).emit('game_status_updated', { status: room.game.status });
+        io.to(room.room.id).emit('game_updated_all', { game: room.game, players: room.players });
 
         const playerCount = room.players.length;
         for (let i = 0; i < playerCount; i++) {
@@ -146,7 +146,7 @@ function newRound(io: T.WebSocketServer, socket: T.WebSocketServerSocket, room: 
             }
             room.game.current.winner = winnerId;
             room.game.status = GAME_STATUS.ROUND_WINNER;
-            io.to(room.room.id).emit('game_updated', { game: room.game });
+            io.to(room.room.id).emit('game_updated_all', { game: room.game, players: room.players });
 
             if (room.game.round < room.game.maxRounds) {
                 setTimeout(

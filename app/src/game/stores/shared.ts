@@ -1,8 +1,8 @@
-import type { GameStore, PlayersStore, RoomStore, SelfStore, SocketInstance } from '$game/types.client';
-import { GAME_STATUS, ROOM_STATUS } from '$game/enums';
+import { GAME_STATUS, ROOM_STATUS } from '$game/enums.js';
+import type { GameStore, PlayersStore, RoomStore, SelfStore, SocketInstance } from '$game/types.client.js';
 
 
-export function attachSharedListeners(socket: SocketInstance, self:SelfStore, room: RoomStore, game: GameStore, players: PlayersStore) {
+export function attachSharedListeners(socket: SocketInstance, self: SelfStore, room: RoomStore, game: GameStore, players: PlayersStore) {
     socket.on('user_unregistered', () => {
         self.value.registered = false;
         self.value.name = '';
@@ -82,7 +82,7 @@ export function attachSharedListeners(socket: SocketInstance, self:SelfStore, ro
 
         players.mset([]);
     });
-    
+
     socket.on('player_updated', (data) => {
         if (self.value.id === data.player.id) {
             self.mset({
@@ -138,5 +138,15 @@ export function attachSharedListeners(socket: SocketInstance, self:SelfStore, ro
         room.sync();
         game.mset(data.game);
         players.mset(data.players);
-    });    
+    });
+
+    socket.on('game_status_updated', (data) => {
+        game.value.status = data.status;
+        game.sync();
+    });
+
+    socket.on('game_updated_all', (data) => {
+        game.mset(data.game);
+        players.mset(data.players);
+    });
 }
