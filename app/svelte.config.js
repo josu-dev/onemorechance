@@ -9,6 +9,7 @@ const config = {
         adapter: adapter(),
         alias: {
             $comps: './src/lib/components',
+            $game: './src/game',
             $types: './src/types.js',
         }
     }

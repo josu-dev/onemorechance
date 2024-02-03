@@ -1,3 +1,6 @@
-import { customRandom, random } from 'nanoid';
+import { customRandom, nanoid, random } from 'nanoid';
 
-export const randomLettersId = customRandom('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz', 10, random);
+
+export const uniqueURLSafeId = nanoid;
+
+export const uniqueLettersId = customRandom('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz', 10, random);

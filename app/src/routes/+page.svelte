@@ -1,6 +1,5 @@
 <script lang="ts">
-  import { user } from '$lib/stores/user.js';
-  import { socket } from '$lib/ws.js';
+  import { roomActions, self, selfActions } from '$game/game.js';
 
   export let data;
 
@@ -11,7 +10,7 @@
   let name: string = data.name ?? '';
 
   function registerUser(data: { userId?: string; name: string }) {
-    socket.emit('register_user', data);
+    selfActions.register(data.name);
   }
 
   async function signIn() {
@@ -26,19 +25,17 @@
       },
       body: JSON.stringify({ name: undefined, userId: undefined }),
     });
-    socket.emit('unregister_user', { userId: user.value?.id! });
+    selfActions.unregister();
   }
 
   function createRoom() {
-    const userId = user.value?.id!;
-    socket.emit('create_room', { userId: userId });
+    roomActions.createRoom();
   }
 
   let roomId = '';
 
   function joinRoom() {
-    const userId = user.value?.id!;
-    socket.emit('join_room', { roomId: roomId, userId: userId });
+    roomActions.joinRoom(roomId);
   }
 </script>
 
@@ -61,7 +58,7 @@
     </div>
 
     <div class="flex flex-col justify-items-center items-center">
-      {#if !$user}
+      {#if !$self.registered}
         <form
           on:submit|preventDefault={signIn}
           class="flex flex-col items-center space-y-2"
@@ -84,7 +81,7 @@
         </form>
       {:else}
         <h2 class=" text-purple-50 text-2xl font-semibold mb-[1em]">
-          Hola {$user.name}!
+          Hola {$self.name}!
         </h2>
         <form on:submit|preventDefault={createRoom} class="mb-4">
           <button

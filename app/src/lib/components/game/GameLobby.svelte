@@ -1,18 +1,25 @@
 <script lang="ts">
   import CopyButton from '$comps/shared/CopyButton.svelte';
-  import { GAME } from '$lib/configs';
-  import { DECK_TYPE, PLAYER_ROLE } from '$lib/enums.js';
-  import type { ExposedReadable, Readable } from '$lib/stores/types';
-  import type { DeckIdentifier, Game, Player, Room, User } from '$types';
+  import { GAME } from '$game/configs';
+  import { DECK_TYPE, PLAYER_ROLE } from '$game/enums';
+  import type { DeckIdentifier } from '$game/types';
+  import type {
+    DecksStore,
+    GameStore,
+    Player,
+    PlayersStore,
+    RoomStore,
+    SelfStore,
+  } from '$game/types.client';
   import { createEventDispatcher } from 'svelte';
 
-  export let user: ExposedReadable<User>;
-  export let room: ExposedReadable<Room>;
-  export let game: ExposedReadable<Game>;
-  export let players: Readable<Player[]>;
-  export let availableDecks: Readable<DeckIdentifier[]>;
+  export let self: SelfStore;
+  export let room: RoomStore;
+  export let game: GameStore;
+  export let players: PlayersStore;
+  export let decks: DecksStore;
 
-  $: isHost = $user?.id === $room?.host.id;
+  $: isHost = $self.role === PLAYER_ROLE.HOST;
   $: isInvited = !isHost;
   $: playersAreReady = $players.every((player) => player.ready);
 
@@ -74,7 +81,7 @@
   }
 
   function selectDeck(event: { deckId: string }) {
-    const newDeck = $availableDecks.find((deck) => deck.id === event.deckId);
+    const newDeck = $decks.find((deck) => deck.id === event.deckId);
     if (!newDeck) {
       console.error('Deck not found');
       return;
@@ -85,7 +92,7 @@
   function askForKickPlayer(player: Player) {
     // TODO: Show modal
     if (confirm(`¿Estás seguro de expulsar a ${player.name}?`)) {
-      dispatchKickPlayer({ userId: player.userId });
+      dispatchKickPlayer({ userId: player.id });
     }
   }
 
@@ -140,11 +147,11 @@
             </div>
             <span class="text-lg">{player.name}</span>
             <div class="ml-auto">
-              <label for="ready-{player.userId}" class="sr-only">Listo</label>
-              {#if player.userId === $user?.id}
+              <label for="ready-{player.id}" class="sr-only">Listo</label>
+              {#if player.id === $self.id}
                 <input
                   type="checkbox"
-                  id="ready-{player.userId}"
+                  id="ready-{player.id}"
                   on:change={(e) => {
                     dispatchToggleReady(e.currentTarget.checked);
                   }}
@@ -162,7 +169,7 @@
                 {/if}
                 <input
                   type="checkbox"
-                  id="ready-{player.userId}"
+                  id="ready-{player.id}"
                   checked={player.ready}
                   disabled
                   class="form-checkbox text-success-500 w-6 h-6 rounded-md cursor-not-allowed"
@@ -234,7 +241,7 @@
               }}
               class="select ml-4 bg-black [&>option]:bg-black"
             >
-              {#each $availableDecks as deck}
+              {#each $decks as deck}
                 <option
                   value={deck.id}
                   selected={deck.id === $game.deck.id}

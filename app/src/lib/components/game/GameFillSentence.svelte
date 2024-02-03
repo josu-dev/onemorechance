@@ -1,18 +1,18 @@
 <script lang="ts">
-  import { DECK_TYPE } from '$lib/enums.js';
+  import { DECK_TYPE } from '$game/enums.js';
+  import type { Option } from '$game/types';
+  import type { GameStore } from '$game/types.client';
   import { audioPlayer } from '$lib/stores/audio';
-  import type { ExposedReadable } from '$lib/stores/types';
   import { debounced } from '$lib/utils/client/functions';
-  import type { Game, Option } from '$types';
   import { createEventDispatcher, onMount } from 'svelte';
 
   const DEBOUNCE_TIME = 500;
   const TIMER_UPDATE_RATE = 33;
 
-  export let game: ExposedReadable<Game>;
+  export let game: GameStore;
   export let initTimerOnMount = false;
 
-  let basePhrase = $game.phrase;
+  let basePhrase = $game.current.phrase;
   let emptyPhrase = basePhrase.text.replace(/{{}}/g, '...');
 
   let options: Option[] = [];

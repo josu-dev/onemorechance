@@ -6,41 +6,41 @@
   import GameMessage from '$comps/game/GameMessage.svelte';
   import GameRateSentence from '$comps/game/GameRateSentence.svelte';
   import GameScoreboard from '$comps/game/GameScoreboard.svelte';
-  import type { GameStatus } from '$lib/enums.js';
-  import { GAME_STATUS } from '$lib/enums.js';
-  import { availableDecks } from '$lib/stores/config.js';
-  import * as g from '$lib/stores/game.js';
-  import { game, players } from '$lib/stores/game.js';
-  import * as r from '$lib/stores/room.js';
-  import { room } from '$lib/stores/room.js';
-  import { user } from '$lib/stores/user.js';
+  import { GAME_STATUS, ROOM_STATUS } from '$game/enums.js';
+  import {
+    decks,
+    game,
+    gameActions,
+    gameStatus,
+    players,
+    room,
+    roomActions,
+    self,
+  } from '$game/game.js';
 
   // export let data;
 
   if (dev) {
-    debugData.set(room);
+    debugData.set({
+      $game,
+      $players,
+      $room,
+      $self,
+    });
   }
 
   $: pageTitle = `${
-    $room?.status === 'PLAYING' ? 'Jugando' : 'Esperando'
+    $room.status === ROOM_STATUS.IN_GAME ? 'Jugando' : 'Esperando'
   } - One More Chance`;
 
-  let gameStatus: GameStatus = GAME_STATUS.NOT_STARTED;
-
-  $: if (gameStatus !== $game.status) {
-    gameStatus = $game.status;
-  }
-  $: isNotStarted = gameStatus === GAME_STATUS.NOT_STARTED;
-  $: isPreRound = gameStatus === GAME_STATUS.PRE_ROUND;
-  $: isFillSentence = gameStatus === GAME_STATUS.FILL_SENTENCE;
-  $: isRateSentence = gameStatus === GAME_STATUS.RATE_SENTENCE;
-  $: isRoundWinner = gameStatus === GAME_STATUS.ROUND_WINNER;
-  $: isPostRound = gameStatus === GAME_STATUS.POS_ROUND;
-  $: isScoreboard = gameStatus === GAME_STATUS.SCOREBOARD;
-  $: isEnded = gameStatus === GAME_STATUS.ENDED;
-
-  const _user = user as any;
-  const _room = room as any;
+  $: isNotStarted = $gameStatus === GAME_STATUS.NOT_STARTED;
+  $: isPreRound = $gameStatus === GAME_STATUS.PRE_ROUND;
+  $: isFillSentence = $gameStatus === GAME_STATUS.FILL_SENTENCE;
+  $: isRateSentence = $gameStatus === GAME_STATUS.RATE_SENTENCE;
+  $: isRoundWinner = $gameStatus === GAME_STATUS.ROUND_WINNER;
+  $: isPostRound = $gameStatus === GAME_STATUS.POST_ROUND;
+  $: isScoreboard = $gameStatus === GAME_STATUS.END_SCOREBOARD;
+  $: isEnded = $gameStatus === GAME_STATUS.ENDED;
 </script>
 
 <svelte:head>
@@ -51,7 +51,7 @@
   class="h-full flex flex-col items-center justify-center overflow-y-auto p-1 ring-1 ring-cyan-500 md:ring-fuchsia-500 ring-inset"
 >
   <h1 class="sr-only">A jugar One More Chance!</h1>
-  {#if !$room || !$user}
+  {#if !$self.registered || $room.status === ROOM_STATUS.NO_ROOM}
     <GameMessage>
       <svelte:fragment slot="title">
         Room not found, you shouldnt be seeing this 😅
@@ -62,29 +62,30 @@
     </GameMessage>
   {:else if isNotStarted || isEnded}
     <GameLobby
-      user={_user}
-      room={_room}
+      {self}
+      {room}
       {game}
       {players}
-      {availableDecks}
+      {decks}
       on:start_game={() => {
-        r.startGame();
+        roomActions.startGame();
       }}
       on:close_room={() => {
-        r.closeRoom();
+        roomActions.closeRoom();
       }}
       on:kick_player={(event) => {
-        r.kickPlayer(event.detail.userId);
+        roomActions.kickPlayer(event.detail.userId);
       }}
       on:toggle_ready={(event) => {
-        r.setReady(event.detail);
+        roomActions.setReady(event.detail);
       }}
       on:update_deck={(event) => {
-        r.setGameDeck(event.detail.deckId);
+        // TODO: update deck
+        // roomActions.se(event.detail.deckId);
       }}
       on:update_settings={(event) => {
         // TODO: update settings
-        // r.updateSettings(event.detail);
+        // roomActions.updateSettings(event.detail);
       }}
     />
   {:else if isPreRound || isPostRound}
@@ -96,10 +97,10 @@
       {game}
       initTimerOnMount
       on:freestyle={(event) => {
-        g.setFreestyle(event.detail);
+        gameActions.setFreestyle(event.detail);
       }}
       on:option={(event) => {
-        g.setSelectedOption(event.detail[0] ?? 'Unknown');
+        gameActions.setSelectedOption(event.detail);
       }}
     />
   {:else if isRateSentence}
@@ -107,7 +108,7 @@
       {game}
       {players}
       on:rate_sentence={(event) => {
-        g.ratePlayer(event.detail.playerId, event.detail.rate);
+        gameActions.ratePlayer(event.detail.playerId, event.detail.rate);
       }}
     />
   {:else if isRoundWinner || isScoreboard}
@@ -129,7 +130,7 @@
   {:else}
     <GameMessage>
       <svelte:fragment slot="title">
-        Game status '{gameStatus}' not implemented yet, sorry 😅
+        Game status '{$gameStatus}' not implemented yet, sorry 😅
       </svelte:fragment>
     </GameMessage>
   {/if}

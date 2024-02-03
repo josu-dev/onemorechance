@@ -1,5 +1,5 @@
+import type { Readable } from '$lib/stores/types';
 import { writable } from 'svelte/store';
-import type { Readable } from './types';
 
 
 const audioLocation = '/audio/';
