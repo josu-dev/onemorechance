@@ -1,12 +1,16 @@
-import { createSocket } from '$game/socket';
-import * as _player from '$game/stores/player';
-import * as _room from '$game/stores/room';
-import * as _game from '$game/stores/game';  
-import * as _decks from '$game/stores/decks';
-import * as _shared from '$game/stores/shared';
+import * as _socket from '$game/socket.js';
+import * as _decks from '$game/stores/decks.js';
+import * as _game from '$game/stores/game.js';
+import * as _player from '$game/stores/player.js';
+import * as _room from '$game/stores/room.js';
+import * as _shared from '$game/stores/shared.js';
 
 
-export const socket = createSocket();
+export const socket = _socket.createSocket();
+
+export const socketActions = _socket.createSocketActions(socket);
+
+_socket.attachSocketListeners(socket);
 
 
 export const self = _player.createSelfStore();

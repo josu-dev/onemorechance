@@ -1,5 +1,5 @@
-import { ROOM_STATUS } from '$game/enums';
-import { room, self } from '$game/game';
+import { ROOM_STATUS } from '$game/enums.js';
+import { room } from '$game/game.js';
 import { redirect } from '@sveltejs/kit';
 import type { PageLoad } from './$types';
 
@@ -11,11 +11,6 @@ export const load: PageLoad = async () => {
         redirect(302, '/');
     }
 
-    // updateAvailableDecks();
-
-    const isHost = self.value?.id === room.value.hostId;
-
     return {
-        isHost: isHost,
     };
 };

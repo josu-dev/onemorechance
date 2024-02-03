@@ -1,6 +1,6 @@
-import { ROOM_STATUS } from '$game/enums';
+import { ROOM_STATUS } from '$game/enums.js';
 import type { Room, RoomStore, SelfStore, SocketInstance } from '$game/types.client.js';
-import { uniqueLettersId } from '$lib/utils';
+import { uniqueLettersId } from '$lib/utils/index.js';
 import { writable } from 'svelte/store';
 
 

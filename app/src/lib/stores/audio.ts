@@ -1,4 +1,4 @@
-import type { Readable } from '$lib/stores/types';
+import type { Readable } from '$lib/stores/types.js';
 import { writable } from 'svelte/store';
 
 

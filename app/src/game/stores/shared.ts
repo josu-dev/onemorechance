@@ -3,9 +3,34 @@ import type { GameStore, PlayersStore, RoomStore, SelfStore, SocketInstance } fr
 
 
 export function attachSharedListeners(socket: SocketInstance, self: SelfStore, room: RoomStore, game: GameStore, players: PlayersStore) {
-    socket.on('user_unregistered', () => {
-        self.value.registered = false;
+    socket.on('connect', () => {
+        self.value.socketId = socket.id || '';
+        self.sync();
+
+        if (self.value.id && self.value.name) {
+            socket.emit('user_register', { id: self.value.id, name: self.value.name });
+        }
+    });
+
+    socket.on('disconnect', () => {
+        self.value.id = '';
         self.value.name = '';
+        self.value.registered = false;
+        self.sync();
+
+        room.value.status = ROOM_STATUS.NO_ROOM;
+        room.sync();
+
+        game.value.status = GAME_STATUS.NOT_STARTED;
+        game.sync();
+
+        players.mset([]);
+    });
+
+    socket.on('user_unregistered', () => {
+        self.value.id = '';
+        self.value.name = '';
+        self.value.registered = false;
         self.sync();
 
         room.value.status = ROOM_STATUS.NO_ROOM;

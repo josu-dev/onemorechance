@@ -1,40 +1,47 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   import { ROOM_STATUS } from '$game/enums.js';
-  import { room, roomActions, self, selfActions } from '$game/game.js';
+  import {
+    room,
+    roomActions,
+    self,
+    selfActions,
+    socketActions,
+  } from '$game/game.js';
+  import { user } from '$lib/stores/user.js';
+  import { onMount } from 'svelte';
+  import { superForm } from 'sveltekit-superforms/client';
 
   export let data;
 
-  // if (data.name) {
-  //   registerUser({ userId: data.userId, name: data.name });
-  // }
+  user.mset(data.user);
 
-  let name: string = data.name ?? '';
+  onMount(() => {
+    if (user.value) {
+      self.value.id = user.value.id;
+      self.value.name = user.value.name;
+      self.sync();
+    }
+    socketActions.connect();
+  });
 
-  function registerUser(data: { userId?: string; name: string }) {
-    selfActions.register(data.name);
-  }
+  const signInForm = superForm(data.signUpForm, {
+    onUpdated({ form }) {
+      const _user = form.message.user;
+      user.mset(_user);
+      selfActions.register(_user);
+    },
+  });
 
-  async function signIn() {
-    registerUser({ name: name });
-  }
-
-  $: if ($room.status === ROOM_STATUS.IN_LOBBY) {
-    goto(`/${$room.id}`);
-  }
-
-  async function signOut() {
-    await fetch('/api/user', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ name: undefined, userId: undefined }),
-    });
-    selfActions.unregister();
-  }
+  const signOutForm = superForm(data.signOutForm, {
+    onUpdated({ form }) {
+      user.mset(undefined);
+      selfActions.unregister();
+    },
+  });
 
   function createRoom() {
+    console.log('createRoom', roomActions, self);
     roomActions.createRoom();
   }
 
@@ -42,6 +49,15 @@
 
   function joinRoom() {
     roomActions.joinRoom(roomId);
+  }
+
+  $: if ($room.status === ROOM_STATUS.IN_LOBBY) {
+    console.log('room', room);
+    goto(`/${$room.id}`);
+  }
+
+  $: if ($room.status === ROOM_STATUS.CONNECTING) {
+    console.log(`Connecting to room ${$room.id}`);
   }
 </script>
 
@@ -64,19 +80,21 @@
     </div>
 
     <div class="flex flex-col justify-items-center items-center">
-      {#if !$self.registered}
+      {#if !$user}
         <form
-          on:submit|preventDefault={signIn}
+          method="post"
+          action="?/signIn"
+          use:signInForm.enhance
           class="flex flex-col items-center space-y-2"
         >
           <label for="name" class="text-lg">
             <input
               type="text"
-              name="name"
               id="name"
-              bind:value={name}
-              class="block w-full mb-4 mt-1 p-2 bg-black text-white border border-white rounded-lg"
+              name="name"
               placeholder="Ingresa tu nombre"
+              autocomplete="off"
+              class="block w-full mb-4 mt-1 p-2 bg-black text-white border border-white rounded-lg"
             />
           </label>
           <button
@@ -87,7 +105,7 @@
         </form>
       {:else}
         <h2 class=" text-purple-50 text-2xl font-semibold mb-[1em]">
-          Hola {$self.name}!
+          Hola {$user.name}!
         </h2>
         <form on:submit|preventDefault={createRoom} class="mb-4">
           <button
@@ -124,6 +142,27 @@
           disabled
           style="box-shadow: 0 0 0 2px white;">Decks(Proximamente)</button
         >
+        <form
+          method="post"
+          action="?/signIn"
+          use:signOutForm.enhance
+          class="flex flex-row justify-center items-center space-x-2"
+        >
+          <button
+            type="submit"
+            class="btn text-white bg-black rounded-lg"
+            style="box-shadow: 0 0 0 2px white;">Borrar cuenta</button
+          >
+          <label for="confirm">
+            <input
+              type="checkbox"
+              id="confirm"
+              name="confirm"
+              required
+              class="form-checkbox text-success-500 w-6 h-6 rounded-md cursor-pointer"
+            />
+          </label>
+        </form>
       {/if}
     </div>
   </div>

@@ -132,6 +132,7 @@ export const selfActions = _player.createSelfActions(socket, self);
 
 _player.attachSelfListeners(socket, self);
 
+self.value.registered=true
 
 export const players = _player.createPlayersStore();
 
@@ -139,6 +140,7 @@ export const playersActions = _player.createPlayersActions(socket, players);
 
 _player.attachPlayersListeners(socket, players);
 
+players.mset(INITIAL_PLAYERS)
 
 export const room = _room.createRoomStore();
 
@@ -146,6 +148,7 @@ export const roomActions = _room.createRoomActions(socket, self, room);
 
 _room.attachRoomListeners(room, socket);
 
+room.mset(INITIAL_ROOM)
 
 export const game = _game.createGameStore();
 
@@ -155,6 +158,7 @@ export const gameActions = _game.createGameActions(socket, self, game);
 
 _game.attachGameListeners(socket, game);
 
+game.mset(INITIAL_GAME)
 
 export const decks = _decks.createDecksStore();
 
@@ -162,5 +166,6 @@ export const decksActions = _decks.createDecksActions(socket, decks);
 
 _decks.attachDecksListeners(socket, decks);
 
+decks.mset(INITIAL_DECKS)
 
 // TODO: attach common listeners between stores

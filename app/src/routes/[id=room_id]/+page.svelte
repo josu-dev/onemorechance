@@ -18,8 +18,6 @@
     self,
   } from '$game/game.js';
 
-  // export let data;
-
   if (dev) {
     debugData.set({
       $game,

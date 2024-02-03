@@ -1,9 +1,9 @@
-import type { GameStatus, PlayerRating } from '$game/enums';
-import { GAME_STATUS } from '$game/enums';
-import type { Option } from '$game/types';
-import type { Game, GameStore, SelfStore, SocketInstance } from '$game/types.client';
-import type { Readable } from '$lib/stores/types';
-import { uniqueLettersId, uniqueURLSafeId } from '$lib/utils';
+import type { GameStatus, PlayerRating } from '$game/enums.js';
+import { GAME_STATUS } from '$game/enums.js';
+import type { Game, GameStore, SelfStore, SocketInstance } from '$game/types.client.js';
+import type { Option } from '$game/types.js';
+import type { Readable } from '$lib/stores/types.js';
+import { uniqueLettersId, uniqueURLSafeId } from '$lib/utils/index.js';
 import { derived, writable } from 'svelte/store';
 
 
@@ -74,7 +74,7 @@ export function attachGameListeners(socket: SocketInstance, game: GameStore) {
         game.value.current.ratingPlayer = playerId;
         game.sync();
     });
-    
+
     socket.on('game_updated', (data) => {
         game.mset(data.game);
     });
