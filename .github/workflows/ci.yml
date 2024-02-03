@@ -5,8 +5,13 @@ on:
   push:
     branches: [main]
     paths:
-      - "app/src/**"
+      - "app/**"
       - ".github/workflows/ci.yml"
+
+permissions:
+  contents: read
+  actions: read
+  security-events: write
 
 jobs:
   gitleaks:
@@ -17,9 +22,18 @@ jobs:
     secrets:
       gh_token: ${{ secrets.GITHUB_TOKEN }}
 
+  codacy_scan:
+    uses: jd-apprentice/jd-workflows/.github/workflows/codacy.yml@main
+    needs: gitleaks
+    with:
+      runs-on: ubuntu-latest
+      name: Codacy
+    secrets:
+      project_token: ${{ secrets.CODACY_PROJECT_TOKEN }}
+
   build_and_push:
     runs-on: ubuntu-22.04
-    needs: gitleaks
+    needs: [gitleaks, codacy_scan]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -41,19 +55,10 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/onemorechance:latest
 
-  compose-up:
-    runs-on: ubuntu-22.04
+  render_deploy:
+    runs-on: ubuntu-latest
     needs: build_and_push
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: SSH into server, pull and restart app
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            cd /home/${{ secrets.USER }}/www/omc
-            docker compose -f omc.docker-compose.yml up -d --pull --build
+      - name: use curl to trigger the render deploy hook
+        run: |
+          curl -X GET https://api.render.com/deploy/${{ secrets.RENDER_HOOK_URL }}
