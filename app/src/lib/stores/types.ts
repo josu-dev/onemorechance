@@ -34,3 +34,18 @@ export interface ExposedWritable<T> extends Writable<T> {
      */
     sync(): void;
 }
+
+/**
+ * Store that persists its value to local storage.
+ */
+export interface LocalPersistedStore<T> extends Writable<T> {
+    /**
+     * Get the current value of the store.
+     */
+    get(): T;
+
+    /**
+     * Manually reset the value to the default value and persist it.
+     */
+    reset(): void;
+}

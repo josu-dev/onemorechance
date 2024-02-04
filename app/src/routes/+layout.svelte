@@ -1,6 +1,6 @@
 <script lang="ts">
   import { dev } from '$app/environment';
-  import AudioPlayer from '$lib/components/AudioPlayer.svelte';
+  import Header from '$comps/layout/Header.svelte';
   import HyperDebug, { debugEnabled } from '$lib/components/HyperDebug.svelte';
   import { defineCommand } from 'svelte-hypercommands';
   import CommandPalette from 'svelte-hypercommands/CommandPalette.svelte';
@@ -50,6 +50,6 @@
   <HyperDebug />
 {/if}
 
-<AudioPlayer />
+<Header />
 
 <slot />
