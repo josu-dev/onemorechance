@@ -125,7 +125,7 @@
               min="0"
               max="100"
               step="1"
-              value={$audioPlayer.musicVolume * 100}
+              value={$audioPlayer.volumeMusic * 100}
               on:input={(e) => {
                 audioPlayer.setVolumeMusic(
                   parseInt(e.currentTarget.value) / 100,
@@ -141,7 +141,7 @@
               min="0"
               max="100"
               step="1"
-              value={$audioPlayer.sfxVolume * 100}
+              value={$audioPlayer.volumeSfx * 100}
               on:input={(e) => {
                 audioPlayer.setVolumeSfx(parseInt(e.currentTarget.value) / 100);
               }}

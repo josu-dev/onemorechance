@@ -41,12 +41,10 @@
       return;
     }
 
-    audioPlayer.setVolume(0.5);
-
     if (rate === PLAYER_RATING.BAD) {
       audioPlayer.play('sfx_abucheo.mp3');
     } else if (rate === PLAYER_RATING.MEH) {
-      audioPlayer.play('sfx_meh.mp3');
+      audioPlayer.play('sfx_meh.mp3', { volumeSfx: 2 });
     } else {
       audioPlayer.play('sfx_aplauso.mp3');
     }

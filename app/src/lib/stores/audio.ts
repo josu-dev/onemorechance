@@ -4,58 +4,63 @@ import type { Readable } from '$lib/stores/types.js';
 import { writable } from 'svelte/store';
 
 
-type PersistedSettings = {
+type PersistedAudioSettings = {
     muted: boolean;
     volume: number;
     volume_music: number;
     volume_sfx: number;
 };
 
-type ValidTracks = 'music_lobby.mp3' | 'sfx_abucheo.mp3' | 'sfx_aplauso.mp3' | 'sfx_meh.mp3' | 'sfx_round.mp3';
+type ValidTracks = (
+    'music_game.mp3' | 'music_lobby.mp3' |
+    'sfx_abucheo.mp3' | 'sfx_aplauso.mp3' | 'sfx_lose.mp3' | 'sfx_meh.mp3' |
+    'sfx_menuselect.mp3' |
+    'sfx_modifier_1.mp3' | 'sfx_modifier_2.mp3' | 'sfx_modifier_3.mp3' | 'sfx_modifier_4.mp3' | 'sfx_modifier_5.mp3' |
+    'sfx_round.mp3' |
+    // eslint-disable-next-line @typescript-eslint/ban-types
+    (string & {})
+);
 
 type TrackType = 'music' | 'sfx' | 'none';
 
-type AudioState = ({
+type AudioPlayerState = ({
     type: Extract<TrackType, 'none'>;
-    track: undefined;
     audio: undefined;
-    isPlaying: false;
+    track: undefined;
 } | {
     type: Exclude<TrackType, 'none'>;
-    track: ValidTracks;
     audio: HTMLAudioElement;
-    isPlaying: boolean;
+    track: string;
 }) & {
-    isMuted: boolean;
     isPaused: boolean;
+    isPlaying: boolean;
+    isMuted: boolean;
     volume: number;
-    musicVolume: number;
-    sfxVolume: number;
-    lastTrack?: ValidTracks;
+    volumeMusic: number;
+    volumeSfx: number;
 };
 
 type PlayOptions = {
-    overlap?: boolean;
+    overlap?: 'stop' | 'pause' | 'true';
     loop?: boolean;
-    volume?: number;
     duration?: number;
-    stopCurrent?: boolean;
-    musicVolume?: number;
-    sfxVolume?: number;
+    volume?: number;
+    volumeMusic?: number;
+    volumeSfx?: number;
 };
 
-type AudioStore = Readable<AudioState> & {
-    play: <T extends ValidTracks>(track: T, config?: PlayOptions) => void;
-    pause: () => void;
-    resume: () => void;
-    stop: () => void;
+type AudioPlayerStore<T = ValidTracks> = Readable<AudioPlayerState> & {
+    play: (track: T, config?: PlayOptions) => void;
+    pause: (track?: T) => void;
+    resume: (track?: T) => void;
+    stop: (track?: T) => void;
     mute: () => void;
     unmute: () => void;
     toggleMute: () => void;
     setVolume: (volume: number) => void;
     setVolumeMusic: (volume: number) => void;
     setVolumeSfx: (volume: number) => void;
-    preload: (src: string) => void;
+    preload: (track: T) => void;
 };
 
 
@@ -70,12 +75,11 @@ const DEFAULT_AUDIO_STATE = {
 } as const;
 
 const DEFAULT_PLAY_OPTIONS: PlayOptions = {
-    overlap: true,
+    overlap: 'true',
     loop: false,
     volume: 1,
-    stopCurrent: false,
-    musicVolume: 1,
-    sfxVolume: 1,
+    volumeMusic: 1,
+    volumeSfx: 1,
 };
 
 function getTrackType(track: string): TrackType {
@@ -92,10 +96,25 @@ function normalizeVolume(volume: number): number {
     return Math.max(0, Math.min(1, volume));
 }
 
-const audioCache = new Map<string, HTMLAudioElement>();
+class AudioTrack {
+    readonly track: string;
+    readonly type: TrackType;
+    readonly el: HTMLAudioElement;
+    loading: boolean;
+    playOptions: PlayOptions | undefined;
 
-function createAudioStore(): AudioStore {
-    const { get, set: setPersisted } = localPersisted<PersistedSettings>(AUDIO.STORAGE_KEY, {
+    constructor(track: string, playOptions?: PlayOptions) {
+        this.track = track;
+        this.type = getTrackType(track);
+        this.el = new Audio(`${BASE_LOCATION}${track}`);
+        this.loading = true;
+        this.playOptions = playOptions;
+    }
+}
+
+
+function createAudioStore(): AudioPlayerStore {
+    const { get, set: setLocal } = localPersisted<PersistedAudioSettings>(AUDIO.STORAGE_KEY, {
         muted: AUDIO.MUTED,
         volume: AUDIO.VOLUME_GENERAL,
         volume_music: AUDIO.VOLUME_MUSIC,
@@ -108,192 +127,308 @@ function createAudioStore(): AudioStore {
         ...DEFAULT_AUDIO_STATE,
         isMuted: $persisted.muted,
         volume: $persisted.volume,
-        musicVolume: $persisted.volume_music,
-        sfxVolume: $persisted.volume_sfx,
-    } as AudioState;
+        volumeMusic: $persisted.volume_music,
+        volumeSfx: $persisted.volume_sfx,
+    } as AudioPlayerState;
 
     const { subscribe, set } = writable($);
 
-    const pendingTracks = new Set<string>();
+    const cache = new Map<string, AudioTrack>();
 
-    function playAudio(track: string, audio: HTMLAudioElement, options: PlayOptions) {
-        $.type = getTrackType(track);
-        $.audio = audio;
-        $.isPlaying = true;
+    const playing = new Set<AudioTrack>();
+
+    const elementToTrack = new Map<HTMLAudioElement, AudioTrack>();
+
+    const computedVolume = {
+        general: $.volume,
+        music: $.volume * $.volumeMusic,
+        sfx: $.volume * $.volumeSfx,
+    };
+
+    function recomputeVolume() {
+        computedVolume.general = $.volume;
+        computedVolume.music = $.volume * $.volumeMusic;
+        computedVolume.sfx = $.volume * $.volumeSfx;
+    }
+
+    function onCanPlayThrough(this: HTMLAudioElement) {
+        const t = elementToTrack.get(this);
+        if (!t) {
+            throw new Error('Audio element not found');
+        }
+
+        t.loading = false;
+        if (!cache.has(t.track)) {
+            console.error('Audio track not found in cache after loading', t);
+            cache.set(t.track, t);
+        }
+        if (!playing.has(t) || !$.isPlaying) {
+            return;
+        }
+
+        playAudio(t, t.playOptions ?? {});
+        t.playOptions = undefined;
+        set($);
+    }
+
+    function onEnded(this: HTMLAudioElement) {
+        const t = elementToTrack.get(this);
+        if (!t) {
+            throw new Error('Audio element not found');
+        }
+
+        playing.delete(t);
+        if (!$.isPlaying || $.track !== t.track || playing.size > 0) {
+            return;
+        }
+
+        $.isPlaying = false;
         $.isPaused = false;
+        // @ts-ignore
+        $.audio = undefined; $.track = undefined; $.type = 'none';
+        set($);
+    }
+
+    function loadAudio(track: string, preload: HTMLMediaElement['preload'] = 'auto'): AudioTrack {
+        const t = new AudioTrack(track);
+        t.el.preload = preload;
+        t.el.addEventListener('canplaythrough', onCanPlayThrough);
+        t.el.addEventListener('ended', onEnded);
+        elementToTrack.set(t.el, t);
+        return t;
+    }
+
+    function playAudio(t: AudioTrack, options: PlayOptions) {
+        if (!playing.has(t)) {
+            playing.add(t);
+        }
+        $.type = t.type;
+        $.track = t.track;
+        $.audio = t.el;
         const volume = normalizeVolume(options.volume ?? 1) * $.volume;
-        const musicVolume = normalizeVolume(options.musicVolume ?? 1) * $.musicVolume;
-        const sfxVolume = normalizeVolume(options.sfxVolume ?? 1) * $.sfxVolume;
-        audio.volume = volume * ($.type === 'music' ? musicVolume : sfxVolume);
-        audio.loop = options.loop ?? false;
-        audio.muted = $.isMuted;
-        audio.play().catch((e) => {
-            console.info((e.name));
+        const musicVolume = normalizeVolume(options.volumeMusic ?? 1) * $.volumeMusic;
+        const sfxVolume = normalizeVolume(options.volumeSfx ?? 1) * $.volumeSfx;
+        t.el.volume = volume * ($.type === 'music' ? musicVolume : sfxVolume);
+        t.el.loop = options.loop ?? false;
+        t.el.muted = $.isMuted;
+        t.el.play().catch((e) => {
+            console.error(`Error playing audio: ${t.track}`, e);
         });
+    }
+
+    function pauseAll(except?: AudioTrack) {
+        for (const t of playing) {
+            if (t !== except) {
+                t.el.pause();
+            }
+        }
+    }
+
+    function resumeAll(except?: AudioTrack) {
+        for (const t of playing) {
+            if (t === except || t.loading || !t.el.paused) {
+                continue;
+            }
+            t.el.play().catch((e) => {
+                console.error(`Error resuming audio: ${t.track}`, e);
+            });
+        }
+    }
+
+    function stopAll(except?: AudioTrack) {
+        for (const t of playing) {
+            if (t !== except) {
+                t.el.pause();
+                t.el.currentTime = 0;
+                playing.delete(t);
+            }
+        }
+    }
+
+    function muteAll(state: boolean) {
+        for (const t of playing) {
+            t.el.muted = state;
+        }
+    }
+
+    function updateVolumeAll() {
+        for (const t of playing) {
+            if (t.type === 'music') {
+                t.el.volume = computedVolume.music;
+                continue;
+            }
+            if (t.type === 'sfx') {
+                t.el.volume = computedVolume.sfx;
+                continue;
+            }
+            t.el.volume = computedVolume.general;
+        }
     }
 
     return {
         subscribe,
         play(track, options) {
-            if (pendingTracks.has(track)) {
-                return;
-            }
-
+            $.isPlaying = true;
+            $.isPaused = false;
             options ??= DEFAULT_PLAY_OPTIONS;
-            if ($.track === track) {
-                if ($.isPlaying) {
-                    $.audio.currentTime = 0;
-                }
-                playAudio(track, $.audio, options);
+
+            let t = cache.get(track);
+            if (!t) {
+                t = loadAudio(track);
+                t.playOptions = options;
+                playing.add(t);
+                cache.set(track, t);
                 set($);
                 return;
             }
 
-            if ($.isPlaying) {
-                if (!options.overlap) {
-                    $.audio.pause();
-                }
-            }
-
-            $.lastTrack = $.track;
-            let audio = audioCache.get(track);
-            if (!audio) {
-                audio = new Audio(`${BASE_LOCATION}${track}`);
-                audio.preload = 'auto';
-                audio.addEventListener('canplaythrough', () => {
-                    pendingTracks.delete(track);
-                    if ($.track !== track || !$.isPlaying) {
-                        return;
-                    }
-                    playAudio(track, audio!, options!);
-                    set($);
-                });
-                $.track = track;
-                $.audio = audio;
-                $.isPlaying = true;
-                pendingTracks.add(track);
-                audioCache.set(track, audio);
+            if (t.loading) {
+                t.playOptions = options;
+                playing.add(t);
                 set($);
                 return;
             }
 
-            playAudio(track, audio, options);
+            if (playing.has(t)) {
+                t.el.currentTime = 0;
+            }
+            if (options.overlap === 'pause') {
+                pauseAll(t);
+            }
+            else if (options.overlap === 'stop') {
+                stopAll(t);
+            }
+
+            playAudio(t, options);
             set($);
         },
-        pause() {
-            if ($.isPlaying || !$.audio) {
+        pause(track) {
+            if ($.isPaused) {
                 return;
+            }
+
+            if (track) {
+                const t = cache.get(track);
+                if (t) {
+                    t.el.pause();
+                }
+            }
+            else {
+                pauseAll();
             }
 
             $.isPaused = true;
             $.isPlaying = false;
             set($);
-            $.audio.pause();
         },
-        resume() {
-            if ($.isPlaying || !$.audio) {
+        resume(track) {
+            if ($.isPlaying) {
                 return;
+            }
+
+            if (track) {
+                const t = cache.get(track);
+                if (t) {
+                    t.el.play().catch((e) => {
+                        console.error(`Error resuming audio: ${t.track}`, e);
+                    });
+                }
+            }
+            else {
+                resumeAll();
             }
 
             $.isPaused = false;
             $.isPlaying = true;
-            if (!pendingTracks.has($.track)) {
-                $.audio.play();
-            }
             set($);
         },
-        stop() {
-            if (!$.audio) {
+        stop(track) {
+            if (!$.isPlaying && !$.isPaused) {
                 return;
             }
 
-            $.isPlaying = false;
+            if (track) {
+                const t = cache.get(track);
+                if (t) {
+                    t.el.pause();
+                    t.el.currentTime = 0;
+                    playing.delete(t);
+                }
+            }
+            else {
+                stopAll();
+            }
+
             $.isPaused = false;
-            $.audio.pause();
-            $.audio.currentTime = 0;
+            $.isPlaying = false;
             set($);
         },
         mute() {
             $persisted.muted = true;
-            setPersisted($persisted);
+            setLocal($persisted);
+
+            muteAll(true);
 
             $.isMuted = true;
-            if ($.audio) {
-                $.audio.muted = true;
-            }
             set($);
         },
         unmute() {
             $persisted.muted = false;
-            setPersisted($persisted);
+            setLocal($persisted);
+
+            muteAll(false);
 
             $.isMuted = false;
-            if ($.audio) {
-                $.audio.muted = false;
-            }
             set($);
         },
         toggleMute() {
             $persisted.muted = !$persisted.muted;
-            setPersisted($persisted);
+            setLocal($persisted);
+
+            muteAll($persisted.muted);
 
             $.isMuted = $persisted.muted;
-            if ($.audio) {
-                $.audio.muted = $.isMuted;
-            }
             set($);
         },
         setVolume(volume) {
             volume = normalizeVolume(volume);
             $persisted.volume = volume;
-            setPersisted($persisted);
+            setLocal($persisted);
 
             $.volume = volume;
-            if ($.audio) {
-                $.audio.volume = $.volume * ($.type === 'music' ? $.musicVolume : $.sfxVolume);
-            }
+            recomputeVolume();
+            updateVolumeAll();
             set($);
         },
         setVolumeMusic(volume) {
             volume = normalizeVolume(volume);
 
             $persisted.volume_music = volume;
-            setPersisted($persisted);
+            setLocal($persisted);
 
-            $.musicVolume = volume;
-            if ($.audio && $.type === 'music') {
-                $.audio.volume = $.volume * $.musicVolume;
-            }
+            $.volumeMusic = volume;
+            recomputeVolume();
+            updateVolumeAll();
             set($);
         },
         setVolumeSfx(volume) {
             volume = normalizeVolume(volume);
             $persisted.volume_sfx = volume;
-            setPersisted($persisted);
+            setLocal($persisted);
 
-            $.sfxVolume = volume;
-            if ($.audio && $.type === 'sfx') {
-                $.audio.volume = $.volume * $.sfxVolume;
-            }
+            $.volumeSfx = volume;
+            recomputeVolume();
+            updateVolumeAll();
             set($);
         },
         preload(track) {
-            if (audioCache.has(track) || pendingTracks.has(track)) {
+            let t = cache.get(track);
+            if (t) {
                 return;
             }
 
-            const audio = new Audio(`${BASE_LOCATION}${track}`);
-            audio.preload = 'auto';
-            audioCache.set(track, audio);
-            pendingTracks.add(track);
-            audio.addEventListener('canplaythrough', () => {
-                pendingTracks.delete(track);
-                if ($.track !== track || !$.isPlaying) {
-                    return;
-                }
-                playAudio(track, audio!, {});
-                set($);
-            });
+            t = loadAudio(track);
+            cache.set(track, t);
         },
     };
 }

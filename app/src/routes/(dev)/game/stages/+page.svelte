@@ -5,9 +5,9 @@
   import GameMessage from '$comps/game/GameMessage.svelte';
   import GameRateSentence from '$comps/game/GameRateSentence.svelte';
   import GameScoreboard from '$comps/game/GameScoreboard.svelte';
-  import { GAME_STATUS, ROOM_STATUS } from '$game/enums.js';
-  import type { GameStatus } from '$game/enums.js';
   import { GAME } from '$game/configs.js';
+  import type { GameStatus } from '$game/enums.js';
+  import { GAME_STATUS, ROOM_STATUS } from '$game/enums.js';
   import {
     decks,
     game,
@@ -18,6 +18,7 @@
     roomActions,
     self,
   } from '$lib/dev/state';
+  import { audioPlayer } from '$lib/stores/audio.js';
   import { onMount } from 'svelte';
   import { helpers } from 'svelte-hypercommands/CommandPalette.svelte';
 
@@ -45,14 +46,19 @@
 
   onMount(() => {
     debugData.set(room);
-    // setGameStatus(GAME_STATUS.FILL_SENTENCE);
+    // debugData.set(audioPlayer);
+    // emulateRateSentence();
+    // setGameStatus(GAME_STATUS.RATE_SENTENCE);
 
     const cmdCleanup = helpers.registerCommand([
       {
         name: 'Toggle player role',
         description: "Toggle current player's role",
         onAction: () => {
-          if (!self.value.registered || room.value.status === ROOM_STATUS.NO_ROOM) {
+          if (
+            !self.value.registered ||
+            room.value.status === ROOM_STATUS.NO_ROOM
+          ) {
             return;
           }
           self.value.id = self.value.id === '1' ? '3' : '1';
