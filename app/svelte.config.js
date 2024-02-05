@@ -11,7 +11,9 @@ const config = {
             $game: './src/game',
         }
     },
-    preprocess: vitePreprocess()
+    preprocess: vitePreprocess({
+        postcss: true,
+    })
 };
 
 export default config;

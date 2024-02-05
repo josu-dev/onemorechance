@@ -2,6 +2,7 @@
   import { dev } from '$app/environment';
   import Header from '$comps/layout/Header.svelte';
   import HyperDebug, { debugEnabled } from '$lib/components/HyperDebug.svelte';
+  import { Toaster } from 'svelte-french-toast';
   import { defineCommand } from 'svelte-hypercommands';
   import CommandPalette from 'svelte-hypercommands/CommandPalette.svelte';
   import '../app.pcss';
@@ -49,6 +50,14 @@
   <CommandPalette commands={globalCommands} />
   <HyperDebug />
 {/if}
+
+<Toaster
+  position="bottom-left"
+  containerClassName="omc-toast-container"
+  toastOptions={{
+    className: 'omc-toast',
+  }}
+/>
 
 <Header />
 
