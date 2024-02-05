@@ -1,21 +1,11 @@
 <script lang="ts">
   import { dev } from '$app/environment';
-  import AudioPlayer from '$lib/components/AudioPlayer.svelte';
+  import Header from '$comps/layout/Header.svelte';
   import HyperDebug, { debugEnabled } from '$lib/components/HyperDebug.svelte';
-  import {
-    arrow,
-    autoUpdate,
-    computePosition,
-    flip,
-    offset,
-    shift,
-  } from '@floating-ui/dom';
+  import { Toaster } from 'svelte-french-toast';
   import { defineCommand } from 'svelte-hypercommands';
   import CommandPalette from 'svelte-hypercommands/CommandPalette.svelte';
   import '../app.pcss';
-
-  import { storePopup } from '@skeletonlabs/skeleton';
-  storePopup.set({ computePosition, autoUpdate, offset, shift, flip, arrow });
 
   const globalCommands = defineCommand([
     {
@@ -44,13 +34,12 @@
         style = document.createElement('style');
         style.id = 'DEV:elements-rings';
         style.innerHTML = `body *:hover {
-  --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
-  --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(1px + var(--tw-ring-offset-width)) var(--tw-ring-color);
-  box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000);
-  --tw-ring-opacity: 1;
-  --tw-ring-color: rgb(240 171 252 / var(--tw-ring-opacity));
-}
-`;
+          --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
+          --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(1px + var(--tw-ring-offset-width)) var(--tw-ring-color);
+          box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000);
+          --tw-ring-opacity: 1;
+          --tw-ring-color: rgb(240 171 252 / var(--tw-ring-opacity));
+        }\n`;
         document.head.appendChild(style);
       },
     },
@@ -62,6 +51,14 @@
   <HyperDebug />
 {/if}
 
-<AudioPlayer />
+<Toaster
+  position="bottom-left"
+  containerClassName="omc-toast-container"
+  toastOptions={{
+    className: 'omc-toast',
+  }}
+/>
+
+<Header />
 
 <slot />

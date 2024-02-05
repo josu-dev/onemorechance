@@ -1,14 +1,13 @@
 <script lang="ts">
-  import type { ExposedWritable, Readable } from '$lib/stores/types';
-  import type { Game, Player } from '$types';
+  import type { GameStore, PlayersStore } from '$game/types.client';
 
-  export let game: ExposedWritable<Game>;
-  export let players: Readable<Player[]>;
+  export let game: GameStore;
+  export let players: PlayersStore;
 
-  $: playersByScore = [...$players].sort((a, b) => b.score - a.score);
-  $: playersCount = $players.length;
+  $: playersByScore = $players.toSorted((a, b) => b.score - a.score);
+  $: playersCount = playersByScore.length;
 
-  function getRankEmoji(position: number) {
+  function positionEmoji(position: number) {
     if (position === 0) {
       return '🥵';
     }
@@ -42,17 +41,17 @@
     <div class="flex flex-col items-center">
       <h3 class="text-3xl mb-4 sr-only">Jugadores</h3>
       <ul class="flex flex-col gap-2 mb-4">
-        {#each playersByScore as player, i (player.userId)}
+        {#each playersByScore as player, i (player.id)}
           <li
             class="flex items-center gap-4 w-72 text-xl px-1 md:py-1 [&:not(:last-child)]:border-b border-fuchsia-100/50"
           >
             <span class="">{player.name}</span>
             <div class="ml-auto">
-              <label for="total-score-{player.userId}" class="sr-only"
+              <label for="total-score-{player.id}" class="sr-only"
                 >Puntaje total</label
               >
               <span>{player.totalScore}</span>
-              <span>{getRankEmoji(i)}</span>
+              <span>{positionEmoji(i)}</span>
             </div>
           </li>
         {/each}

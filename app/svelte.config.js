@@ -4,14 +4,16 @@ import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
-    preprocess: vitePreprocess(),
     kit: {
         adapter: adapter(),
         alias: {
             $comps: './src/lib/components',
-            $types: './src/types.js',
+            $game: './src/game',
         }
-    }
+    },
+    preprocess: vitePreprocess({
+        postcss: true,
+    })
 };
 
 export default config;

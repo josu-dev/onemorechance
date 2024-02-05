@@ -1,8 +1,14 @@
-import { GAME } from '$lib/configs';
-import { GAME_STATUS } from '$lib/enums';
-import type { ExposedWritable } from '$lib/stores/types';
-import type { DeckIdentifier, Game, Room, User } from '$types';
-import { derived, writable } from 'svelte/store';
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import { GAME } from '$game/configs';
+import { GAME_STATUS } from '$game/enums';
+import { createSocket } from '$game/socket';
+import * as _decks from '$game/stores/decks';
+import * as _game from '$game/stores/game';
+import * as _player from '$game/stores/player';
+import * as _room from '$game/stores/room';
+import type { DeckIdentifier, User } from '$game/types';
+import type { Game, Player, Room } from '$game/types.client';
+
 
 const INITIAL_USER: User = {
     id: '1',
@@ -16,8 +22,16 @@ const INITIAL_USER2: User = {
     socketId: 'undefined',
 };
 
+const INITIAL_ROOM: Room = {
+    id: 'HJDNBH',
+    status: 'IN_LOBBY',
+    hostId: INITIAL_USER.id,
+    maxPlayers: GAME.MAX_PLAYERS
+};
+
 const INITIAL_GAME: Game = {
     id: 'b28yeb812ed',
+    roomId: INITIAL_ROOM.id,
     status: GAME_STATUS.NOT_STARTED,
     maxRounds: GAME.DEFAULT_ROUNDS,
     maxOptions: GAME.DEFAULT_OPTIONS,
@@ -28,50 +42,64 @@ const INITIAL_GAME: Game = {
         name: 'Refranes inventados',
         type: 'COMPLETE',
     },
-    phrase: {
-        id: '1',
-        text: 'Nunca saldría con alguien que le guste {{}}',
-    },
-    usedPhrases: [],
-    usedOptions: [],
-    players: [
-        {
-            userId: '1',
-            name: 'Josu',
-            role: 'HOST',
-            score: 0,
-            totalScore: 0,
-            ready: false,
-            phrases: [],
-            options: [],
-            modifiers: [],
-            selectedOption: undefined,
-            freestyle: undefined,
+    current: {
+        phrase: {
+            id: '1',
+            text: 'Nunca saldría con alguien que le guste {{}}',
         },
-        {
-            userId: '2',
-            name: 'Mikel',
-            role: 'INVITED',
-            score: 0,
-            totalScore: 0,
-            ready: false,
-            phrases: [],
-            options: [],
-            modifiers: [],
-            selectedOption: undefined,
-            freestyle: undefined,
-        }
-    ],
+    },
+    used: {
+        phrases: [],
+        options: [],
+    },
 };
 
-const INITIAL_ROOM: Room = {
-    id: 'HJDNBH',
-    status: 'LOBBY',
-    host: INITIAL_USER,
-    users: [INITIAL_USER, INITIAL_USER2],
-    readyCount: 0,
-    game: INITIAL_GAME,
-};
+const INITIAL_PLAYERS: Player[] = [
+    {
+        id: '1',
+        name: 'Josu',
+        role: 'HOST',
+        score: 0,
+        totalScore: 0,
+        ready: false,
+        current: {
+            option: undefined,
+            modifier: undefined,
+            freestyle: undefined,
+        },
+        stock: {
+            options: [],
+            modifiers: [],
+        },
+        used: {
+            freestyle: [],
+            options: [],
+            modifiers: [],
+        },
+    },
+    {
+        id: '2',
+        name: 'Mikel',
+        role: 'GUEST',
+        score: 0,
+        totalScore: 0,
+        ready: false,
+        current: {
+            option: undefined,
+            modifier: undefined,
+            freestyle: undefined,
+        },
+        stock: {
+            options: [],
+            modifiers: [],
+        },
+        used: {
+            freestyle: [],
+            options: [],
+            modifiers: [],
+        },
+    }
+];
 
 const INITIAL_DECKS: DeckIdentifier[] = [
     {
@@ -95,88 +123,49 @@ const INITIAL_DECKS: DeckIdentifier[] = [
 ];
 
 
-function createUserStore(): ExposedWritable<User | undefined> {
-    let _user: User | undefined = { ...INITIAL_USER };
-    const { subscribe, set, update } = writable<User | undefined>(_user);
-
-    return {
-        get value() {
-            return _user;
-        },
-        sync() {
-            set(_user);
-        },
-        set(user?: User) {
-            _user = user;
-            set(user);
-        },
-        subscribe,
-        update,
-    };
-}
-
-function createRoomStore(): ExposedWritable<Room | undefined> {
-    let _room: Room | undefined = { ...INITIAL_ROOM };
-
-    const { subscribe, set, update } = writable<Room | undefined>(_room);
-
-    return {
-        get value() {
-            return _room;
-        },
-        sync() {
-            set(_room);
-        },
-        subscribe,
-        set(room: Room) {
-            _room = room;
-            set(room);
-        },
-        update
-    };
-}
-
-function createGameStore(): ExposedWritable<Game> {
-    let _game: Game = { ...INITIAL_GAME };
-
-    const { subscribe, set, update } = writable<Game>(_game);
-
-    room.subscribe((room) => {
-        _game = room?.game || INITIAL_GAME;
-        set(_game);
-    });
-
-    return {
-        get value() {
-            return _game;
-        },
-        sync() {
-            set(_game);
-        },
-        subscribe,
-        set(game: Game) {
-            _game = game;
-            set(game);
-        },
-        update,
-    };
-}
+export const socket = createSocket();
 
 
-export const user = createUserStore();
+export const self = _player.createSelfStore();
 
-export const room = createRoomStore();
+export const selfActions = _player.createSelfActions(socket, self);
 
-export const game = createGameStore();
+_player.attachSelfListeners(socket, self);
 
-export const players = derived(game, ($game) => {
-    return $game.players;
-}, []);
+self.value.registered=true
 
-export const availibleDecks = writable<DeckIdentifier[]>(INITIAL_DECKS);
+export const players = _player.createPlayersStore();
 
+export const playersActions = _player.createPlayersActions(socket, players);
 
-export function setGameStatus(status: Game['status']) {
-    game.value.status = status;
-    game.sync();
-}
+_player.attachPlayersListeners(socket, players);
+
+players.mset(INITIAL_PLAYERS)
+
+export const room = _room.createRoomStore();
+
+export const roomActions = _room.createRoomActions(socket, self, room);
+
+_room.attachRoomListeners(room, socket);
+
+room.mset(INITIAL_ROOM)
+
+export const game = _game.createGameStore();
+
+export const gameStatus = _game.createGameStatusStore(game);
+
+export const gameActions = _game.createGameActions(socket, self, game);
+
+_game.attachGameListeners(socket, game);
+
+game.mset(INITIAL_GAME)
+
+export const decks = _decks.createDecksStore();
+
+export const decksActions = _decks.createDecksActions(socket, decks);
+
+_decks.attachDecksListeners(socket, decks);
+
+decks.mset(INITIAL_DECKS)
+
+// TODO: attach common listeners between stores

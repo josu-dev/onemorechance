@@ -1,10 +1,14 @@
 export const ROOM_STATUS = {
-    LOBBY: 'LOBBY',
-    PLAYING: 'PLAYING',
+    NO_ROOM: 'NO_ROOM',
+    CONNECTING: 'CONNECTING',
+    FULL: 'FULL',
+    IN_LOBBY: 'IN_LOBBY',
+    IN_GAME: 'IN_GAME',
     CLOSED: 'CLOSED',
 } as const;
 
 export type RoomStatus = typeof ROOM_STATUS[keyof typeof ROOM_STATUS];
+
 
 export const GAME_STATUS = {
     NOT_STARTED: 'NOT_STARTED',
@@ -12,19 +16,21 @@ export const GAME_STATUS = {
     FILL_SENTENCE: 'FILL_SENTENCE',
     RATE_SENTENCE: 'RATE_SENTENCE',
     ROUND_WINNER: 'ROUND_WINNER',
-    POS_ROUND: 'POS_ROUND',
-    SCOREBOARD: 'SCOREBOARD',
+    POST_ROUND: 'POST_ROUND',
+    END_SCOREBOARD: 'END_SCOREBOARD',
     ENDED: 'ENDED',
 } as const;
 
 export type GameStatus = typeof GAME_STATUS[keyof typeof GAME_STATUS];
 
+
 export const PLAYER_ROLE = {
     HOST: 'HOST',
-    INVITED: 'INVITED',
+    GUEST: 'GUEST',
 } as const;
 
 export type PlayerRole = typeof PLAYER_ROLE[keyof typeof PLAYER_ROLE];
+
 
 export const PLAYER_RATING = {
     GOD: 'GOOD',
@@ -33,6 +39,7 @@ export const PLAYER_RATING = {
 } as const;
 
 export type PlayerRating = typeof PLAYER_RATING[keyof typeof PLAYER_RATING];
+
 
 export const DECK_TYPE = {
     CHOOSE: 'CHOOSE',

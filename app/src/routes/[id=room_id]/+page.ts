@@ -1,6 +1,5 @@
-import { updateAvailableDecks } from '$lib/stores/config';
-import { room } from '$lib/stores/room';
-import { user } from '$lib/stores/user';
+import { ROOM_STATUS } from '$game/enums.js';
+import { room } from '$game/game.js';
 import { redirect } from '@sveltejs/kit';
 import type { PageLoad } from './$types';
 
@@ -8,16 +7,10 @@ import type { PageLoad } from './$types';
 export const ssr = false;
 
 export const load: PageLoad = async () => {
-    const _room = room.peek;
-    if (!_room) {
+    if (room.value.status === ROOM_STATUS.NO_ROOM) {
         redirect(302, '/');
     }
 
-    updateAvailableDecks();
-
-    const isHost = user.peek?.id === _room.host.id;
-
     return {
-        isHost: isHost,
     };
 };

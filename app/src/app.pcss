@@ -1,13 +1,48 @@
-/* Write your global styles here, in PostCSS syntax */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer components {
+    .button {
+        @apply px-4 py-2 rounded-md text-base font-normal;
+    }
+    .button:focus { 
+        @apply outline-none;
+    }
+    .button:disabled {
+        @apply cursor-not-allowed opacity-75;
+    }
+    .button:not(:hover):focus {
+        @apply ring-gray-100 ring-2;
+    }
+
+    .variant-primary {
+        @apply bg-black text-gray-300 ring-1 ring-gray-300;
+    }
+    .variant-primary:not(:disabled):hover {
+        @apply text-gray-100 ring-2 ring-gray-100;
+    }
+    
+    .icon {
+        @apply aspect-square;
+    }
+    
+    .icon-primary {
+        @apply text-gray-100 stroke-gray-100;
+    }
+}
+
+@font-face {
+    font-family: 'JosefinSans';
+    src: url('/fonts/JosefinSans-VariableFont_wght.ttf');
+}
 
 html,
 body {
   height: 100%;
   height: 100dvh;
   overflow: hidden;
+  font-family: 'JosefinSans', sans-serif;
 }
 
 body > div {
@@ -17,21 +52,15 @@ body > div {
 body {
     background-color: hsl(0, 0%, 0%);
     background-image:
-        radial-gradient(at 12% 11%, hsl(264, 67%, 7.5%) 0, transparent 51%),
-        radial-gradient(at 96% 19%, hsl(274, 66%, 7.5%) 0, transparent 43%),
-        radial-gradient(at 61% 64%, hsl(274, 66%, 7.5%) 0, transparent 99%);
+        radial-gradient(at 12% 11%, hsl(264, 65%, 7.5%) 0, transparent 50%),
+        radial-gradient(at 96% 19%, hsl(274, 65%, 7.5%) 0, transparent 40%),
+        radial-gradient(at 61% 64%, hsl(274, 65%, 7.5%) 0, transparent 100%);
 	background-attachment: fixed;
 	background-position: center;
 	background-repeat: no-repeat;
 	background-size: cover;
 }
 
-@font-face {
-    font-family: 'JosefinSans';
-    src: url('/fonts/JosefinSans-VariableFont_wght.ttf');
-}
-
-:root [data-theme='one-more-chance'] {
-    --theme-font-family-base: 'JosefinSans', sans-serif;
-    --theme-font-family-heading: 'JosefinSans', sans-serif;
+.omc-toast-container div.omc-toast {
+    @apply bg-black text-gray-200 font-light border-none ring-1 ring-gray-200 text-base;
 }

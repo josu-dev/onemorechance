@@ -25,4 +25,7 @@ export const GAME = {
 
     /** TEMPORAL: to be removed when room configuration is properly handled */
     DEFAULT_DECK_ID: '2',
+
+    MAX_PLAYERS: 8,
+    MIN_PLAYERS: 2,
 } as const;

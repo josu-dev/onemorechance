@@ -1,44 +1,89 @@
 <script lang="ts">
+  import { goto } from '$app/navigation';
+  import { debugData } from '$comps/HyperDebug.svelte';
+  import { ROOM_STATUS } from '$game/enums.js';
+  import {
+    room,
+    roomActions,
+    self,
+    selfActions,
+    socketActions,
+  } from '$game/game.js';
+  import { audioPlayer } from '$lib/stores/audio.js';
   import { user } from '$lib/stores/user.js';
-  import { socket } from '$lib/ws.js';
+  import { onMount } from 'svelte';
+  import { superForm } from 'sveltekit-superforms/client';
 
   export let data;
 
-  // if (data.name) {
-  //   registerUser({ userId: data.userId, name: data.name });
-  // }
+  user.mset(data.user);
+  // user.mset({
+  //   id: '1',
+  //   name: 'juan',
+  // });
 
-  let name: string = data.name ?? '';
+  onMount(() => {
+    if (user.value) {
+      self.value.id = user.value.id;
+      self.value.name = user.value.name;
+      self.sync();
+    }
 
-  function registerUser(data: { userId?: string; name: string }) {
-    socket.emit('register_user', data);
-  }
+    socketActions.connect();
 
-  async function signIn() {
-    registerUser({ name: name });
-  }
+    debugData.set(audioPlayer);
 
-  async function signOut() {
-    await fetch('/api/user', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ name: undefined, userId: undefined }),
-    });
-    socket.emit('unregister_user', { userId: user.peek?.id! });
+    function startLobbyMusic() {
+      audioPlayer.play('music_lobby.mp3', { loop: true });
+      document.removeEventListener('click', startLobbyMusic);
+    }
+
+    document.addEventListener('click', startLobbyMusic);
+
+    return () => {
+      document.removeEventListener('click', startLobbyMusic);
+    };
+  });
+
+  const signInForm = superForm(data.signUpForm, {
+    onUpdated({ form }) {
+      const _user = form.message.user;
+      user.mset(_user);
+      selfActions.register(_user);
+    },
+  });
+
+  const signOutForm = superForm(data.signOutForm, {
+    onUpdated({ form }) {
+      user.mset(undefined);
+      selfActions.unregister();
+    },
+  });
+
+  let playMenu = false;
+
+  function togglePlayMenu() {
+    playMenu = !playMenu;
   }
 
   function createRoom() {
-    const userId = user.peek?.id!;
-    socket.emit('create_room', { userId: userId });
+    console.log('createRoom', roomActions, self);
+    roomActions.createRoom();
   }
 
   let roomId = '';
 
   function joinRoom() {
-    const userId = user.peek?.id!;
-    socket.emit('join_room', { roomId: roomId, userId: userId });
+    roomActions.joinRoom(roomId);
+  }
+
+  $: if ($room.status === ROOM_STATUS.IN_LOBBY) {
+    console.log('room', room);
+    goto(`/${$room.id}`);
+  }
+
+  $: if ($room.status === ROOM_STATUS.CONNECTING) {
+    console.log(`Connecting to room ${$room.id}`);
   }
 </script>
 
@@ -49,78 +94,113 @@
 <main
   class="h-full flex flex-col items-center justify-center overflow-y-auto p-1"
 >
-  <h1 class="text-4xl text-white font-bold text-center">ONE MORE CHANCE</h1>
+  <h1 class="text-4xl text-white font-bold text-center mb-2">
+    ONE MORE CHANCE
+  </h1>
 
-  <div class="flex flex-col md:flex-row items-center justify-center md:gap-8">
-    <div class="">
+  <div
+    class="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8"
+  >
+    <div class="flex my-2">
       <img
         src="/logo/logo-896x896.png"
         alt="Logo de One More Chance"
-        class="mb-6 max-w-full max-h-64 md:max-h-96"
+        class="max-h-[25vh] md:max-h-[40vh]"
       />
     </div>
 
     <div class="flex flex-col justify-items-center items-center">
       {#if !$user}
         <form
-          on:submit|preventDefault={signIn}
-          class="flex flex-col items-center space-y-2"
+          method="post"
+          action="?/signIn"
+          use:signInForm.enhance
+          class="flex flex-col items-center gap-4"
         >
-          <label for="name" class="text-lg">
+          <label for="name" class="">
+            <span class="sr-only">Nombre</span>
             <input
               type="text"
-              name="name"
               id="name"
-              bind:value={name}
-              class="block w-full mb-4 mt-1 p-2 bg-black text-white border border-white rounded-lg"
-              placeholder="Ingresa tu nombre"
+              name="name"
+              autocomplete="off"
+              required
+              minlength="3"
+              maxlength="24"
+              placeholder="tu nombre..."
+              class="text-center block w-full bg-black text-white border border-white rounded-md"
             />
           </label>
-          <button
-            type="submit"
-            class="btn text-white bg-black rounded-lg w-48 h-10"
-            style="box-shadow: 0 0 0 2px white;">Confirmar</button
-          >
+          <button type="submit" class="button variant-primary w-full">
+            Registrar
+          </button>
         </form>
+      {:else if !playMenu}
+        <section class="flex flex-col gap-4 md:gap-6">
+          <h2 class="sr-only">Menu principal</h2>
+          <p class="text-center text-gray-50 text-2xl font-semibold mb-2">
+            Hola {$user.name}!
+          </p>
+          <button on:click={togglePlayMenu} class="button variant-primary">
+            Jugar
+          </button>
+          <button disabled class="button variant-primary">
+            Decks (Proximamente)
+          </button>
+          <form
+            method="post"
+            action="?/signIn"
+            use:signOutForm.enhance
+            class="flex flex-row w-full items-center justify-center gap-4"
+          >
+            <label for="confirm">
+              <span class="sr-only">Confirmar</span>
+              <input
+                type="checkbox"
+                id="confirm"
+                name="confirm"
+                required
+                class="form-checkbox text-success-500 w-6 h-6 rounded-md cursor-pointer"
+              />
+            </label>
+            <button type="submit" class="button variant-primary w-full">
+              Borrar cuenta
+            </button>
+          </form>
+        </section>
       {:else}
-        <h2 class=" text-purple-50 text-2xl font-semibold mb-[1em]">
-          Hola {$user.name}!
-        </h2>
-        <form on:submit|preventDefault={createRoom} class="mb-4">
-          <button
-            type="submit"
-            class="btn text-white bg-black rounded-lg w-48 h-10"
-            style="box-shadow: 0 0 0 2px white;"
+        <section class="flex flex-col gap-4 md:gap-6">
+          <form on:submit|preventDefault={createRoom} class="flex">
+            <button type="submit" class="button variant-primary w-full">
+              Crear sala
+            </button>
+          </form>
+          <form
+            on:submit|preventDefault={joinRoom}
+            class="flex flex-col items-center gap-2"
           >
-            Crear Sala</button
-          >
-        </form>
-        <form
-          on:submit|preventDefault={joinRoom}
-          class="flex flex-col items-center space-y-2"
-        >
-          <label for="room_id" class="text-lg">
-            <input
-              type="text"
-              id="room_id"
-              name="room_id"
-              bind:value={roomId}
-              class="block w-48 h-10 mb-4 mt-1 p-2 bg-black text-white border border-white rounded-lg"
-              placeholder="ID de la sala"
-            />
-          </label>
-          <button
-            type="submit"
-            class="btn text-white mb-4 bg-black rounded-lg w-48 h-10"
-            style="box-shadow: 0 0 0 2px white;">Ingresar a la sala</button
-          >
-        </form>
-        <button
-          type="submit"
-          class="btn text-white m-4 bg-black rounded-lg w-48 h-10"
-          disabled
-          style="box-shadow: 0 0 0 2px white;">Decks(Proximamente)</button
-        >
+            <label for="roomId" class="">
+              <span class="sr-only">Codigo de sala</span>
+              <input
+                type="text"
+                id="roomId"
+                name="roomId"
+                autocomplete="off"
+                required
+                pattern={'[A-Za-z0-9]{6}'}
+                bind:value={roomId}
+                placeholder="codigo..."
+                class="text-center block w-48 h-10 bg-black text-white border border-white rounded-md"
+              />
+            </label>
+            <button type="submit" class="button variant-primary w-full">
+              Unirse a sala
+            </button>
+          </form>
+          <button on:click={togglePlayMenu} class="button variant-primary">
+            Volver
+          </button>
+        </section>
       {/if}
     </div>
   </div>

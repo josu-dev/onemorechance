@@ -1,9 +1,9 @@
 <script lang="ts">
   import { scale } from 'svelte/transition';
 
-  export let a11yLabel: string;
+  export let a11yLabel = 'Copiar';
 
-  export let toCopy: string;
+  export let copy: string;
 
   export let tooltipText = 'Copiado!';
 
@@ -20,7 +20,7 @@
   let timeoutId: ReturnType<typeof setTimeout>;
 
   function onClick(event: CopyEvent) {
-    navigator.clipboard.writeText(toCopy).then(
+    navigator.clipboard.writeText(copy).then(
       () => {
         tooltip = true;
         clearTimeout(timeoutId);

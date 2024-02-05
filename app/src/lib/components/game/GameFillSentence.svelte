@@ -1,18 +1,18 @@
 <script lang="ts">
-  import { DECK_TYPE } from '$lib/enums.js';
+  import { DECK_TYPE } from '$game/enums.js';
+  import type { Option } from '$game/types';
+  import type { GameStore } from '$game/types.client';
   import { audioPlayer } from '$lib/stores/audio';
-  import type { ExposedWritable } from '$lib/stores/types';
   import { debounced } from '$lib/utils/client/functions';
-  import type { Game, Option } from '$types';
   import { createEventDispatcher, onMount } from 'svelte';
 
   const DEBOUNCE_TIME = 500;
   const TIMER_UPDATE_RATE = 33;
 
-  export let game: ExposedWritable<Game>;
+  export let game: GameStore;
   export let initTimerOnMount = false;
 
-  let basePhrase = $game.phrase;
+  let basePhrase = $game.current.phrase;
   let emptyPhrase = basePhrase.text.replace(/{{}}/g, '...');
 
   let options: Option[] = [];
@@ -61,7 +61,7 @@
   });
 
   const dispatch = createEventDispatcher<{
-    freestyle: string;
+    freestyle: string[];
     option: Option[];
   }>();
 
@@ -70,7 +70,8 @@
       return;
     }
 
-    dispatch('freestyle', freestyle);
+    // TODO: correctly handled multiple freestyle completions
+    dispatch('freestyle', [freestyle]);
   }
   function dispatchOptions() {
     dispatch('option', options);
@@ -114,7 +115,8 @@
               (event, option) => {
                 dispatchOptions();
               },
-              { delay: DEBOUNCE_TIME, extraArgs: [option] },
+              DEBOUNCE_TIME,
+              option,
             )}
             style="cursor: pointer;"
           >
@@ -129,12 +131,9 @@
           autocomplete="off"
           class="!bg-black text-white p-2 rounded-lg mb-2 variant-outline-primary"
           bind:value={freestyle}
-          on:input={debounced(
-            (event) => {
-              dispatchFreestyle();
-            },
-            { delay: DEBOUNCE_TIME },
-          )}
+          on:input={debounced((event) => {
+            dispatchFreestyle();
+          }, DEBOUNCE_TIME)}
         />
       {/if}
     </div>

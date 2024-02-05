@@ -13,19 +13,19 @@
   export let functions = false;
 </script>
 
-<div class="fixed top-0 left-0 z-10">
+<div class="fixed bottom-0 right-0 z-10">
   <button
-    class="fixed top-0 left-0 z-10 p-1 text-sm font-medium text-white bg-red-600/95"
+    class="p-1 pb-0 text-sm leading-tight font-medium text-white bg-red-600/95"
     on:click={() => ($debugEnabled = !$debugEnabled)}
   >
-    DBUG
+    DB
   </button>
   {#if $debugEnabled}
     <div
       class=" fixed top-0 right-0 bottom-0 left-0 container p-4 mx-auto overflow-y-auto"
     >
       <SuperDebug
-        data={debugData}
+        data={$debugData}
         {label}
         {stringTruncate}
         {functions}

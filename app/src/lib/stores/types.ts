@@ -14,6 +14,12 @@ export interface ExposedReadable<T> extends Readable<T> {
      * Manually sync the value with the store to trigger updates.
      */
     sync(): void;
+
+    /**
+     * Manually set the value of the store.
+     * @param value New value.
+     */
+    mset(value: T): void;
 }
 
 /** Writable with its value exposed. */
@@ -27,4 +33,19 @@ export interface ExposedWritable<T> extends Writable<T> {
      * Manually sync the value with the store to trigger updates.
      */
     sync(): void;
+}
+
+/**
+ * Store that persists its value to local storage.
+ */
+export interface LocalPersistedStore<T> extends Writable<T> {
+    /**
+     * Get the current value of the store.
+     */
+    get(): T;
+
+    /**
+     * Manually reset the value to the default value and persist it.
+     */
+    reset(): void;
 }

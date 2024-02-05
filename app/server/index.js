@@ -1,6 +1,6 @@
 import express from "express";
 import { handler } from "../build/handler.js";
-import { attach_sockets } from "../build/server/sockets.js";
+import { attach_socket_server } from "../build/server/sockets.js";
 
 
 const PORT = process.env.PORT || 3000;
@@ -12,4 +12,4 @@ const server = app.listen(PORT, () => {
 
 app.use(handler);
 
-attach_sockets(server);
+attach_socket_server(server);

@@ -1,61 +1,56 @@
 <script lang="ts">
-  import {
-    DECK_TYPE,
-    PLAYER_RATING,
-    type DeckType,
-    type PlayerRating,
-  } from '$lib/enums.js';
+  import type { DeckType, PlayerRating } from '$game/enums';
+  import { DECK_TYPE, PLAYER_RATING } from '$game/enums';
+  import type { Option } from '$game/types';
+  import type { GameStore, PlayersStore } from '$game/types.client';
   import { audioPlayer } from '$lib/stores/audio';
-  import type { ExposedWritable, Readable } from '$lib/stores/types';
-  import type { Game } from '$types';
   import { createEventDispatcher } from 'svelte';
 
-  export let game: ExposedWritable<Game>;
-  export let players: Readable<Game['players']>;
+  export let game: GameStore;
+  export let players: PlayersStore;
 
   function fillSentence(
     sentence: string,
     type: DeckType,
-    option?: string,
-    freestyle?: string,
+    option?: Option[],
+    freestyle?: string[],
   ) {
+    // TODO: handle more than one value cases
     if (type === DECK_TYPE.CHOOSE) {
-      if (!option) {
+      if (!option || !option.length) {
         return sentence.replace(/{{}}/g, '...');
       }
-      return sentence.replace(/{{}}/g, option);
+      return sentence.replace(/{{}}/g, option[0].text);
     }
 
-    if (!freestyle) {
+    if (!freestyle || !freestyle.length) {
       return sentence.replace(/{{}}/g, '...');
     }
-    return sentence.replace(/{{}}/g, freestyle);
+    return sentence.replace(/{{}}/g, freestyle[0]);
   }
 
   const dispatch = createEventDispatcher<{
-    rate: {
+    rate_sentence: {
       playerId: string;
       rate: PlayerRating;
     };
   }>();
 
   function dispatchRate(rate: PlayerRating) {
-    if (!$game.ratingPlayer) {
+    if (!$game.current.ratingPlayer) {
       return;
     }
-
-    audioPlayer.setVolume(0.5);
 
     if (rate === PLAYER_RATING.BAD) {
       audioPlayer.play('sfx_abucheo.mp3');
     } else if (rate === PLAYER_RATING.MEH) {
-      audioPlayer.play('sfx_meh.mp3');
+      audioPlayer.play('sfx_meh.mp3', { volumeSfx: 2 });
     } else {
       audioPlayer.play('sfx_aplauso.mp3');
     }
 
-    dispatch('rate', {
-      playerId: $game.ratingPlayer,
+    dispatch('rate_sentence', {
+      playerId: $game.current.ratingPlayer,
       rate: rate,
     });
   }
@@ -70,18 +65,18 @@
 
   <div class="flex flex-col gap-4 md:gap-8 md:justify-around">
     <div class="flex flex-col items-center">
-      {#each $players as player (player.userId)}
-        {#if player.userId === $game.ratingPlayer}
+      {#each $players as player (player.id)}
+        {#if player.id === $game.current.ratingPlayer}
           <div
             class="card bg-black border-white border-2 p-4 rounded-lg"
             style="width: 300px; height: 400px;"
           >
             <p class="text-white text-center text-2xl mt-6">
               “{fillSentence(
-                $game.phrase.text,
+                $game.current.phrase.text,
                 $game.deck.type,
-                player.selectedOption?.text,
-                player.freestyle?.[0],
+                player.current.option,
+                player.current.freestyle,
               )}“
             </p>
           </div>

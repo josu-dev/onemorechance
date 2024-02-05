@@ -1,38 +1,50 @@
 <script lang="ts">
   import CopyButton from '$comps/shared/CopyButton.svelte';
-  import { GAME } from '$lib/configs';
-  import { DECK_TYPE, PLAYER_ROLE } from '$lib/enums.js';
-  import type { ExposedWritable, Readable } from '$lib/stores/types';
-  import type { DeckIdentifier, Game, Player, Room, User } from '$types';
+  import { GAME } from '$game/configs';
+  import { DECK_TYPE, PLAYER_ROLE } from '$game/enums';
+  import type { DeckIdentifier } from '$game/types';
+  import type {
+    DecksStore,
+    GameStore,
+    Player,
+    PlayersStore,
+    RoomStore,
+    SelfStore,
+  } from '$game/types.client';
   import { createEventDispatcher } from 'svelte';
 
-  export let user: ExposedWritable<User>;
-  export let room: ExposedWritable<Room>;
-  export let game: ExposedWritable<Game>;
-  export let players: Readable<Player[]>;
-  export let availableDecks: Readable<DeckIdentifier[]>;
+  export let self: SelfStore;
+  export let room: RoomStore;
+  export let game: GameStore;
+  export let players: PlayersStore;
+  export let decks: DecksStore;
 
-  $: isHost = $user?.id === $room?.host.id;
+  $: isHost = $self.role === PLAYER_ROLE.HOST;
   $: isInvited = !isHost;
+  $: playersAreReady = $players.every((player) => player.ready);
 
-  let selectedSettings = {
+  let settings = {
     rounds: GAME.DEFAULT_ROUNDS,
     selectionTime: GAME.DEFAULT_SELECTION_TIME,
     options: GAME.DEFAULT_OPTIONS,
-    deckId: '',
+    deck: {
+      id: '',
+      name: '',
+      type: 'CHOOSE',
+      description: '',
+    } as DeckIdentifier,
   };
 
-  let selectedDeck: DeckIdentifier = {
-    id: '',
-    name: '',
-    type: 'CHOOSE',
-    description: '',
-  };
+  $: currentDeck = settings.deck;
+
+  $: if ($game.deck.id !== settings.deck.id) {
+    settings.deck = $game.deck;
+  }
 
   const dispatch = createEventDispatcher<{
     toggle_ready: boolean;
-    start_game: boolean;
-    close_room: boolean;
+    start_game: true;
+    close_room: true;
     kick_player: { userId: string };
     update_deck: { deckId: string };
     update_settings: {
@@ -59,37 +71,47 @@
     event: SubmitEvent & { currentTarget: EventTarget & HTMLFormElement },
   ) {
     event.preventDefault();
-    dispatch('update_settings', selectedSettings);
+
+    dispatch('update_settings', {
+      rounds: settings.rounds,
+      selectionTime: settings.selectionTime,
+      options: settings.options,
+      deckId: settings.deck.id,
+    });
   }
 
   function selectDeck(event: { deckId: string }) {
-    const newDeck = $availableDecks.find((deck) => deck.id === event.deckId);
+    const newDeck = $decks.find((deck) => deck.id === event.deckId);
     if (!newDeck) {
       console.error('Deck not found');
       return;
     }
-    selectedSettings.deckId = newDeck.id;
-    selectedDeck.id = newDeck.id;
-    selectedDeck.name = newDeck.name;
-    selectedDeck.type = newDeck.type;
-    selectedDeck.description = newDeck.description;
+    settings.deck = newDeck;
+  }
+
+  function askForKickPlayer(player: Player) {
+    // TODO: Show modal
+    if (confirm(`¿Estás seguro de expulsar a ${player.name}?`)) {
+      dispatchKickPlayer({ userId: player.id });
+    }
   }
 
   function askForCloseRoom() {
+    // TODO: Show modal
     if (confirm('¿Estás seguro de cerrar la sala?')) {
       dispatchCloseRoom();
     }
   }
 
-  function askForKickPlayer(player: Player) {
-    if (confirm(`¿Estás seguro de expulsar a ${player.name}?`)) {
-      dispatchKickPlayer({ userId: player.userId });
+  function askForStartGame() {
+    if (!playersAreReady) {
+      // TODO: Show info message
+      return;
     }
-  }
-
-  function triggerStartGame() {
-    // check for readys
-    triggerStartGame();
+    // TODO: Show modal
+    if (confirm('¿Estás seguro de iniciar la partida?')) {
+      dispatchStartGame();
+    }
   }
 </script>
 
@@ -101,8 +123,8 @@
     <p class="flex justify-center gap-2 text-xl leading-none text-primary-100">
       {$room.id}
       <CopyButton
+        copy={$room.id}
         a11yLabel="Copiar código de sala"
-        toCopy={$room.id}
         className="w-5 h-5"
       />
     </p>
@@ -125,11 +147,11 @@
             </div>
             <span class="text-lg">{player.name}</span>
             <div class="ml-auto">
-              <label for="ready-{player.userId}" class="sr-only">Listo</label>
-              {#if player.userId === $user?.id}
+              <label for="ready-{player.id}" class="sr-only">Listo</label>
+              {#if player.id === $self.id}
                 <input
                   type="checkbox"
-                  id="ready-{player.userId}"
+                  id="ready-{player.id}"
                   on:change={(e) => {
                     dispatchToggleReady(e.currentTarget.checked);
                   }}
@@ -147,7 +169,7 @@
                 {/if}
                 <input
                   type="checkbox"
-                  id="ready-{player.userId}"
+                  id="ready-{player.id}"
                   checked={player.ready}
                   disabled
                   class="form-checkbox text-success-500 w-6 h-6 rounded-md cursor-not-allowed"
@@ -171,7 +193,7 @@
             <input
               type="number"
               id="rounds"
-              bind:value={selectedSettings.rounds}
+              bind:value={settings.rounds}
               min="5"
               max="10"
               disabled={isInvited}
@@ -185,7 +207,7 @@
             <input
               type="number"
               id="timer"
-              bind:value={selectedSettings.selectionTime}
+              bind:value={settings.selectionTime}
               min="1"
               max="30"
               disabled={isInvited}
@@ -193,14 +215,14 @@
             />
           </label>
         </div>
-        {#if selectedDeck.type === DECK_TYPE.CHOOSE}
+        {#if currentDeck.type === DECK_TYPE.CHOOSE}
           <div class="w-full">
             <label class="flex items-center justify-between">
               Opciones
               <input
                 type="number"
                 id="options"
-                bind:value={selectedSettings.options}
+                bind:value={settings.options}
                 min="4"
                 max="8"
                 disabled={isInvited}
@@ -219,7 +241,7 @@
               }}
               class="select ml-4 bg-black [&>option]:bg-black"
             >
-              {#each $availableDecks as deck}
+              {#each $decks as deck}
                 <option
                   value={deck.id}
                   selected={deck.id === $game.deck.id}
@@ -240,10 +262,11 @@
           {#if isHost}
             <button
               type="button"
-              on:click={triggerStartGame}
+              on:click={askForStartGame}
               class="btn variant-filled variant-filled-success variant-outline-primary"
+              disabled={!playersAreReady}
             >
-              Iniciar partida
+              {playersAreReady ? 'Iniciar partida' : 'Esperando listos'}
             </button>
             <button
               type="button"
