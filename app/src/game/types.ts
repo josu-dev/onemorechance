@@ -65,9 +65,7 @@ export type ClientToServerEvents = {
     player_set_ready: (data: { roomId: string; state: boolean; }) => void;
 
     game_start: (data: { roomId: string; }) => void;
-    // game_update: (data: { roomId: string; game: Client.Game; }) => void;
-    game_set_settings: (data: { roomId: string; game: Client.Game; }) => void;
-    game_set_deck: (data: { roomId: string; deckId: string; }) => void;
+    game_set_settings: (data: { roomId: string; settings: Partial<Client.GameSettings>; }) => void;
     game_set_freestyle: (data: { roomId: string; freestyle: string[]; }) => void;
     game_set_option: (data: { roomId: string; option: Option[]; }) => void;
     game_rate_player: (data: { roomId: string; playerId: string; rate: PlayerRating; }) => void;

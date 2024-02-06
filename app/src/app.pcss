@@ -16,11 +16,32 @@
         @apply ring-gray-100 ring-2;
     }
 
+    .input, .select, .textarea {
+        @apply px-2.5 py-1.5 rounded-md text-base font-normal border-none;
+    }
+    .input:focus, .select:focus, .textarea:focus { 
+        @apply outline-none
+    }
+    .input:disabled, .select:disabled, .textarea:disabled {
+        @apply cursor-not-allowed opacity-75;
+    }
+    .input:not(:hover):focus, .select:not(:hover):focus, .textarea:not(:hover):focus {
+        @apply ring-gray-100 ring-2 border-fuchsia-500;
+    }
+
     .variant-primary {
         @apply bg-black text-gray-300 ring-1 ring-gray-300;
     }
     .variant-primary:not(:disabled):hover {
         @apply text-gray-100 ring-2 ring-gray-100;
+    }
+    
+    .variant-error {
+        @apply bg-red-800 text-gray-300 ring-1 ring-gray-300;
+    }
+
+    .variant-success {
+        @apply bg-purple-800 text-gray-300 ring-1 ring-gray-300;
     }
     
     .icon {

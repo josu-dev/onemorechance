@@ -67,7 +67,6 @@
   }
 
   function createRoom() {
-    console.log('createRoom', roomActions, self);
     roomActions.createRoom();
   }
 
@@ -78,7 +77,6 @@
   }
 
   $: if ($room.status === ROOM_STATUS.IN_LOBBY) {
-    console.log('room', room);
     goto(`/${$room.id}`);
   }
 

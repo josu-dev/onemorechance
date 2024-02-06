@@ -28,15 +28,22 @@ export type RoomStore = ExposedReadable<Room>;
 
 // #region Game
 
+export type GameSettings = {
+    deckId: string,
+    fillTime: number,
+    options: number,
+    players: number,
+    rateTime: number,
+    rounds: number,
+};
+
 export type Game = {
     id: string;
     roomId: string;
     status: GameStatus;
-    maxRounds: number;
-    maxOptions: number;
-    chooseTime: number;
-    round: number,
+    settings: GameSettings;
     deck: DeckIdentifier,
+    round: number,
     current: {
         phrase: Phrase,
         ratingPlayer?: string,

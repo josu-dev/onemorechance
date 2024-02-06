@@ -1,7 +1,7 @@
 <script lang="ts">
   import { browser } from '$app/environment';
   import { ROOM_STATUS } from '$game/enums.js';
-  import { room } from '$game/game.js';
+  import { room, roomActions } from '$game/game.js';
   import { useClickOutside } from '$lib/actions/index.js';
   import { audioPlayer } from '$lib/stores/audio.js';
 
@@ -25,8 +25,13 @@
     }
   }
 
-  $: inLobby = room.value.status === ROOM_STATUS.IN_LOBBY;
-  $: inGame = room.value.status === ROOM_STATUS.IN_GAME;
+  $: inRoom =
+    $room.status === ROOM_STATUS.IN_LOBBY ||
+    $room.status === ROOM_STATUS.IN_GAME;
+
+  function leaveRoom() {
+    roomActions.leaveRoom();
+  }
 </script>
 
 <div class="relative flex flex-col">
@@ -200,14 +205,14 @@
         </div>
       </div>
 
-      {#if inGame}
+      {#if inRoom}
         <div class="mb-0.5 border-b border-gray-300/50"></div>
 
         <div class="p-1">
-          <div class="flex justify-between">
+          <!-- <div class="flex justify-between">
             <span>Partida</span>
-          </div>
-          <button>Abandonar partida</button>
+          </div> -->
+          <button on:click={leaveRoom}>Abandonar partida</button>
         </div>
       {/if}
     </div>

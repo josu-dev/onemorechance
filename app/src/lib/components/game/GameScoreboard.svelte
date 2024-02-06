@@ -33,7 +33,7 @@
   <header class="flex flex-col text-center mb-4 md:mb-8">
     <h2 class="text-4xl text-white font-bold mb-1 md:mb-3">Puntajes</h2>
     <p class="flex justify-center gap-2 text-xl leading-none text-primary-100">
-      Ronda {$game.round} / {$game.maxRounds}
+      Ronda {$game.round} / {$game.settings.rounds}
     </p>
   </header>
 

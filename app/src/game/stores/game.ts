@@ -1,20 +1,26 @@
+import { GAME } from '$game/configs.js';
 import type { GameStatus, PlayerRating } from '$game/enums.js';
 import { GAME_STATUS } from '$game/enums.js';
-import type { Game, GameStore, SelfStore, SocketInstance } from '$game/types.client.js';
+import type { Game, GameSettings, GameStore, SelfStore, SocketInstance } from '$game/types.client.js';
 import type { Option } from '$game/types.js';
 import type { Readable } from '$lib/stores/types.js';
-import { uniqueLettersId, uniqueURLSafeId } from '$lib/utils/index.js';
+import { uniqueRoomId, uniqueURLSafeId } from '$lib/utils/index.js';
 import { derived, writable } from 'svelte/store';
 
 
 function defaultGame(): Game {
     return {
         id: uniqueURLSafeId(),
-        roomId: uniqueLettersId(),
+        roomId: uniqueRoomId(),
         status: GAME_STATUS.NOT_STARTED,
-        maxRounds: 0,
-        maxOptions: 0,
-        chooseTime: 0,
+        settings: {
+            deckId: '',
+            fillTime: GAME.DEFAULT_FILL_TIME,
+            rateTime: GAME.DEFAULT_RATE_TIME,
+            players: GAME.DEFAULT_PLAYERS,
+            rounds: GAME.DEFAULT_ROUNDS,
+            options: 0,
+        },
         round: 0,
         deck: {
             id: uniqueURLSafeId(),
@@ -57,6 +63,9 @@ export function createGameStore(): GameStore {
 
 export function createGameActions(socket: SocketInstance, self: SelfStore, game: GameStore,) {
     return {
+        setSettings(settings: Partial<GameSettings>) {
+            socket.emit('game_set_settings', { roomId: game.value.roomId, settings: settings });
+        },
         ratePlayer(playerId: string, rate: PlayerRating) {
             socket.emit('game_rate_player', { roomId: game.value.roomId, playerId: playerId, rate: rate });
         },

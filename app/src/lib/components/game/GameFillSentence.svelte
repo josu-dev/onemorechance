@@ -28,8 +28,8 @@
 
   let last_time = window.performance.now();
   let elapsed = 0;
-  let duration = $game.chooseTime;
-  let remainingSeconds = ($game.chooseTime / 1000).toString();
+  let duration = $game.settings.fillTime;
+  let remainingSeconds = (duration / 1000).toString();
   let remainingMilisSeconds = '99';
 
   let timeoutId: ReturnType<typeof setTimeout>;

@@ -5,6 +5,7 @@ export const ROOM_STATUS = {
     IN_LOBBY: 'IN_LOBBY',
     IN_GAME: 'IN_GAME',
     CLOSED: 'CLOSED',
+    LEFT: 'LEFT',
 } as const;
 
 export type RoomStatus = typeof ROOM_STATUS[keyof typeof ROOM_STATUS];

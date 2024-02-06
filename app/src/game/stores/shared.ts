@@ -99,7 +99,7 @@ export function attachSharedListeners(socket: SocketInstance, self: SelfStore, r
             return;
         }
 
-        room.value.status = ROOM_STATUS.NO_ROOM;
+        room.value.status = ROOM_STATUS.LEFT;
         room.sync();
 
         game.value.status = GAME_STATUS.NOT_STARTED;

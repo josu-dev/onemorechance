@@ -1,5 +1,6 @@
 <script lang="ts">
   import { dev } from '$app/environment';
+  import { goto } from '$app/navigation';
   import { debugData } from '$comps/HyperDebug.svelte';
   import GameFillSentence from '$comps/game/GameFillSentence.svelte';
   import GameLobby from '$comps/game/GameLobby.svelte';
@@ -39,6 +40,10 @@
   $: isPostRound = $gameStatus === GAME_STATUS.POST_ROUND;
   $: isScoreboard = $gameStatus === GAME_STATUS.END_SCOREBOARD;
   $: isEnded = $gameStatus === GAME_STATUS.ENDED;
+
+  $: if ($room.status === ROOM_STATUS.LEFT) {
+    goto('/');
+  }
 </script>
 
 <svelte:head>
@@ -46,16 +51,25 @@
 </svelte:head>
 
 <main
-  class="h-full flex flex-col items-center justify-center overflow-y-auto p-1 ring-1 ring-cyan-500 md:ring-fuchsia-500 ring-inset"
+  class="h-full flex flex-col items-center justify-center overflow-y-auto p-1"
 >
   <h1 class="sr-only">A jugar One More Chance!</h1>
   {#if !$self.registered || $room.status === ROOM_STATUS.NO_ROOM}
     <GameMessage>
       <svelte:fragment slot="title">
-        Room not found, you shouldnt be seeing this 😅
+        Room not loaded, you shouldnt be seeing this 😅
       </svelte:fragment>
       <svelte:fragment slot="content">
-        <a class="btn variant-filled-primary" href="/">Volver al inicio</a>
+        <a class="button variant-primary" href="/">Volver al inicio</a>
+      </svelte:fragment>
+    </GameMessage>
+  {:else if $room.status === ROOM_STATUS.CLOSED}
+    <GameMessage>
+      <svelte:fragment slot="title">
+        La sala ha sido cerrada por el anfitrión 😢
+      </svelte:fragment>
+      <svelte:fragment slot="content">
+        <a class="button variant-primary" href="/">Volver al inicio</a>
       </svelte:fragment>
     </GameMessage>
   {:else if isNotStarted || isEnded}
@@ -65,12 +79,6 @@
       {game}
       {players}
       {decks}
-      on:start_game={() => {
-        roomActions.startGame();
-      }}
-      on:close_room={() => {
-        roomActions.closeRoom();
-      }}
       on:kick_player={(event) => {
         roomActions.kickPlayer(event.detail.userId);
       }}
@@ -78,12 +86,19 @@
         roomActions.setReady(event.detail);
       }}
       on:update_deck={(event) => {
-        // TODO: update deck
-        // roomActions.se(event.detail.deckId);
+        gameActions.setSettings(event.detail);
       }}
       on:update_settings={(event) => {
-        // TODO: update settings
-        // roomActions.updateSettings(event.detail);
+        gameActions.setSettings(event.detail);
+      }}
+      on:close_room={() => {
+        roomActions.closeRoom();
+      }}
+      on:leave_room={() => {
+        roomActions.leaveRoom();
+      }}
+      on:start_game={() => {
+        roomActions.startGame();
       }}
     />
   {:else if isPreRound || isPostRound}

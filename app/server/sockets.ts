@@ -102,7 +102,7 @@ function newRound(io: T.WebSocketServer, socket: T.WebSocketServerSocket, room: 
 
     if (deck.type === DECK_TYPE.CHOOSE) {
         for (const player of room.players) {
-            const missingOptions = room.game.maxOptions - player.stock.options.length;
+            const missingOptions = room.game.settings.options - player.stock.options.length;
             for (let i = 0; i < missingOptions; i++) {
                 // @ts-ignore - We know that deck is a DeckChoose
                 let option = deck.options[Math.floor(Math.random() * deck.options.length)];
@@ -129,7 +129,7 @@ function newRound(io: T.WebSocketServer, socket: T.WebSocketServerSocket, room: 
                 (playerId) => {
                     io.to(room.room.id).emit('game_rate_player', { playerId: playerId });
                 },
-                i * GAME.DEFAULT_RATE_TIME,
+                i * room.game.settings.rateTime,
                 room.players[i].id
             );
         }
@@ -148,7 +148,7 @@ function newRound(io: T.WebSocketServer, socket: T.WebSocketServerSocket, room: 
             room.game.status = GAME_STATUS.ROUND_WINNER;
             io.to(room.room.id).emit('game_updated_all', { game: room.game, players: room.players });
 
-            if (room.game.round < room.game.maxRounds) {
+            if (room.game.round < room.game.settings.rounds) {
                 setTimeout(
                     newRound,
                     GAME.DEFAULT_RESULTS_TIME,
@@ -169,9 +169,9 @@ function newRound(io: T.WebSocketServer, socket: T.WebSocketServerSocket, room: 
                 }, GAME.DEFAULT_SCOREBOARD_TIME);
             }, GAME.DEFAULT_RESULTS_TIME);
 
-        }, playerCount * GAME.DEFAULT_RATE_TIME);
+        }, playerCount * room.game.settings.rateTime);
 
-    }, GAME.DEFAULT_SELECTION_TIME);
+    }, room.game.settings.fillTime);
 }
 
 
@@ -293,9 +293,14 @@ export function attach_socket_server(
                     id: nanoid(),
                     roomId: roomId,
                     status: GAME_STATUS.NOT_STARTED,
-                    maxRounds: GAME.DEFAULT_ROUNDS,
-                    chooseTime: GAME.DEFAULT_SELECTION_TIME,
-                    maxOptions: GAME.DEFAULT_OPTIONS,
+                    settings: {
+                        deckId: DEFAULT_DECK.id,
+                        fillTime: GAME.DEFAULT_FILL_TIME,
+                        rateTime: GAME.DEFAULT_RATE_TIME,
+                        players: GAME.DEFAULT_PLAYERS,
+                        rounds: GAME.DEFAULT_ROUNDS,
+                        options: GAME.DEFAULT_OPTIONS,
+                    },
                     round: 0,
                     deck: {
                         id: DEFAULT_DECK.id,
@@ -521,34 +526,38 @@ export function attach_socket_server(
             newRound(io, socket, room);
         });
 
-        socket.on('game_set_settings', ({ roomId, game }) => {
+        socket.on('game_set_settings', ({ roomId, settings }) => {
             const room = rooms.get(roomId);
             if (!room || room.room.hostId !== socket.data.userId) {
                 return;
             }
 
-            room.game.maxRounds = game.maxRounds;
-            room.game.chooseTime = game.chooseTime;
-            room.game.maxOptions = game.maxOptions;
-            room.game.deck = game.deck;
-            io.to(roomId).emit('game_updated', { game: room.game });
-        });
-
-        socket.on('game_set_deck', ({ roomId, deckId }) => {
-            const room = rooms.get(roomId);
-            if (!room || room.room.hostId !== socket.data.userId) {
-                return;
+            if (settings.deckId) {
+                const deck = decks[settings.deckId];
+                if (deck) {
+                    room.game.settings.deckId = deck.id;
+                    room.game.deck.id = deck.id;
+                    room.game.deck.name = deck.name;
+                    room.game.deck.type = deck.type;
+                    room.game.deck.description = deck.description;
+                }
+            }
+            if (settings.fillTime) {
+                room.game.settings.fillTime = settings.fillTime;
+            }
+            if (settings.options) {
+                room.game.settings.options = settings.options;
+            }
+            if (settings.players) {
+                room.game.settings.players = settings.players;
+            }
+            if (settings.rateTime) {
+                room.game.settings.rateTime = settings.rateTime;
+            }
+            if (settings.rounds) {
+                room.game.settings.rounds = settings.rounds;
             }
 
-            const deck = decks[deckId];
-            if (!deck) {
-                return;
-            }
-
-            room.game.deck.id = deck.id;
-            room.game.deck.name = deck.name;
-            room.game.deck.type = deck.type;
-            room.game.deck.description = deck.description;
             io.to(roomId).emit('game_updated', { game: room.game });
         });
 

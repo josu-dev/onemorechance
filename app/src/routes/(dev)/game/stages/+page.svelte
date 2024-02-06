@@ -18,11 +18,12 @@
     roomActions,
     self,
   } from '$lib/dev/state';
-  import { audioPlayer } from '$lib/stores/audio.js';
   import { onMount } from 'svelte';
   import { helpers } from 'svelte-hypercommands/CommandPalette.svelte';
 
   // export let data;
+
+  $: debugData.set({ $game, $players, $room, $self });
 
   function setGameStatus(status: GameStatus) {
     game.value.status = status;
@@ -45,7 +46,6 @@
   }
 
   onMount(() => {
-    debugData.set(room);
     // debugData.set(audioPlayer);
     // emulateRateSentence();
     // setGameStatus(GAME_STATUS.RATE_SENTENCE);

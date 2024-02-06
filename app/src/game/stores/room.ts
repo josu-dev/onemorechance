@@ -69,12 +69,6 @@ export function createRoomActions(socket: SocketInstance, self: SelfStore, room:
             }
             socket.emit('room_leave', { roomId: room.value.id });
         },
-        setDeck(deckId: string) {
-            if (!room.value) {
-                return;
-            }
-            socket.emit('game_set_deck', { roomId: room.value.id, deckId: deckId });
-        },
         setReady(ready: boolean = true) {
             socket.emit(
                 'player_set_ready',
