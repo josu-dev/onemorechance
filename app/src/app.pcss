@@ -26,7 +26,11 @@
         @apply cursor-not-allowed opacity-75;
     }
     .input:not(:hover):focus, .select:not(:hover):focus, .textarea:not(:hover):focus {
-        @apply ring-gray-100 ring-2 border-fuchsia-500;
+        @apply ring-gray-100 ring-2;
+    }
+
+    .card {
+        @apply bg-black p-2 md:p-4 text-gray-300 rounded-lg shadow-sm shadow-gray-300;
     }
 
     .variant-primary {

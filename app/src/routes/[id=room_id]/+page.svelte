@@ -108,7 +108,6 @@
   {:else if isFillSentence}
     <GameFillSentence
       {game}
-      initTimerOnMount
       on:freestyle={(event) => {
         gameActions.setFreestyle(event.detail);
       }}

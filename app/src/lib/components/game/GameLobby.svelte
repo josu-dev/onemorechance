@@ -136,12 +136,10 @@
   }
 </script>
 
-<section
-  class="flex flex-1 flex-col justify-center items-center text-fuchsia-200"
->
+<section class="flex flex-1 flex-col justify-center items-center">
   <header class="flex flex-col text-center mb-4 md:mb-8">
     <h2 class="text-4xl text-white font-bold mb-1 md:mb-3">Sala de espera</h2>
-    <p class="flex justify-center gap-2 text-xl leading-none text-primary-100">
+    <p class="flex justify-center gap-2 text-xl text-gray-100 leading-none">
       {$room.id}
       <CopyButton
         copy={$room.id}
@@ -154,8 +152,8 @@
   <div class="flex flex-col md:justify-around">
     <div class="flex flex-col gap-4 md:flex-row md:gap-16 md:justify-around">
       <div class="flex flex-col items-center mb-4">
-        <h3 class="text-3xl mb-4">Jugadores</h3>
-        <ul class="flex flex-col gap-1">
+        <h3 class="text-3xl text-gray-100 mb-4">Jugadores</h3>
+        <ul class="flex flex-col gap-1 text-gray-200">
           {#each $players as player}
             <li class="flex items-center gap-4 w-72">
               <div
@@ -204,13 +202,13 @@
       </div>
 
       <div class="flex flex-col items-center mb-4">
-        <h3 class="text-3xl mb-4">Partida</h3>
+        <h3 class="text-3xl text-gray-100 mb-4">Partida</h3>
         <form
           on:submit={(e) => {
             e.preventDefault();
             dispatchUpdateSettings();
           }}
-          class="flex flex-col items-center gap-4"
+          class="flex flex-col items-center gap-4 text-gray-200"
         >
           <div class="w-full">
             <label class="flex items-center justify-between">

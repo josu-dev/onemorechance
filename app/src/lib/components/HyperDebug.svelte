@@ -15,7 +15,7 @@
 
 <div class="fixed bottom-0 right-0 z-10">
   <button
-    class="p-1 pb-0 text-sm leading-tight font-medium text-white bg-red-600/95"
+    class="block p-1 pb-0 text-sm leading-tight font-medium text-white bg-red-700"
     on:click={() => ($debugEnabled = !$debugEnabled)}
   >
     DB
