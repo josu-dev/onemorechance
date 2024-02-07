@@ -10,7 +10,7 @@
 
   export let label: string | undefined = undefined;
   export let stringTruncate: number | undefined = undefined;
-  export let functions = false;
+  export let functions = true;
 </script>
 
 <div class="fixed bottom-0 right-0 z-10">

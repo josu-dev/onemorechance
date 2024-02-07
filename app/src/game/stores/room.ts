@@ -42,7 +42,7 @@ export function createRoomActions(socket: SocketInstance, self: SelfStore, room:
             if (!self.value.registered) {
                 return;
             }
-            socket.emit('room_create', {});
+            socket.emit('room_create');
         },
         updateRoom(room: Room) {
             socket.emit('room_update', { room: room });

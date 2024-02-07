@@ -87,6 +87,14 @@
         description: `Set game status to ${GAME_STATUS.RATE_SENTENCE}`,
         onAction: emulateRateSentence,
       },
+      {
+        category: 'GS',
+        name: 'Round Winner',
+        description: `Set game status to ${GAME_STATUS.ROUND_WINNER}`,
+        onAction: () => {
+          setGameStatus(GAME_STATUS.ROUND_WINNER);
+        },
+      }
     ]);
 
     return () => {

@@ -50,7 +50,8 @@
               <label for="total-score-{player.id}" class="sr-only"
                 >Puntaje total</label
               >
-              <span>{player.totalScore}</span>
+              <span>{player.score}</span>
+              <span>{player.scoreTotal}</span>
               <span>{positionEmoji(i)}</span>
             </div>
           </li>

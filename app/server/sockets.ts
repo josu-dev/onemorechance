@@ -55,6 +55,7 @@ function removePlayerFromRoom(io: T.WebSocketServer, socket: T.WebSocketServerSo
         hostPlayer.role = PLAYER_ROLE.HOST;
         room.room.hostId = hostPlayer.id;
     }
+
     io.to(room.room.id).emit('room_updated', { room: room.room });
 }
 
@@ -72,13 +73,15 @@ function setupNewGame(room: T.Room) {
     for (const player of room.players) {
         player.ready = false;
         player.score = 0;
-        player.totalScore = 0;
+        player.scoreLast = 0;
+        player.scoreTotal = 0;
         player.current.option = undefined;
         player.current.freestyle = undefined;
         player.current.modifier = undefined;
         player.used.freestyle = [];
-        player.used.options = [];
         player.used.modifiers = [];
+        player.used.options = [];
+        player.ratesReceived = {};
     }
 }
 
@@ -86,9 +89,12 @@ function newRound(io: T.WebSocketServer, socket: T.WebSocketServerSocket, room: 
     room.game.round += 1;
 
     for (const player of room.players) {
-        player.current.option = undefined;
         player.current.freestyle = undefined;
+        player.current.modifier = undefined;
+        player.current.option = undefined;
+        player.scoreLast = player.score;
         player.score = 0;
+        player.ratesReceived = {};
     }
 
     const deck = decks[room.game.deck.id];
@@ -98,6 +104,7 @@ function newRound(io: T.WebSocketServer, socket: T.WebSocketServerSocket, room: 
         phrase = deck.phrases[Math.floor(Math.random() * deck.phrases.length)]!;
     }
 
+    room.game.used.phrases.push(phrase.id);
     room.game.current.phrase = phrase;
 
     if (deck.type === DECK_TYPE.CHOOSE) {
@@ -127,7 +134,7 @@ function newRound(io: T.WebSocketServer, socket: T.WebSocketServerSocket, room: 
         for (let i = 0; i < playerCount; i++) {
             setTimeout(
                 (playerId) => {
-                    io.to(room.room.id).emit('game_rate_player', { playerId: playerId });
+                    io.to(room.room.id).emit('game_player_rated', { playerId: playerId });
                 },
                 i * room.game.settings.rateTime,
                 room.players[i].id
@@ -137,13 +144,20 @@ function newRound(io: T.WebSocketServer, socket: T.WebSocketServerSocket, room: 
         setTimeout(() => {
             let winnerId = '';
             let winnerScore = -1;
+
             for (const player of room.players) {
-                if (player.score > winnerScore) {
-                    winnerId = player.id;
-                    winnerScore = player.score;
+                let score = 0;
+                for (const rate of Object.values(player.ratesReceived)) {
+                    score += rate === PLAYER_RATING.GOD ? 10 : rate === PLAYER_RATING.MEH ? 0 : -10;
                 }
-                player.totalScore += player.score;
+                if (score > winnerScore) {
+                    winnerId = player.id;
+                    winnerScore = score;
+                }
+                player.score = score;
+                player.scoreTotal += score;
             }
+
             room.game.current.winner = winnerId;
             room.game.status = GAME_STATUS.ROUND_WINNER;
             io.to(room.room.id).emit('game_updated_all', { game: room.game, players: room.players });
@@ -164,8 +178,9 @@ function newRound(io: T.WebSocketServer, socket: T.WebSocketServerSocket, room: 
                 io.to(room.room.id).emit('game_status_updated', { status: room.game.status });
 
                 setTimeout(() => {
+                    room.room.status = ROOM_STATUS.IN_LOBBY;
                     room.game.status = GAME_STATUS.ENDED;
-                    io.to(room.room.id).emit('game_status_updated', { status: room.game.status });
+                    io.to(room.room.id).emit('game_ended');
                 }, GAME.DEFAULT_SCOREBOARD_TIME);
             }, GAME.DEFAULT_RESULTS_TIME);
 
@@ -244,7 +259,7 @@ export function attach_socket_server(
 
             users.delete(id);
             socket.data.userId = '';
-            socket.emit('user_unregistered', {});
+            socket.emit('user_unregistered');
         });
 
         socket.on('room_create', () => {
@@ -263,7 +278,8 @@ export function attach_socket_server(
                     name: user.client.name,
                     role: PLAYER_ROLE.HOST,
                     score: 0,
-                    totalScore: 0,
+                    scoreLast: 0,
+                    scoreTotal: 0,
                     ready: false,
                     current: {
                         option: undefined,
@@ -277,7 +293,8 @@ export function attach_socket_server(
                         freestyle: [],
                         options: [],
                         modifiers: [],
-                    }
+                    },
+                    ratesReceived: {}
                 },
             };
 
@@ -320,7 +337,7 @@ export function attach_socket_server(
                     }
 
                 },
-                players: [player.client],
+                players: [player.client]
             };
 
             user.rooms.push(roomId);
@@ -387,7 +404,8 @@ export function attach_socket_server(
                 name: user.client.name,
                 role: PLAYER_ROLE.GUEST,
                 score: 0,
-                totalScore: 0,
+                scoreLast: 0,
+                scoreTotal: 0,
                 ready: false,
                 current: {
                     option: undefined,
@@ -401,7 +419,8 @@ export function attach_socket_server(
                     freestyle: [],
                     options: [],
                     modifiers: [],
-                }
+                },
+                ratesReceived: {}
             };
 
             socket.join(roomId);
@@ -626,7 +645,7 @@ export function attach_socket_server(
             }
 
             const player = room.players[playerIndex];
-            player.score += rate === PLAYER_RATING.GOD ? 10 : rate === PLAYER_RATING.MEH ? 0 : -10;
+            player.ratesReceived[user.id] = rate;
         });
     });
 }

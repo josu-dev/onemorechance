@@ -110,11 +110,15 @@ export function attachSharedListeners(socket: SocketInstance, self: SelfStore, r
 
     socket.on('player_updated', (data) => {
         if (self.value.id === data.player.id) {
-            self.mset({
-                ...data.player,
-                registered: true,
-                socketId: self.value.socketId,
-            });
+            self.value.current = data.player.current;
+            self.value.ratesReceived = data.player.ratesReceived;
+            self.value.registered = true;
+            self.value.role = data.player.role;
+            self.value.score = data.player.score;
+            self.value.scoreLast = data.player.scoreLast;
+            self.value.scoreTotal = data.player.scoreTotal;
+            self.value.stock = data.player.stock;
+            self.sync();
         }
 
         let foundIndex = -1;
@@ -158,6 +162,13 @@ export function attachSharedListeners(socket: SocketInstance, self: SelfStore, r
         players.sync();
     });
 
+    socket.on('game_ended', () => {
+        room.value.status = ROOM_STATUS.IN_LOBBY;
+        room.sync();
+        game.value.status = GAME_STATUS.ENDED;
+        game.sync();
+    });
+
     socket.on('game_started', (data) => {
         room.value.status = ROOM_STATUS.IN_GAME;
         room.sync();
@@ -173,5 +184,18 @@ export function attachSharedListeners(socket: SocketInstance, self: SelfStore, r
     socket.on('game_updated_all', (data) => {
         game.mset(data.game);
         players.mset(data.players);
+        for (const player of data.players) {
+            if (player.id === self.value.id) {
+                self.value.current = player.current;
+                self.value.ratesReceived = player.ratesReceived;
+                self.value.role = player.role;
+                self.value.score = player.score;
+                self.value.scoreLast = player.scoreLast;
+                self.value.scoreTotal = player.scoreTotal;
+                self.value.stock = player.stock;
+                self.sync();
+                break;
+            }
+        }
     });
 }

@@ -79,7 +79,7 @@ export function createGameActions(socket: SocketInstance, self: SelfStore, game:
 }
 
 export function attachGameListeners(socket: SocketInstance, game: GameStore) {
-    socket.on('game_rate_player', ({ playerId }) => {
+    socket.on('game_player_rated', ({ playerId }) => {
         game.value.current.ratingPlayer = playerId;
         game.sync();
     });

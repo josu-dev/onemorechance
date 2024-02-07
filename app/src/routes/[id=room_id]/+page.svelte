@@ -19,7 +19,7 @@
     self,
   } from '$game/game.js';
 
-  if (dev) {
+  $: if (dev) {
     debugData.set({
       $game,
       $players,
@@ -131,7 +131,8 @@
             class="btn variant-filled-primary variant-outline-primary"
             type="button"
             on:click={() => {
-              // TODO
+              game.value.status = GAME_STATUS.ENDED;
+              game.sync();
             }}
           >
             Volver al lobby

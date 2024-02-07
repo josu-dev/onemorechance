@@ -11,7 +11,8 @@ function defaultSelf(): SelfPlayer {
         socketId: '',
         role: 'GUEST',
         score: 0,
-        totalScore: 0,
+        scoreLast: 0,
+        scoreTotal: 0,
         ready: false,
         current: {
             modifier: '',
@@ -27,6 +28,7 @@ function defaultSelf(): SelfPlayer {
             modifiers: [],
             freestyle: [],
         },
+        ratesReceived: {},
     };
 }
 

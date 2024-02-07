@@ -2,8 +2,6 @@ import type { DeckType, GameStatus, PlayerRating } from './enums.js';
 import type * as Client from './types.client.js';
 
 
-export type EmptyObject = Record<string, never>;
-
 export type User = {
     id: string,
     name: string,
@@ -53,7 +51,7 @@ export type ClientToServerEvents = {
     user_register: (data: { id?: string, name: string; }) => void;
     user_unregister: (data: { id: string; }) => void;
 
-    room_create: (data: EmptyObject) => void;
+    room_create: () => void;
     room_update: (data: { room: Client.Room; }) => void;
     room_close: (data: { roomId: string; }) => void;
     room_join: (data: { roomId: string; }) => void;
@@ -74,7 +72,7 @@ export type ClientToServerEvents = {
 
 export type ServerToClientEvents = {
     user_registered: (data: { user: User; }) => void;
-    user_unregistered: (data: EmptyObject) => void;
+    user_unregistered: () => void;
 
     room_created: (data: {
         room: Client.Room,
@@ -99,8 +97,8 @@ export type ServerToClientEvents = {
 
     decks_update: (data: { decks: DeckIdentifier[]; }) => void;
 
-    // game_fill_ended: (data: { game: Client.Game; }) => void;
-    game_rate_player: (data: { playerId: string; }) => void;
+    game_ended: () => void;
+    game_player_rated: (data: { playerId: string; }) => void;
     game_started: (data: {
         game: Client.Game,
         players: Client.Player[];

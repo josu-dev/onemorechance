@@ -62,7 +62,8 @@ export type Player = {
     name: string,
     role: PlayerRole,
     score: number,
-    totalScore: number,
+    scoreLast: number,
+    scoreTotal: number,
     ready: boolean,
     current: {
         modifier?: string,
@@ -78,6 +79,7 @@ export type Player = {
         modifiers: string[],
         freestyle: string[],
     },
+    ratesReceived: Record<string, string>,
 };
 
 export type SelfPlayer = Player & {

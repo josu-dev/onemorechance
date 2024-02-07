@@ -326,7 +326,7 @@
           Cerrar sala
         </button>
       {:else}
-        <p class="text-xl text-center">
+        <p class="my-auto text-gray-300 text-xl text-center">
           {playersAreReady ? 'Esperando al anfitrion' : 'Esperando listos'}
         </p>
         <button

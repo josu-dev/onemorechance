@@ -65,7 +65,8 @@ const INITIAL_PLAYERS: Player[] = [
         name: 'Josu',
         role: 'HOST',
         score: 0,
-        totalScore: 0,
+        scoreLast: 0,
+        scoreTotal: 0,
         ready: false,
         current: {
             option: undefined,
@@ -81,13 +82,15 @@ const INITIAL_PLAYERS: Player[] = [
             options: [],
             modifiers: [],
         },
+        ratesReceived: {}
     },
     {
         id: '2',
         name: 'Mikel',
         role: 'GUEST',
         score: 0,
-        totalScore: 0,
+        scoreLast: 0,
+        scoreTotal: 0,
         ready: false,
         current: {
             option: undefined,
@@ -103,6 +106,7 @@ const INITIAL_PLAYERS: Player[] = [
             options: [],
             modifiers: [],
         },
+        ratesReceived: {}
     }
 ];
 
@@ -137,7 +141,7 @@ export const selfActions = _player.createSelfActions(socket, self);
 
 _player.attachSelfListeners(socket, self);
 
-self.value.id = INITIAL_USER.id
+self.value.id = INITIAL_USER.id;
 self.value.registered = true;
 self.value.role = PLAYER_ROLE.HOST;
 
