@@ -3,7 +3,7 @@
   import Header from '$comps/layout/Header.svelte';
   import HyperDebug, { debugEnabled } from '$lib/components/HyperDebug.svelte';
   import { Toaster } from 'svelte-french-toast';
-  import { defineCommand } from 'svelte-hypercommands';
+  import { defineCommand, definePage } from 'svelte-hypercommands';
   import CommandPalette from 'svelte-hypercommands/CommandPalette.svelte';
   import '../app.pcss';
 
@@ -44,10 +44,18 @@
       },
     },
   ]);
+
+  const globalPages = definePage([
+    {
+      name: 'Stages',
+      url: '/game/stages',
+      description: 'Debug the game stages',
+    },
+  ]);
 </script>
 
 {#if dev}
-  <CommandPalette commands={globalCommands} />
+  <CommandPalette commands={globalCommands} pages={globalPages} />
   <HyperDebug />
 {/if}
 

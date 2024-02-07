@@ -4,7 +4,7 @@
   import GameLobby from '$comps/game/GameLobby.svelte';
   import GameMessage from '$comps/game/GameMessage.svelte';
   import GameRateSentence from '$comps/game/GameRateSentence.svelte';
-  import GameScoreboard from '$comps/game/GameScoreboard.svelte';
+  import GameRoundWinner from '$comps/game/GameRoundWinner.svelte';
   import { GAME } from '$game/configs.js';
   import type { GameStatus } from '$game/enums.js';
   import { GAME_STATUS, ROOM_STATUS } from '$game/enums.js';
@@ -17,7 +17,7 @@
     room,
     roomActions,
     self,
-  } from '$lib/dev/state';
+  } from '$lib/dev/state.js';
   import { onMount } from 'svelte';
   import { helpers } from 'svelte-hypercommands/CommandPalette.svelte';
 
@@ -48,7 +48,7 @@
   onMount(() => {
     // debugData.set(audioPlayer);
     // emulateRateSentence();
-    // setGameStatus(GAME_STATUS.RATE_SENTENCE);
+    // setGameStatus(GAME_STATUS.ROUND_WINNER);
 
     const cmdCleanup = helpers.registerCommand([
       {
@@ -94,7 +94,15 @@
         onAction: () => {
           setGameStatus(GAME_STATUS.ROUND_WINNER);
         },
-      }
+      },
+      {
+        category: 'GS',
+        name: 'Scoreboard',
+        description: `Set game status to ${GAME_STATUS.END_SCOREBOARD}`,
+        onAction: () => {
+          setGameStatus(GAME_STATUS.END_SCOREBOARD);
+        },
+      },
     ]);
 
     return () => {
@@ -184,21 +192,19 @@
       }}
     />
   {:else if isRoundWinner || isScoreboard}
-    <GameScoreboard {game} {players}>
-      <svelte:fragment slot="actions">
-        {#if isScoreboard}
-          <button
-            class="btn variant-filled-primary variant-outline-primary"
-            type="button"
-            on:click={() => {
-              setGameStatus(GAME_STATUS.NOT_STARTED);
-            }}
-          >
-            Volver al lobby
-          </button>
-        {/if}
-      </svelte:fragment>
-    </GameScoreboard>
+    <GameRoundWinner {game} {players}>
+      <div slot="actions" class="flex justify-center" class:hidden={!isScoreboard}>
+        <button
+          on:click={() => {
+            game.value.status = GAME_STATUS.ENDED;
+            game.sync();
+          }}
+          class="button variant-primary"
+        >
+          Volver al lobby
+        </button>
+      </div>
+    </GameRoundWinner>
   {:else}
     <GameMessage>
       <svelte:fragment slot="title">

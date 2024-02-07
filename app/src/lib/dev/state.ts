@@ -52,6 +52,7 @@ const INITIAL_GAME: Game = {
             id: '1',
             text: 'Nunca saldría con alguien que le guste {{}}',
         },
+        winner: INITIAL_USER.id,
     },
     used: {
         phrases: [],
@@ -64,9 +65,9 @@ const INITIAL_PLAYERS: Player[] = [
         id: '1',
         name: 'Josu',
         role: 'HOST',
-        score: 0,
-        scoreLast: 0,
-        scoreTotal: 0,
+        score: 40,
+        scoreLast: 40,
+        scoreTotal: 80,
         ready: false,
         current: {
             option: undefined,
@@ -88,9 +89,33 @@ const INITIAL_PLAYERS: Player[] = [
         id: '2',
         name: 'Mikel',
         role: 'GUEST',
+        score: -30,
+        scoreLast: 60,
+        scoreTotal: 30,
+        ready: false,
+        current: {
+            option: undefined,
+            modifier: undefined,
+            freestyle: undefined,
+        },
+        stock: {
+            options: [],
+            modifiers: [],
+        },
+        used: {
+            freestyle: [],
+            options: [],
+            modifiers: [],
+        },
+        ratesReceived: {}
+    },
+    {
+        id: '3',
+        name: 'Ander',
+        role: 'GUEST',
         score: 0,
-        scoreLast: 0,
-        scoreTotal: 0,
+        scoreLast: 50,
+        scoreTotal: 50,
         ready: false,
         current: {
             option: undefined,

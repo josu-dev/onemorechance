@@ -17,10 +17,6 @@
   export let data;
 
   user.mset(data.user);
-  // user.mset({
-  //   id: '1',
-  //   name: 'juan',
-  // });
 
   onMount(() => {
     if (user.value) {
@@ -50,12 +46,14 @@
       const _user = form.message.user;
       user.mset(_user);
       selfActions.register(_user);
+      data.user = _user;
     },
   });
 
   const signOutForm = superForm(data.signOutForm, {
     onUpdated({ form }) {
       user.mset(undefined);
+      data.user = undefined;
       selfActions.unregister();
     },
   });

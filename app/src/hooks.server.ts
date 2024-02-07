@@ -8,7 +8,7 @@ export const handle = (async ({ event, resolve }) => {
     if (name && userId) {
         event.locals.user = {
             id: userId,
-            name,
+            name: name,
         };
     }
 

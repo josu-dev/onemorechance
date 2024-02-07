@@ -6,7 +6,7 @@
   import GameLobby from '$comps/game/GameLobby.svelte';
   import GameMessage from '$comps/game/GameMessage.svelte';
   import GameRateSentence from '$comps/game/GameRateSentence.svelte';
-  import GameScoreboard from '$comps/game/GameScoreboard.svelte';
+  import GameRoundWinner from '$comps/game/GameRoundWinner.svelte';
   import { GAME_STATUS, ROOM_STATUS } from '$game/enums.js';
   import {
     decks,
@@ -124,22 +124,19 @@
       }}
     />
   {:else if isRoundWinner || isScoreboard}
-    <GameScoreboard {game} {players}>
-      <svelte:fragment slot="actions">
-        {#if isScoreboard}
-          <button
-            class="btn variant-filled-primary variant-outline-primary"
-            type="button"
-            on:click={() => {
-              game.value.status = GAME_STATUS.ENDED;
-              game.sync();
-            }}
-          >
-            Volver al lobby
-          </button>
-        {/if}
-      </svelte:fragment>
-    </GameScoreboard>
+    <GameRoundWinner {game} {players}>
+      <div slot="actions" class="flex justify-center" class:hidden={!isScoreboard}>
+        <button
+          on:click={() => {
+            game.value.status = GAME_STATUS.ENDED;
+            game.sync();
+          }}
+          class="button variant-primary"
+        >
+          Volver al lobby
+        </button>
+      </div>
+    </GameRoundWinner>
   {:else}
     <GameMessage>
       <svelte:fragment slot="title">
