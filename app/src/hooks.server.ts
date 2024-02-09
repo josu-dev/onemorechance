@@ -1,6 +1,6 @@
 import { dev } from '$app/environment';
+import { db } from '$lib/server/db.js';
 import { redirect, type Handle } from '@sveltejs/kit';
-
 
 export const handle = (async ({ event, resolve }) => {
     const name = event.cookies.get('name');
@@ -15,6 +15,8 @@ export const handle = (async ({ event, resolve }) => {
     if (!dev && event.route.id?.startsWith('/(dev)')) {
         redirect(302, '/');
     }
+
+    event.locals.db = db;
 
     const response = await resolve(event);
 

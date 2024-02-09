@@ -16,8 +16,27 @@
         @apply ring-gray-100 ring-2;
     }
 
+    .label {
+        @apply flex flex-col text-base font-normal;
+    }
+    .label > span {
+        @apply mb-1;
+    }
+    .label:has(> *[required]) span::after {
+        @apply content-['*'] text-red-500 ml-1;
+    }
+    .label.variant-primary {
+        @apply text-gray-300;
+    }
+    .label.variant-primary:hover {
+        @apply text-gray-100;
+    }
+    .label.variant-primary:focus-within {
+        @apply text-gray-100;
+    }
+
     .input, .select, .textarea {
-        @apply px-2.5 py-1.5 rounded-md text-base font-normal border-none;
+        @apply flex px-2.5 py-1.5 rounded-md text-base font-normal border-none;
     }
     .input:focus, .select:focus, .textarea:focus { 
         @apply outline-none
@@ -33,10 +52,10 @@
         @apply bg-black p-4 text-gray-300 rounded-lg shadow-sm shadow-gray-300;
     }
 
-    .variant-primary {
+    :is(.button, .input, .select, .textarea).variant-primary {
         @apply bg-black text-gray-300 ring-1 ring-gray-300;
     }
-    .variant-primary:not(:disabled):hover {
+    :is(.button, .input, .select, .textarea).variant-primary:not(:disabled):hover {
         @apply text-gray-100 ring-2 ring-gray-100;
     }
     
@@ -48,12 +67,44 @@
         @apply bg-purple-800 text-gray-300 ring-1 ring-gray-300;
     }
     
-    .icon {
-        @apply aspect-square;
+    .button-icon {
+        @apply block rounded-md;
+    }
+    .button-icon svg {
+        @apply w-full h-full;
+    }
+    .icon-xs  {
+        @apply w-4 h-4 p-[2px] ;
+    }
+    .icon-sm  {
+        @apply w-6 h-6 p-[2px];
+    }
+    .icon  {
+        @apply w-8 h-8 p-[4px];
+    }
+    .icon-lg  {
+        @apply w-12 h-12 p-[4px];
+    }
+    .icon-xl  {
+        @apply w-16 h-16 p-[5px];
     }
     
-    .icon-primary {
+    .icon-primary  {
         @apply text-gray-100 stroke-gray-100;
+    }
+
+    .h1 {
+        @apply text-6xl font-bold text-pretty mb-2 pt-5 md:mb-5;
+    }
+    .h2 {
+        @apply text-4xl font-bold text-pretty mb-1 pt-3 md:mb-3;
+    }
+    .h3 {
+        @apply text-2xl font-semibold text-pretty mb-0.5 pt-2;
+    }
+
+    .main {
+        @apply h-full flex flex-col items-center overflow-auto pb-8 px-1;
     }
 }
 

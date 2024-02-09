@@ -6,3 +6,5 @@ export const uniqueLettersId = customRandom('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghi
 export const uniqueRoomId = customRandom('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz', 6, random);
 
 export const uniqueURLSafeId = nanoid;
+
+export const uniqueId = nanoid;

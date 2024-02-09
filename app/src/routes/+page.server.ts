@@ -3,6 +3,7 @@ import { fail } from '@sveltejs/kit';
 import { message, superValidate, } from 'sveltekit-superforms/server';
 import { z } from 'zod';
 import type { Actions, PageServerLoad } from './$types';
+import { zod } from 'sveltekit-superforms/adapters';
 
 
 const signInSchema = z.object({
@@ -15,8 +16,8 @@ const signOutSchema = z.object({
 
 
 export const load: PageServerLoad = async ({ locals }) => {
-    const signUpForm = await superValidate(signInSchema);
-    const signOutForm = await superValidate(signOutSchema);
+    const signUpForm = await superValidate(zod(signInSchema));
+    const signOutForm = await superValidate(zod(signOutSchema));
 
     return {
         user: locals.user,
@@ -28,7 +29,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 
 export const actions: Actions = {
     signIn: async ({ request, cookies }) => {
-        const form = await superValidate(request, signInSchema);
+        const form = await superValidate(request, zod(signInSchema));
         if (!form.valid) {
             return fail(400, { form });
         }
@@ -43,7 +44,7 @@ export const actions: Actions = {
         return message(form, { user: user });
     },
     signOut: async ({ request, cookies }) => {
-        const form = await superValidate(request, signOutSchema);
+        const form = await superValidate(request, zod(signOutSchema));
         if (!form.valid) {
             return fail(400, { form });
         }

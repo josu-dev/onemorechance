@@ -69,4 +69,6 @@
 
 <Header />
 
-<slot />
+<div class="h-full max-h-full pt-12">
+  <slot />
+</div>
