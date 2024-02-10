@@ -12,7 +12,9 @@ export const handle = (async ({ event, resolve }) => {
         };
     }
 
-    if (!dev && event.route.id?.startsWith('/(dev)')) {
+    if (!dev && (
+        event.route.id?.startsWith('/(dev)') || event.route.id?.startsWith('/decks')
+    )) {
         redirect(302, '/');
     }
 

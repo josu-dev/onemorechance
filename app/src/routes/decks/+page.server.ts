@@ -1,24 +1,31 @@
-import { deckCreateSchema } from '$lib/schemas/deck.js';
+import { DECK_TYPE_CREATE, deckInsertSchema } from '$lib/schemas/deck.js';
 import { decks } from '$lib/server/db.js';
 import { uniqueId } from '$lib/utils/index.js';
 import { fail } from '@sveltejs/kit';
 import { zod } from 'sveltekit-superforms/adapters';
-import { message, superValidate } from 'sveltekit-superforms/server';
+import { message, setError, superValidate } from 'sveltekit-superforms/server';
 import type { Actions, PageServerLoad } from './$types.js';
 
-export const load: PageServerLoad = async () => {
-    const createForm = await superValidate(zod(deckCreateSchema));
+
+export const load: PageServerLoad = async ({ locals }) => {
+    const decksData = await locals.db.select().from(decks);
+
+    const insertForm = await superValidate(zod(deckInsertSchema));
 
     return {
-        createForm
+        decks: decksData,
+        insertForm: insertForm
     };
 };
 
 export const actions: Actions = {
     new: async ({ request, locals }) => {
-        const form = await superValidate(request, zod(deckCreateSchema));
+        const form = await superValidate(request, zod(deckInsertSchema));
         if (!form.valid) {
-            fail(400, { form });
+            return fail(400, { form });
+        }
+        if (form.data.type === DECK_TYPE_CREATE.UNSET) {
+            return setError(form, 'type', 'Debe seleccionar un tipo de deck');
         }
 
         const insertedDeck = await locals.db.insert(decks).values({
@@ -28,6 +35,6 @@ export const actions: Actions = {
             description: form.data.description,
         }).returning().get();
 
-        return message(form, { deck: insertedDeck });
+        return message(form, { inserted: insertedDeck });
     }
 };

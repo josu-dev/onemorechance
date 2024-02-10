@@ -47,9 +47,24 @@
 
   const globalPages = definePage([
     {
+      name: 'Decks',
+      url: '/decks',
+      description: 'List of all decks',
+    },
+    {
       name: 'Stages',
       url: '/game/stages',
       description: 'Debug the game stages',
+    },
+    {
+      name: 'Home',
+      url: '/',
+      description: 'Root of the app',
+    },
+    {
+      name: 'UI Test',
+      url: '/ui',
+      description: 'Test the UI components',
     },
   ]);
 </script>
@@ -62,9 +77,7 @@
 <Toaster
   position="bottom-left"
   containerClassName="omc-toast-container"
-  toastOptions={{
-    className: 'omc-toast',
-  }}
+  toastOptions={{ className: 'omc-toast' }}
 />
 
 <Header />

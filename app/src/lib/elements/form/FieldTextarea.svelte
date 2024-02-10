@@ -13,7 +13,13 @@
   export let resize : 'none' | 'both' | 'horizontal' | 'vertical' = 'none';
   export let rows = 3;
   export let spellcheck = true;
-  
+
+  export function focus() {
+    input?.focus();
+  }
+
+  let input: HTMLTextAreaElement|undefined;
+
   const resizeClass = {
     none: 'resize-none',
     both: 'resize',
@@ -33,6 +39,7 @@
     name={field}
     aria-invalid={$errors ? 'true' : undefined}
     bind:value={$value}
+    bind:this={input}
     {...$constraints}
     {...$$restProps}
     class="input variant-primary w-full {resizeClass[resize]}"

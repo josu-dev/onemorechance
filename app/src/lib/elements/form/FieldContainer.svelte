@@ -8,7 +8,7 @@
     <span>{label}</span>
     <slot />
     {#if errors}
-      <p class="text-sm text-red-500">
+      <p class="mt-2 text-sm text-red-500 text-pretty">
         {errors}
       </p>
     {/if}

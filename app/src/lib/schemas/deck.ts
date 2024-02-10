@@ -1,33 +1,38 @@
-import { z } from 'zod';
 import { DECK_TYPE } from '$game/enums.js';
+import { z } from 'zod';
 
 /*
     Decks
 */
 
-export const deckType = z.nativeEnum({...DECK_TYPE, UNSET: 'UNSET'})
+export const DECK_TYPE_CREATE = { ...DECK_TYPE, UNSET: 'UNSET' as const };
 
-export const DECK_TYPE_CREATE = {...DECK_TYPE, UNSET: 'UNSET'};
+export const deckType = z.nativeEnum(DECK_TYPE_CREATE);
 
 const deckBaseSchema = z.object({
     type: z.nativeEnum(DECK_TYPE_CREATE).default(DECK_TYPE_CREATE.UNSET),
-  name: z.string(),
-  description: z.string(),
+    name: z.string(),
+    description: z.string(),
 });
 
-export const deckCreateSchema = deckBaseSchema;
+export const deckInsertSchema = deckBaseSchema;
 
 export const deckUpdateSchema = deckBaseSchema.extend({
-  id: z.string(),
+    id: z.string(),
 });
 
 export const deckDeleteSchema = z.object({
-  id: z.string(),
+    id: z.string(),
 });
 
 
 export const itemBaseSchema = z.object({
     text: z.string(),
+});
+
+export const itemsInsertSchema = z.object({
+    deckId: z.string(),
+    items: z.array(itemBaseSchema),
 });
 
 export const idListSchema = z.array(z.string());
@@ -43,12 +48,9 @@ export const deleteItemsSchema = z.object({
 
 export const sentenceBaseSchema = itemBaseSchema;
 
-export const sentencesAddSchema = z.object({
-    deckId: z.string(),
-    sentences: z.array(sentenceBaseSchema),
-});
+export const sentencesInsertSchema = itemsInsertSchema;
 
-export const sentencesDeleteSchema = deleteItemsSchema
+export const sentencesDeleteSchema = deleteItemsSchema;
 
 /*
     Options
@@ -56,9 +58,6 @@ export const sentencesDeleteSchema = deleteItemsSchema
 
 export const optionBaseSchema = itemBaseSchema;
 
-export const optionsAddSchema = z.object({
-    deckId: z.string(),
-    options: z.array(optionBaseSchema),
-});
+export const optionsInsertSchema = itemsInsertSchema;
 
-export const optionsDeleteSchema = deleteItemsSchema
+export const optionsDeleteSchema = deleteItemsSchema;
