@@ -41,7 +41,7 @@
     };
   });
 
-  const signInForm = superForm(data.signUpForm, {
+  const registerSForm = superForm(data.registerForm, {
     onUpdated({ form }) {
       const _user = form.message.user;
       user.mset(_user);
@@ -50,7 +50,7 @@
     },
   });
 
-  const signOutForm = superForm(data.signOutForm, {
+  const deleteSForm = superForm(data.deleteForm, {
     onUpdated({ form }) {
       user.mset(undefined);
       data.user = undefined;
@@ -109,8 +109,8 @@
       {#if !$user}
         <form
           method="post"
-          action="?/signIn"
-          use:signInForm.enhance
+          action="?/account_register"
+          use:registerSForm.enhance
           class="flex flex-col items-center gap-4"
         >
           <label for="name" class="">
@@ -145,8 +145,8 @@
           </button>
           <form
             method="post"
-            action="?/signIn"
-            use:signOutForm.enhance
+            action="?/account_delete"
+            use:deleteSForm.enhance
             class="flex flex-row w-full items-center justify-center gap-4"
           >
             <label for="confirm">

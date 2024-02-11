@@ -3,10 +3,7 @@ declare global {
         // interface Error {}
         interface Locals {
             db: import('$lib/server/db').DB;
-            user?: {
-                id: string;
-                name: string;
-            };
+            user?: import('$lib/server/db').DBSchema['users']['$inferSelect'];
         }
         // interface PageData {}
         // interface Platform {}

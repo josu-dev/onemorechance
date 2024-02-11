@@ -15,6 +15,7 @@
     "check:all": "npm run check && npm run check:wss",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
     "lint": "eslint .",
+    "db:drop": "tsx drizzle/drop",
     "db:generate": "npx drizzle-kit generate:sqlite --out ./drizzle/migrations --breakpoints --schema=./drizzle/schema.ts",
     "db:migrate": "tsx drizzle/migrate",
     "db:seed": "tsx drizzle/seed",

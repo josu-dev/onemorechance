@@ -1,6 +1,7 @@
 import { relations, sql } from 'drizzle-orm';
 import { index, integer, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core';
 
+
 export const decks = sqliteTable(
     'decks',
     {
@@ -28,7 +29,7 @@ export const sentences = sqliteTable(
     {
         id: text('id').primaryKey(),
         text: text('text').notNull(),
-        deckId: text('deck_id').notNull().references(() => decks.id),
+        deckId: text('deck_id').notNull().references(() => decks.id, { onDelete: 'cascade' }),
         createdAt: integer('created_at').notNull().default(sql`(strftime('%s', 'now'))`),
     },
     (sentences) => ({
@@ -50,7 +51,7 @@ export const options = sqliteTable(
     {
         id: text('id').primaryKey(),
         text: text('text').notNull(),
-        deckId: text('deck_id').notNull().references(() => decks.id),
+        deckId: text('deck_id').notNull().references(() => decks.id, { onDelete: 'cascade' }),
         createdAt: integer('created_at').notNull().default(sql`(strftime('%s', 'now'))`),
     },
     (options) => ({
@@ -67,12 +68,46 @@ export const optionRelations = relations(options, ({ one }) => ({
     })
 }));
 
+export const users = sqliteTable(
+    'users',
+    {
+        id: text('id').primaryKey(),
+        name: text('name').notNull(),
+        gamesPlayed: integer('games_played').notNull().default(0),
+        gamesWon: integer('games_won').notNull().default(0),
+        scoreLastGame: integer('score_last_game').notNull().default(0),
+        scoreLifetime: integer('score_lifetime').notNull().default(0),
+        createdAt: integer('created_at').notNull().default(sql`(strftime('%s', 'now'))`),
+        updatedAt: integer('updated_at').notNull().default(sql`(strftime('%s', 'now'))`),
+    },
+    (users) => ({
+        idIdx: uniqueIndex('player_id_idx').on(users.id),
+        nameIdx: index('player_name_idx').on(users.name),
+    })
+);
 
-export const schema = {
-    decks,
-    deckRelations,
-    sentences,
-    sentenceRelations,
-    options,
-    optionRelations,
-};
+export const rooms = sqliteTable(
+    'rooms',
+    {
+        id: text('id').primaryKey(),
+        name: text('name').notNull(),
+        status: text('status', { enum: ['WAITING', 'GAME_ON', 'CLOSED'] }).notNull(),
+        hostId: text('host_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+        playersCount: integer('players_count').notNull(),
+        playersMax: integer('players_max').notNull(),
+        createdAt: integer('created_at').notNull().default(sql`(strftime('%s', 'now'))`),
+        updatedAt: integer('updated_at').notNull().default(sql`(strftime('%s', 'now'))`),
+    },
+    (rooms) => ({
+        idIdx: uniqueIndex('room_id_idx').on(rooms.id),
+        nameIdx: index('room_name_idx').on(rooms.name),
+        hostIdIdx: index('room_host_id_idx').on(rooms.hostId),
+    })
+);
+
+export const roomRelations = relations(rooms, ({ one }) => ({
+    host: one(users, {
+        fields: [rooms.hostId],
+        references: [users.id],
+    }),
+}));
