@@ -1,12 +1,12 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   import LinkBack from '$comps/shared/LinkBack.svelte';
-  import { DECK_TYPE } from '$game/enums.js';
   import FieldSelect from '$lib/elements/form/FieldSelect.svelte';
   import FieldText from '$lib/elements/form/FieldText.svelte';
   import FieldTextarea from '$lib/elements/form/FieldTextarea.svelte';
   import { DECK_TYPE_CREATE } from '$lib/schemas/deck.js';
-  import { t } from '$lib/utils/t_enums.js';
+  import { t } from '$lib/utils/translate_constants.js';
+  import { DECK_TYPE } from '$shared/constants.js';
   import { superForm } from 'sveltekit-superforms/client';
 
   export let data;
@@ -24,7 +24,7 @@
   });
 
   const deckTypeClass = {
-    [DECK_TYPE.CHOOSE]: 'badge-secondary',
+    [DECK_TYPE.SELECT]: 'badge-secondary',
     [DECK_TYPE.COMPLETE]: 'badge-tertiary',
   };
 </script>
@@ -53,7 +53,7 @@
             label="Tipo"
             options={[
               { text: 'Sin seleccionar', value: DECK_TYPE_CREATE.UNSET },
-              { text: 'Eleccion', value: DECK_TYPE_CREATE.CHOOSE },
+              { text: 'Eleccion', value: DECK_TYPE_CREATE.SELECT },
               { text: 'Completar', value: DECK_TYPE_CREATE.COMPLETE },
             ]}
           />

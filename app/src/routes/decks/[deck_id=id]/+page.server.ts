@@ -1,8 +1,8 @@
-import { DECK_TYPE } from '$game/enums.js';
 import { deckUpdateSchema, optionsDeleteSchema, optionsInsertSchema, sentencesDeleteSchema, sentencesInsertSchema } from '$lib/schemas/deck.js';
 import { deleteSchema } from '$lib/schemas/shared.js';
 import { decks, options, sentences } from '$lib/server/db.js';
 import { uniqueId } from '$lib/utils/index.js';
+import { DECK_TYPE } from '$shared/constants.js';
 import { error, fail } from '@sveltejs/kit';
 import { eq, inArray } from 'drizzle-orm';
 import { message, setError, superValidate } from 'sveltekit-superforms';
@@ -17,8 +17,8 @@ export const load: PageServerLoad = async ({ locals, params }) => {
     }
 
     const deckSentences = await locals.db.select().from(sentences).where(eq(sentences.deckId, deck.id));
-    
-    let deckOptions :typeof options.$inferSelect[] = [];
+
+    let deckOptions: typeof options.$inferSelect[] = [];
     if (deck.type !== DECK_TYPE.COMPLETE) {
         deckOptions = await locals.db.select().from(options).where(eq(options.deckId, deck.id));
     }
@@ -31,10 +31,10 @@ export const load: PageServerLoad = async ({ locals, params }) => {
     ] = await Promise.all([
         superValidate(deck, zod(deckUpdateSchema)),
         superValidate(deck, zod(deleteSchema)),
-        superValidate(seDefault, zod(sentencesInsertSchema), {id:'sentencesInsert'}),
-        superValidate(seDefault, zod(sentencesDeleteSchema), {id:'sentencesDelete'}),
-        superValidate(seDefault, zod(optionsInsertSchema), {id:'optionsInsert'}),
-        superValidate(seDefault, zod(optionsDeleteSchema), {id:'optionsDelete'})
+        superValidate(seDefault, zod(sentencesInsertSchema), { id: 'sentencesInsert' }),
+        superValidate(seDefault, zod(sentencesDeleteSchema), { id: 'sentencesDelete' }),
+        superValidate(seDefault, zod(optionsInsertSchema), { id: 'optionsInsert' }),
+        superValidate(seDefault, zod(optionsDeleteSchema), { id: 'optionsDelete' })
     ]);
 
     return {
@@ -68,7 +68,7 @@ export const actions: Actions = {
 
         await locals.db.delete(decks).where(eq(decks.id, form.data.id)).execute();
     },
-    deck_update: async ({ locals,params, request }) => {
+    deck_update: async ({ locals, params, request }) => {
         const form = await superValidate(request, zod(deckUpdateSchema));
         if (!form.valid) {
             return fail(400, { form });

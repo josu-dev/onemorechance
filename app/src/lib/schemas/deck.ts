@@ -1,4 +1,4 @@
-import { DECK_TYPE } from '$game/enums.js';
+import { DECK_TYPE } from '$shared/constants.js';
 import { z } from 'zod';
 
 /*

@@ -1,8 +1,8 @@
 import type { Server as HttpServer } from "http";
 import { customRandom, nanoid, random } from 'nanoid';
 import { Server } from 'socket.io';
-import { GAME } from '../src/game/configs.js';
-import { DECK_TYPE, GAME_STATUS, PLAYER_RATING, PLAYER_ROLE, ROOM_STATUS } from '../src/game/enums.js';
+import { GAME } from '../shared/configs.js';
+import { DECK_TYPE, GAME_STATUS, PLAYER_RATING, PLAYER_ROLE, ROOM_STATUS } from '../shared/constants.js';
 import importedDecks from '../static/decks/default.json' with { type: "json" };
 import type * as T from './types.js';
 
@@ -15,14 +15,14 @@ const DEFAULT_DECK = decks[GAME.DEFAULT_DECK_ID];
 const randomRoomId = customRandom('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz', 6, random);
 
 
-const users = new Map<string, T.User>();
+const users = new Map<string, T.ServerUser>();
 
 // const players = new Map<string, T.Player>();
 
-const rooms = new Map<string, T.Room>();
+const rooms = new Map<string, T.ServerRoom>();
 
 
-function removePlayerFromRoom(io: T.WebSocketServer, socket: T.WebSocketServerSocket, user: T.User, room: T.Room, playerId: string) {
+function removePlayerFromRoom(io: T.WebSocketServer, socket: T.WebSocketServerSocket, user: T.ServerUser, room: T.ServerRoom, playerId: string) {
     let roomIndex = -1;
     for (let i = 0; i < user.rooms.length; i++) {
         if (user.rooms[i] === room.room.id) {
@@ -59,7 +59,7 @@ function removePlayerFromRoom(io: T.WebSocketServer, socket: T.WebSocketServerSo
     io.to(room.room.id).emit('room_updated', { room: room.room });
 }
 
-function setupNewGame(room: T.Room) {
+function setupNewGame(room: T.ServerRoom) {
     room.game.status = GAME_STATUS.NOT_STARTED;
     room.game.round = 0;
     room.game.used.options = [];
@@ -85,7 +85,7 @@ function setupNewGame(room: T.Room) {
     }
 }
 
-function newRound(io: T.WebSocketServer, socket: T.WebSocketServerSocket, room: T.Room) {
+function newRound(io: T.WebSocketServer, socket: T.WebSocketServerSocket, room: T.ServerRoom) {
     room.game.round += 1;
 
     for (const player of room.players) {
@@ -107,7 +107,7 @@ function newRound(io: T.WebSocketServer, socket: T.WebSocketServerSocket, room: 
     room.game.used.phrases.push(phrase.id);
     room.game.current.phrase = phrase;
 
-    if (deck.type === DECK_TYPE.CHOOSE) {
+    if (deck.type === DECK_TYPE.SELECT) {
         for (const player of room.players) {
             const missingOptions = room.game.settings.options - player.stock.options.length;
             for (let i = 0; i < missingOptions; i++) {
@@ -178,7 +178,7 @@ function newRound(io: T.WebSocketServer, socket: T.WebSocketServerSocket, room: 
                 io.to(room.room.id).emit('game_status_updated', { status: room.game.status });
 
                 setTimeout(() => {
-                    room.room.status = ROOM_STATUS.IN_LOBBY;
+                    room.room.status = ROOM_STATUS.WAITING;
                     room.game.status = GAME_STATUS.ENDED;
                     io.to(room.room.id).emit('game_ended');
                 }, GAME.DEFAULT_SCOREBOARD_TIME);
@@ -229,7 +229,7 @@ export function attach_socket_server(
             if (!id) {
                 id = nanoid();
             }
-            const user: T.User = {
+            const user: T.ServerUser = {
                 id: id,
                 client: {
                     id: id,
@@ -270,7 +270,7 @@ export function attach_socket_server(
 
             const roomId = randomRoomId();
 
-            const player: T.Player = {
+            const player: T.ServerPlayer = {
                 userId: user.client.id,
                 roomId: roomId,
                 client: {
@@ -298,11 +298,11 @@ export function attach_socket_server(
                 },
             };
 
-            const room: T.Room = {
+            const room: T.ServerRoom = {
                 id: roomId,
                 room: {
                     id: roomId,
-                    status: ROOM_STATUS.IN_LOBBY,
+                    status: ROOM_STATUS.WAITING,
                     hostId: player.userId,
                     maxPlayers: GAME.MAX_PLAYERS
                 },
@@ -399,7 +399,7 @@ export function attach_socket_server(
                 }
             }
 
-            const player: T.Client.Player = {
+            const player: T.Player = {
                 id: user.id,
                 name: user.client.name,
                 role: PLAYER_ROLE.GUEST,

@@ -1,10 +1,9 @@
 <script lang="ts">
   import CountDown from '$comps/game/CountDown.svelte';
-  import { DECK_TYPE } from '$game/enums.js';
-  import type { GameStore } from '$game/types.client.js';
-  import type { Option } from '$game/types.js';
+  import type { GameStore, Option } from '$game/types.js';
   import { audioPlayer } from '$lib/stores/audio.js';
   import { debounced } from '$lib/utils/client/functions.js';
+  import { DECK_TYPE } from '$shared/constants.js';
   import { createEventDispatcher } from 'svelte';
 
   const DEBOUNCE_TIME = 500;
@@ -71,7 +70,7 @@
     </div>
 
     <div class="flex flex-col items-center justify-center w-[18rem]">
-      {#if $game.deck.type === DECK_TYPE.CHOOSE}
+      {#if $game.deck.type === DECK_TYPE.SELECT}
         {#each options as option (option.id)}
           <button
             class="bg-black text-white p-2 rounded-lg mb-2"

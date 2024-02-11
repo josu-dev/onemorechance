@@ -2,7 +2,7 @@
   import { goto } from '$app/navigation';
   import ButtonIcon from '$comps/shared/ButtonIcon.svelte';
   import LinkBack from '$comps/shared/LinkBack.svelte';
-  import { DECK_TYPE } from '$game/enums.js';
+  import { DECK_TYPE } from '$shared/constants.js';
   import FieldText from '$lib/elements/form/FieldText.svelte';
   import FieldTextarea from '$lib/elements/form/FieldTextarea.svelte';
   import IconDelete from '$lib/icons/IconDelete.svelte';
@@ -13,7 +13,7 @@
 
   export let data;
 
-  const optionsEnabled = data.deck.data.type === DECK_TYPE.CHOOSE;
+  const optionsEnabled = data.deck.data.type === DECK_TYPE.SELECT;
 
   const deckUpdateSForm = superForm(data.deck.updateForm, {
     resetForm: false,

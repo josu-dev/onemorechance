@@ -1,8 +1,7 @@
 <script lang="ts">
   import CopyButton from '$comps/shared/CopyButton.svelte';
-  import { GAME } from '$game/configs.js';
-  import { DECK_TYPE, PLAYER_ROLE } from '$game/enums.js';
   import type {
+    DeckIdentifier,
     DecksStore,
     GameSettings,
     GameStore,
@@ -10,8 +9,9 @@
     PlayersStore,
     RoomStore,
     SelfStore,
-  } from '$game/types.client.js';
-  import type { DeckIdentifier } from '$game/types.js';
+  } from '$game/types.js';
+  import { GAME } from '$shared/configs.js';
+  import { DECK_TYPE, PLAYER_ROLE } from '$shared/constants.js';
   import { createEventDispatcher } from 'svelte';
 
   export let self: SelfStore;
@@ -36,7 +36,7 @@
   let deck = {
     id: '',
     name: '',
-    type: 'CHOOSE',
+    type: 'SELECT',
     description: '',
   } as DeckIdentifier;
 
@@ -241,7 +241,7 @@
               />
             </label>
           </div>
-          {#if deck.type === DECK_TYPE.CHOOSE}
+          {#if deck.type === DECK_TYPE.SELECT}
             <div class="w-full">
               <label class="flex items-center justify-between">
                 <span>Opciones</span>

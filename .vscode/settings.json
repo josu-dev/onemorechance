@@ -9,7 +9,4 @@
     "files.insertFinalNewline": true,
     "typescript.preferences.importModuleSpecifierEnding": "js",
     "javascript.preferences.importModuleSpecifierEnding": "js"
-    // "files.associations": {
-    //     "*.pcss": "css",
-    // }
 }

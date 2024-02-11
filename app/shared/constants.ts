@@ -1,15 +1,22 @@
+type Values<T> = T[keyof T];
+
 export const ROOM_STATUS = {
+    CLOSED: 'CLOSED',
+    GAME_ON: 'GAME_ON',
+    WAITING: 'WAITING',
+} as const;
+
+export type RoomStatus = Values<typeof ROOM_STATUS>;
+
+export const ROOM_STATUS_CLIENT = {
+    ...ROOM_STATUS,
     NO_ROOM: 'NO_ROOM',
     CONNECTING: 'CONNECTING',
     FULL: 'FULL',
-    IN_LOBBY: 'IN_LOBBY',
-    IN_GAME: 'IN_GAME',
-    CLOSED: 'CLOSED',
     LEFT: 'LEFT',
 } as const;
 
-export type RoomStatus = typeof ROOM_STATUS[keyof typeof ROOM_STATUS];
-
+export type RoomStatusClient = Values<typeof ROOM_STATUS_CLIENT>;
 
 export const GAME_STATUS = {
     NOT_STARTED: 'NOT_STARTED',
@@ -22,16 +29,14 @@ export const GAME_STATUS = {
     ENDED: 'ENDED',
 } as const;
 
-export type GameStatus = typeof GAME_STATUS[keyof typeof GAME_STATUS];
-
+export type GameStatus = Values<typeof GAME_STATUS>;
 
 export const PLAYER_ROLE = {
     HOST: 'HOST',
     GUEST: 'GUEST',
 } as const;
 
-export type PlayerRole = typeof PLAYER_ROLE[keyof typeof PLAYER_ROLE];
-
+export type PlayerRole = Values<typeof PLAYER_ROLE>;
 
 export const PLAYER_RATING = {
     GOD: 'GOOD',
@@ -39,12 +44,11 @@ export const PLAYER_RATING = {
     BAD: 'BAD',
 } as const;
 
-export type PlayerRating = typeof PLAYER_RATING[keyof typeof PLAYER_RATING];
-
+export type PlayerRating = Values<typeof PLAYER_RATING>;
 
 export const DECK_TYPE = {
-    CHOOSE: 'CHOOSE',
     COMPLETE: 'COMPLETE',
+    SELECT: 'SELECT',
 } as const;
 
-export type DeckType = typeof DECK_TYPE[keyof typeof DECK_TYPE];
+export type DeckType = Values<typeof DECK_TYPE>;

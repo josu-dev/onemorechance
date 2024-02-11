@@ -1,7 +1,6 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   import { debugData } from '$comps/HyperDebug.svelte';
-  import { ROOM_STATUS } from '$game/enums.js';
   import {
     room,
     roomActions,
@@ -11,6 +10,7 @@
   } from '$game/game.js';
   import { audioPlayer } from '$lib/stores/audio.js';
   import { user } from '$lib/stores/user.js';
+  import { ROOM_STATUS_CLIENT } from '$shared/constants.js';
   import { onMount } from 'svelte';
   import { superForm } from 'sveltekit-superforms/client';
 
@@ -74,11 +74,11 @@
     roomActions.joinRoom(roomId);
   }
 
-  $: if ($room.status === ROOM_STATUS.IN_LOBBY) {
+  $: if ($room.status === ROOM_STATUS_CLIENT.WAITING) {
     goto(`/${$room.id}`);
   }
 
-  $: if ($room.status === ROOM_STATUS.CONNECTING) {
+  $: if ($room.status === ROOM_STATUS_CLIENT.CONNECTING) {
     console.log(`Connecting to room ${$room.id}`);
   }
 </script>

@@ -5,9 +5,8 @@
   import GameMessage from '$comps/game/GameMessage.svelte';
   import GameRateSentence from '$comps/game/GameRateSentence.svelte';
   import GameRoundWinner from '$comps/game/GameRoundWinner.svelte';
-  import { GAME } from '$game/configs.js';
-  import type { GameStatus } from '$game/enums.js';
-  import { GAME_STATUS, ROOM_STATUS } from '$game/enums.js';
+  import { GAME } from '$shared/configs.js';
+  import { GAME_STATUS, ROOM_STATUS_CLIENT, type GameStatus } from '$shared/constants.js';
   import {
     decks,
     game,
@@ -57,7 +56,7 @@
         onAction: () => {
           if (
             !self.value.registered ||
-            room.value.status === ROOM_STATUS.NO_ROOM
+            room.value.status === ROOM_STATUS_CLIENT.NO_ROOM
           ) {
             return;
           }
@@ -111,7 +110,7 @@
   });
 
   $: pageTitle = `${
-    $room.status === ROOM_STATUS.IN_GAME ? 'Jugando' : 'Esperando'
+    $room.status === ROOM_STATUS_CLIENT.GAME_ON ? 'Jugando' : 'Esperando'
   } - One More Chance`;
 
   $: isNotStarted = $gameStatus === GAME_STATUS.NOT_STARTED;
@@ -132,7 +131,7 @@
   class="h-full flex flex-col items-center justify-center overflow-y-auto p-1 ring-1 ring-cyan-500 md:ring-fuchsia-500 ring-inset"
 >
   <h1 class="sr-only">A jugar One More Chance!</h1>
-  {#if !$self.registered || $room.status === ROOM_STATUS.NO_ROOM}
+  {#if !$self.registered || $room.status === ROOM_STATUS_CLIENT.NO_ROOM}
     <GameMessage>
       <svelte:fragment slot="title">
         Room not found, you shouldnt be seeing this 😅

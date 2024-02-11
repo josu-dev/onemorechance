@@ -1,10 +1,14 @@
 <script lang="ts">
   import CountDown from '$comps/game/CountDown.svelte';
-  import type { DeckType, PlayerRating } from '$game/enums.js';
-  import { DECK_TYPE, PLAYER_RATING } from '$game/enums.js';
-  import type { GameStore, PlayersStore } from '$game/types.client.js';
-  import type { Option } from '$game/types.js';
+  import type {
+    DeckType,
+    GameStore,
+    Option,
+    PlayerRating,
+    PlayersStore,
+  } from '$game/types.js';
   import { audioPlayer } from '$lib/stores/audio.js';
+  import { DECK_TYPE, PLAYER_RATING } from '$shared/constants.js';
   import { createEventDispatcher } from 'svelte';
 
   export let game: GameStore;
@@ -60,7 +64,7 @@
     freestyle?: string[],
   ) {
     // TODO: handle more than one value cases
-    if (type === DECK_TYPE.CHOOSE) {
+    if (type === DECK_TYPE.SELECT) {
       if (!option || !option.length) {
         return sentence.replace(/{{}}/g, '...');
       }

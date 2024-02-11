@@ -1,4 +1,4 @@
-import * as game from '$game/enums.js';
+import * as C from '$shared/constants.js';
 
 
 class EnumTranslationError extends Error {
@@ -8,21 +8,21 @@ class EnumTranslationError extends Error {
     }
 }
 
-function deckType(value: game.DeckType) {
+function deckType(value: C.DeckType) {
     switch (value) {
-        case game.DECK_TYPE.CHOOSE:
+        case C.DECK_TYPE.SELECT:
             return 'Elegir';
-        case game.DECK_TYPE.COMPLETE:
+        case C.DECK_TYPE.COMPLETE:
             return 'Completar';
         default: throw new EnumTranslationError('DeckType', value);
     }
 }
 
-function playerRole(value: game.PlayerRole) {
+function playerRole(value: C.PlayerRole) {
     switch (value) {
-        case game.PLAYER_ROLE.HOST:
+        case C.PLAYER_ROLE.HOST:
             return 'Anfitrion';
-        case game.PLAYER_ROLE.GUEST:
+        case C.PLAYER_ROLE.GUEST:
             return 'Invitado';
         default: throw new EnumTranslationError('PlayerRole', value);
     }

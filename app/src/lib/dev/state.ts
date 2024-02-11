@@ -1,13 +1,12 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { GAME } from '$game/configs';
-import { GAME_STATUS, PLAYER_ROLE } from '$game/enums';
 import { createSocket } from '$game/socket';
 import * as _decks from '$game/stores/decks';
 import * as _game from '$game/stores/game';
 import * as _player from '$game/stores/player';
 import * as _room from '$game/stores/room';
-import type { DeckIdentifier, User } from '$game/types';
-import type { Game, Player, Room } from '$game/types.client';
+import type { DeckIdentifier, Game, Player, RoomClient, User } from '$game/types';
+import { GAME } from '$shared/configs.js';
+import { GAME_STATUS, PLAYER_ROLE } from '$shared/constants.js';
 
 
 const INITIAL_USER: User = {
@@ -22,9 +21,9 @@ const INITIAL_USER2: User = {
     socketId: 'undefined',
 };
 
-const INITIAL_ROOM: Room = {
+const INITIAL_ROOM: RoomClient = {
     id: 'HJDNBH',
-    status: 'IN_LOBBY',
+    status: 'WAITING',
     hostId: INITIAL_USER.id,
     maxPlayers: GAME.MAX_PLAYERS
 };
@@ -138,7 +137,7 @@ const INITIAL_PLAYERS: Player[] = [
 const INITIAL_DECKS: DeckIdentifier[] = [
     {
         id: "1",
-        type: "CHOOSE",
+        type: "SELECT",
         name: "Humor negro",
         description: "Completa con lo que te atrevas"
     },

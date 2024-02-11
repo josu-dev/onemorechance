@@ -2,7 +2,7 @@
   "1": {
     "id": "1",
     "name": "Humor negro",
-    "type": "CHOOSE",
+    "type": "SELECT",
     "phrases": [
       {
         "id": "0",
@@ -938,7 +938,7 @@
   "3": {
     "id": "3",
     "name": "Family friendly",
-    "type": "CHOOSE",
+    "type": "SELECT",
     "phrases": [
       {
         "id": "230",

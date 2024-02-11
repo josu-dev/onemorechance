@@ -1,14 +1,14 @@
-import { ROOM_STATUS } from '$game/enums.js';
-import type { Room, RoomStore, SelfStore, SocketInstance } from '$game/types.client.js';
-import { uniqueLettersId } from '$lib/utils/index.js';
+import type { Room, RoomClient, RoomStore, SelfStore, SocketInstance } from '$game/types.js';
+import { uniqueId } from '$lib/utils/index.js';
+import { ROOM_STATUS_CLIENT } from '$shared/constants.js';
 import { writable } from 'svelte/store';
 
 
-function defaultRoom(): Room {
+function defaultRoom(): RoomClient {
     return {
-        id: uniqueLettersId(),
+        id: uniqueId(),
         name: 'Not a room',
-        status: ROOM_STATUS.NO_ROOM,
+        status: ROOM_STATUS_CLIENT.NO_ROOM,
         hostId: '',
         maxPlayers: 0,
     };
@@ -16,9 +16,9 @@ function defaultRoom(): Room {
 
 
 export function createRoomStore(): RoomStore {
-    let _room: Room = defaultRoom();
+    let _room: RoomClient = defaultRoom();
 
-    const { subscribe, set } = writable<Room>(_room);
+    const { subscribe, set } = writable<RoomClient>(_room);
 
     return {
         subscribe,
@@ -58,13 +58,13 @@ export function createRoomActions(socket: SocketInstance, self: SelfStore, room:
                 return;
             }
 
-            room.value.status = ROOM_STATUS.CONNECTING;
+            room.value.status = ROOM_STATUS_CLIENT.CONNECTING;
             room.sync();
 
             socket.emit('room_join', { roomId: roomId });
         },
         leaveRoom() {
-            if (!self.value.registered || room.value.status === ROOM_STATUS.NO_ROOM) {
+            if (!self.value.registered || room.value.status === ROOM_STATUS_CLIENT.NO_ROOM) {
                 return;
             }
             socket.emit('room_leave', { roomId: room.value.id });
@@ -100,7 +100,7 @@ export function attachRoomListeners(room: RoomStore, socket: SocketInstance) {
 
     socket.on('room_full', (data) => {
         console.debug(`room_full: ${room.value.id} maxPlayers: ${data.maxPlayers}`);
-        room.value.status = ROOM_STATUS.FULL;
+        room.value.status = ROOM_STATUS_CLIENT.FULL;
         room.sync();
     });
 }

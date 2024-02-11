@@ -1,4 +1,4 @@
-import type { SocketInstance } from '$game/types.client.js';
+import type { SocketInstance } from '$game/types.js';
 import { io } from 'socket.io-client';
 
 

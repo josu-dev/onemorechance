@@ -1,5 +1,5 @@
-import { GAME_STATUS, ROOM_STATUS } from '$game/enums.js';
-import type { GameStore, PlayersStore, RoomStore, SelfStore, SocketInstance } from '$game/types.client.js';
+import type { GameStore, PlayersStore, RoomStore, SelfStore, SocketInstance } from '$game/types.js';
+import { GAME_STATUS, ROOM_STATUS_CLIENT } from '$shared/constants.js';
 
 
 export function attachSharedListeners(socket: SocketInstance, self: SelfStore, room: RoomStore, game: GameStore, players: PlayersStore) {
@@ -18,7 +18,7 @@ export function attachSharedListeners(socket: SocketInstance, self: SelfStore, r
         self.value.registered = false;
         self.sync();
 
-        room.value.status = ROOM_STATUS.NO_ROOM;
+        room.value.status = ROOM_STATUS_CLIENT.NO_ROOM;
         room.sync();
 
         game.value.status = GAME_STATUS.NOT_STARTED;
@@ -33,7 +33,7 @@ export function attachSharedListeners(socket: SocketInstance, self: SelfStore, r
         self.value.registered = false;
         self.sync();
 
-        room.value.status = ROOM_STATUS.NO_ROOM;
+        room.value.status = ROOM_STATUS_CLIENT.NO_ROOM;
         game.sync();
 
         game.value.status = GAME_STATUS.NOT_STARTED;
@@ -85,7 +85,7 @@ export function attachSharedListeners(socket: SocketInstance, self: SelfStore, r
             return;
         }
 
-        room.value.status = ROOM_STATUS.CLOSED;
+        room.value.status = ROOM_STATUS_CLIENT.CLOSED;
         room.sync();
 
         game.value.status = GAME_STATUS.ENDED;
@@ -99,7 +99,7 @@ export function attachSharedListeners(socket: SocketInstance, self: SelfStore, r
             return;
         }
 
-        room.value.status = ROOM_STATUS.LEFT;
+        room.value.status = ROOM_STATUS_CLIENT.LEFT;
         room.sync();
 
         game.value.status = GAME_STATUS.NOT_STARTED;
@@ -138,7 +138,7 @@ export function attachSharedListeners(socket: SocketInstance, self: SelfStore, r
 
     socket.on('player_kicked', (data) => {
         if (self.value.id === data.playerId) {
-            room.value.status = ROOM_STATUS.NO_ROOM;
+            room.value.status = ROOM_STATUS_CLIENT.NO_ROOM;
             room.sync();
 
             game.value.status = GAME_STATUS.NOT_STARTED;
@@ -163,14 +163,14 @@ export function attachSharedListeners(socket: SocketInstance, self: SelfStore, r
     });
 
     socket.on('game_ended', () => {
-        room.value.status = ROOM_STATUS.IN_LOBBY;
+        room.value.status = ROOM_STATUS_CLIENT.WAITING;
         room.sync();
         game.value.status = GAME_STATUS.ENDED;
         game.sync();
     });
 
     socket.on('game_started', (data) => {
-        room.value.status = ROOM_STATUS.IN_GAME;
+        room.value.status = ROOM_STATUS_CLIENT.GAME_ON;
         room.sync();
         game.mset(data.game);
         players.mset(data.players);

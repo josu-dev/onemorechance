@@ -7,7 +7,7 @@
   import GameMessage from '$comps/game/GameMessage.svelte';
   import GameRateSentence from '$comps/game/GameRateSentence.svelte';
   import GameRoundWinner from '$comps/game/GameRoundWinner.svelte';
-  import { GAME_STATUS, ROOM_STATUS } from '$game/enums.js';
+  import { GAME_STATUS, ROOM_STATUS_CLIENT } from '$shared/constants.js';
   import {
     decks,
     game,
@@ -29,7 +29,7 @@
   }
 
   $: pageTitle = `${
-    $room.status === ROOM_STATUS.IN_GAME ? 'Jugando' : 'Esperando'
+    $room.status === ROOM_STATUS_CLIENT.GAME_ON ? 'Jugando' : 'Esperando'
   } - One More Chance`;
 
   $: isNotStarted = $gameStatus === GAME_STATUS.NOT_STARTED;
@@ -41,7 +41,7 @@
   $: isScoreboard = $gameStatus === GAME_STATUS.END_SCOREBOARD;
   $: isEnded = $gameStatus === GAME_STATUS.ENDED;
 
-  $: if ($room.status === ROOM_STATUS.LEFT) {
+  $: if ($room.status === ROOM_STATUS_CLIENT.LEFT) {
     goto('/');
   }
 </script>
@@ -54,7 +54,7 @@
   class="h-full flex flex-col items-center justify-center overflow-y-auto p-1"
 >
   <h1 class="sr-only">A jugar One More Chance!</h1>
-  {#if !$self.registered || $room.status === ROOM_STATUS.NO_ROOM}
+  {#if !$self.registered || $room.status === ROOM_STATUS_CLIENT.NO_ROOM}
     <GameMessage>
       <svelte:fragment slot="title">
         Room not loaded, you shouldnt be seeing this 😅
@@ -63,7 +63,7 @@
         <a class="button variant-primary" href="/">Volver al inicio</a>
       </svelte:fragment>
     </GameMessage>
-  {:else if $room.status === ROOM_STATUS.CLOSED}
+  {:else if $room.status === ROOM_STATUS_CLIENT.CLOSED}
     <GameMessage>
       <svelte:fragment slot="title">
         La sala ha sido cerrada por el anfitrión 😢

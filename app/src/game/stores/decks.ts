@@ -1,6 +1,5 @@
-import { DECK_TYPE } from '$game/enums';
-import type { DeckIdentifier } from '$game/types';
-import type { DecksStore, SocketInstance } from '$game/types.client';
+import type { DeckIdentifier, DecksStore, SocketInstance } from '$game/types.js';
+import { DECK_TYPE } from '$shared/constants.js';
 import { writable } from 'svelte/store';
 
 
@@ -9,7 +8,7 @@ function defaultDecks(): DeckIdentifier[] {
         {
             id: "1",
             name: "Humor negro",
-            type: DECK_TYPE.CHOOSE,
+            type: DECK_TYPE.SELECT,
             description: "Ni que fueras tan gracioso"
         },
         {

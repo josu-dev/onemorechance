@@ -1,9 +1,9 @@
 <script lang="ts">
   import { browser } from '$app/environment';
-  import { ROOM_STATUS } from '$game/enums.js';
   import { room, roomActions } from '$game/game.js';
   import { useClickOutside } from '$lib/actions/index.js';
   import { audioPlayer } from '$lib/stores/audio.js';
+  import { ROOM_STATUS_CLIENT } from '$shared/constants.js';
 
   let menuButton: HTMLButtonElement;
 
@@ -26,8 +26,8 @@
   }
 
   $: inRoom =
-    $room.status === ROOM_STATUS.IN_LOBBY ||
-    $room.status === ROOM_STATUS.IN_GAME;
+    $room.status === ROOM_STATUS_CLIENT.WAITING ||
+    $room.status === ROOM_STATUS_CLIENT.GAME_ON;
 
   function leaveRoom() {
     roomActions.leaveRoom();

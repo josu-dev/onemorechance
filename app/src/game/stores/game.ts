@@ -1,16 +1,14 @@
-import { GAME } from '$game/configs.js';
-import type { GameStatus, PlayerRating } from '$game/enums.js';
-import { GAME_STATUS } from '$game/enums.js';
-import type { Game, GameSettings, GameStore, SelfStore, SocketInstance } from '$game/types.client.js';
-import type { Option } from '$game/types.js';
+import type { Game, GameSettings, GameStatus, GameStore, Option, PlayerRating, SelfStore, SocketInstance } from '$game/types.js';
 import type { Readable } from '$lib/stores/types.js';
-import { uniqueRoomId, uniqueURLSafeId } from '$lib/utils/index.js';
+import { uniqueRoomId, uniqueId } from '$lib/utils/index.js';
+import { GAME } from '$shared/configs.js';
+import { GAME_STATUS } from "$shared/constants.js";
 import { derived, writable } from 'svelte/store';
 
 
 function defaultGame(): Game {
     return {
-        id: uniqueURLSafeId(),
+        id: uniqueId(),
         roomId: uniqueRoomId(),
         status: GAME_STATUS.NOT_STARTED,
         settings: {
@@ -23,13 +21,13 @@ function defaultGame(): Game {
         },
         round: 0,
         deck: {
-            id: uniqueURLSafeId(),
+            id: uniqueId(),
             name: 'Not a deck',
-            type: 'CHOOSE',
+            type: 'SELECT',
         },
         current: {
             phrase: {
-                id: uniqueURLSafeId(),
+                id: uniqueId(),
                 text: 'Not a phrase',
             },
         },

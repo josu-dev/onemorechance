@@ -1,12 +1,13 @@
 import { relations, sql } from 'drizzle-orm';
 import { index, integer, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core';
+import { DECK_TYPE, ROOM_STATUS } from '../shared/constants.js';
 
 
 export const decks = sqliteTable(
     'decks',
     {
         id: text('id').primaryKey(),
-        type: text('type', { enum: ['CHOOSE', 'COMPLETE'] }).notNull(),
+        type: text('type', { enum: [DECK_TYPE.COMPLETE, DECK_TYPE.SELECT] }).notNull(),
         name: text('name').notNull(),
         description: text('description').notNull(),
         createdAt: integer('created_at').notNull().default(sql`(strftime('%s', 'now'))`),
@@ -91,9 +92,15 @@ export const rooms = sqliteTable(
     {
         id: text('id').primaryKey(),
         name: text('name').notNull(),
-        status: text('status', { enum: ['WAITING', 'GAME_ON', 'CLOSED'] }).notNull(),
+        status: text('status', {
+            enum: [
+                ROOM_STATUS.CLOSED,
+                ROOM_STATUS.GAME_ON,
+                ROOM_STATUS.WAITING
+            ]
+        }).notNull().default(ROOM_STATUS.WAITING),
         hostId: text('host_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
-        playersCount: integer('players_count').notNull(),
+        playersCount: integer('players_count').notNull().default(0),
         playersMax: integer('players_max').notNull(),
         createdAt: integer('created_at').notNull().default(sql`(strftime('%s', 'now'))`),
         updatedAt: integer('updated_at').notNull().default(sql`(strftime('%s', 'now'))`),

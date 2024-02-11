@@ -1,12 +1,12 @@
-import type { Player, PlayersStore, SelfPlayer, SelfStore, SocketInstance } from '$game/types.client.js';
-import { uniqueLettersId } from '$lib/utils/index.js';
+import type { Player, PlayersStore, SelfPlayer, SelfStore, SocketInstance } from '$game/types.js';
+import { uniqueId } from '$lib/utils/index.js';
 import { writable } from 'svelte/store';
 
 
 function defaultSelf(): SelfPlayer {
     return {
         registered: false,
-        id: uniqueLettersId(),
+        id: uniqueId(),
         name: 'Not a player',
         socketId: '',
         role: 'GUEST',
