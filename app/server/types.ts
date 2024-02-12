@@ -1,9 +1,9 @@
 import type * as SocketIO from 'socket.io';
-import * as Shared from '../shared/types.js';
+import * as Shared from '../src/shared/types.js';
 
-export type * from '../shared/types.js';
+export type * from '../src/shared/types.js';
 
-export type * from '../shared/constants.js';
+export type * from '../src/shared/constants.js';
 
 export type InterServerEvents = Record<string, never>;
 
@@ -27,8 +27,9 @@ export type WebSocketServerSocket = SocketIO.Socket<
 
 export type ServerUser = {
     id: string,
-    rooms: string[],
     client: Shared.User,
+    rooms: string[],
+    socketId: string,
 };
 
 export type ServerPlayer = {

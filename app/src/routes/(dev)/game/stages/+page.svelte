@@ -5,8 +5,6 @@
   import GameMessage from '$comps/game/GameMessage.svelte';
   import GameRateSentence from '$comps/game/GameRateSentence.svelte';
   import GameRoundWinner from '$comps/game/GameRoundWinner.svelte';
-  import { GAME } from '$shared/configs.js';
-  import { GAME_STATUS, ROOM_STATUS_CLIENT, type GameStatus } from '$shared/constants.js';
   import {
     decks,
     game,
@@ -17,10 +15,14 @@
     roomActions,
     self,
   } from '$lib/dev/state.js';
+  import { GAME } from '$shared/configs.js';
+  import {
+    GAME_STATUS,
+    ROOM_STATUS_CLIENT,
+    type GameStatus,
+  } from '$shared/constants.js';
   import { onMount } from 'svelte';
   import { helpers } from 'svelte-hypercommands/CommandPalette.svelte';
-
-  // export let data;
 
   $: debugData.set({ $game, $players, $room, $self });
 
@@ -192,7 +194,11 @@
     />
   {:else if isRoundWinner || isScoreboard}
     <GameRoundWinner {game} {players}>
-      <div slot="actions" class="flex justify-center" class:hidden={!isScoreboard}>
+      <div
+        slot="actions"
+        class="flex justify-center"
+        class:hidden={!isScoreboard}
+      >
         <button
           on:click={() => {
             game.value.status = GAME_STATUS.ENDED;

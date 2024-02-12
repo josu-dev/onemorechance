@@ -1,6 +1,5 @@
 import type { DeckType, GameStatus, PlayerRating, PlayerRole, RoomStatus, RoomStatusClient } from './constants.js';
 
-
 export type * from './constants.js';
 
 export type Room = {
@@ -77,9 +76,14 @@ export type SelfPlayer = Player & {
 };
 
 export type User = {
-    id: string,
-    name: string,
-    socketId: string,
+    id: string;
+    name: string;
+    createdAt: number;
+    updatedAt: number;
+    gamesPlayed: number;
+    gamesWon: number;
+    scoreLastGame: number;
+    scoreLifetime: number;
 };
 
 export type Modifier = {
@@ -120,10 +124,10 @@ export type Deck = DeckIdentifier & (DeckSelect | DeckComplete);
 
 
 export type ClientToServerEvents = {
-    user_register: (data: { id?: string, name: string; }) => void;
+    user_register: (data: { user: User; }) => void;
     user_unregister: (data: { id: string; }) => void;
 
-    room_create: () => void;
+    room_create: (data: { roomId?: string; }) => void;
     room_update: (data: { room: Room; }) => void;
     room_close: (data: { roomId: string; }) => void;
     room_join: (data: { roomId: string; }) => void;

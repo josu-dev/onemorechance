@@ -14,12 +14,12 @@ export const load: PageServerLoad = async ({ locals }) => {
 
     return {
         decks: decksData,
-        insertForm: insertForm
+        createForm: insertForm
     };
 };
 
 export const actions: Actions = {
-    new: async ({ request, locals }) => {
+    create: async ({ request, locals }) => {
         const form = await superValidate(request, zod(deckInsertSchema));
         if (!form.valid) {
             return fail(400, { form });
@@ -35,6 +35,6 @@ export const actions: Actions = {
             description: form.data.description,
         }).returning().get();
 
-        return message(form, { inserted: insertedDeck });
+        return message(form, { deck: insertedDeck });
     }
 };

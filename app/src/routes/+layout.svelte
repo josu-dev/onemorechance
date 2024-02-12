@@ -2,10 +2,17 @@
   import { dev } from '$app/environment';
   import Header from '$comps/layout/Header.svelte';
   import HyperDebug, { debugEnabled } from '$lib/components/HyperDebug.svelte';
+  import { user } from '$lib/stores/user.js';
   import { Toaster } from 'svelte-french-toast';
   import { defineCommand, definePage } from 'svelte-hypercommands';
   import CommandPalette from 'svelte-hypercommands/CommandPalette.svelte';
   import '../app.pcss';
+
+  export let data;
+
+  if (data.user) {
+    user.mset(data.user);
+  }
 
   const globalCommands = defineCommand([
     {
@@ -82,6 +89,6 @@
 
 <Header />
 
-<div class="h-full max-h-full pt-12">
+<div class="h-full max-h-full [&:has(>.main-p-header)]:pt-12">
   <slot />
 </div>

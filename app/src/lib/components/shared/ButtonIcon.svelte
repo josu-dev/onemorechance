@@ -11,7 +11,7 @@
   const iconClass = {
     xs: 'icon-xs',
     sm: 'icon-sm',
-    md: 'icon',
+    md: 'icon-md',
     lg: 'icon-lg',
     xl: 'icon-xl',
   };

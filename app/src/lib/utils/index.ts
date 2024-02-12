@@ -9,7 +9,7 @@ export const uniqueRoomId = customRandom('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijkl
 export function redirectToRegister(
     url: URL,
     message = ''
-) {
+): never {
     const redirectTo = url.pathname + url.search;
     redirect(302, `/?redirect_to=${redirectTo}&message=${encodeURIComponent(message)}`);
 }

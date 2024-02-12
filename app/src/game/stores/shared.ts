@@ -1,14 +1,15 @@
 import type { GameStore, PlayersStore, RoomStore, SelfStore, SocketInstance } from '$game/types.js';
+import type { UserStore } from '$lib/stores/user.js';
 import { GAME_STATUS, ROOM_STATUS_CLIENT } from '$shared/constants.js';
 
 
-export function attachSharedListeners(socket: SocketInstance, self: SelfStore, room: RoomStore, game: GameStore, players: PlayersStore) {
+export function attachSharedListeners(socket: SocketInstance, user: UserStore, self: SelfStore, room: RoomStore, game: GameStore, players: PlayersStore) {
     socket.on('connect', () => {
         self.value.socketId = socket.id || '';
         self.sync();
 
-        if (self.value.id && self.value.name) {
-            socket.emit('user_register', { id: self.value.id, name: self.value.name });
+        if (user.value) {
+            socket.emit('user_register', { user: user.value });
         }
     });
 

@@ -3,7 +3,7 @@
   import IconPlus from '$lib/icons/IconPlus.svelte';
 </script>
 
-<main class="main">
+<main class="main main-p-header">
   <h1 class="h2 text-white">UI Test</h1>
   <div class="divide-y space-y-8">
     <section>

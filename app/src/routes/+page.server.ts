@@ -1,8 +1,8 @@
-import { GAME } from '$shared/configs.js';
 import { accountDeleteSchema, accountRegisterSchema } from '$lib/schemas/account.js';
 import { roomCreateSchema, roomJoinSchema } from '$lib/schemas/room.js';
 import { rooms, users } from '$lib/server/db.js';
 import { redirectIfParam, uniqueRoomId } from '$lib/utils/index.js';
+import { GAME } from '$shared/configs.js';
 import { fail } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
@@ -16,14 +16,25 @@ export const load: PageServerLoad = async ({ locals, url }) => {
         redirectIfParam(url);
     }
 
-    const registerForm = await superValidate(zod(accountRegisterSchema));
-    const deleteForm = await superValidate(zod(accountDeleteSchema));
+    const [
+        registerForm, deleteForm,
+        roomCreateForm, roomJoinForm,
+    ] = await Promise.all([
+        superValidate(zod(accountRegisterSchema)),
+        superValidate(zod(accountDeleteSchema)),
+        superValidate(zod(roomCreateSchema)),
+        superValidate(zod(roomJoinSchema)),
+    ]);
 
     return {
-        user: locals.user,
-        registerForm: registerForm,
-        deleteForm: deleteForm,
-        createRoomForm: await superValidate(zod(roomCreateSchema)),
+        account: {
+            registerForm: registerForm,
+            deleteForm: deleteForm,
+        },
+        room: {
+            createForm: roomCreateForm,
+            joinForm: roomJoinForm,
+        },
     };
 };
 
@@ -77,7 +88,7 @@ export const actions: Actions = {
         }
 
         const room = await locals.db.insert(rooms).values({
-            id: nanoid(),
+            id: uniqueRoomId(),
             name: uniqueRoomId(),
             hostId: locals.user.id,
             playersMax: GAME.DEFAULT_PLAYERS,

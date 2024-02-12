@@ -11,7 +11,7 @@
 
   export let data;
 
-  const newSForm = superForm(data.insertForm, {
+  const createSForm = superForm(data.createForm, {
     invalidateAll: false,
     resetForm: false,
     onUpdated({ form }) {
@@ -29,26 +29,26 @@
   };
 </script>
 
-<main class="main">
+<main class="main main-p-header">
   <h1 class="h2 text-white text-center">
     One More Chance decks
     <LinkBack href="/" className="icon-md" />
   </h1>
 
   <div
-    class="container flex flex-1 flex-col items-center gap-4 w-full mt-4 md:flex-row-reverse md:gap-8 md:items-start md:justify-center"
+    class="container flex flex-1 flex-col items-center gap-4 w-full mt-4 md:flex-row-reverse lg:gap-8 md:items-start md:justify-center"
   >
-    <section class="px-4 w-full max-w-sm">
+    <section class="px-2 md:px-4 w-full max-w-sm">
       <h2 class="h3 text-gray-100 text-center">Nuevo deck</h2>
       <form
-        action="?/new"
+        action="?/create"
         method="post"
-        use:newSForm.enhance
+        use:createSForm.enhance
         class="flex flex-col gap-4 md:gap-8 w-full"
       >
         <div class="flex flex-col gap-2">
           <FieldSelect
-            form={newSForm}
+            form={createSForm}
             field="type"
             label="Tipo"
             options={[
@@ -57,9 +57,9 @@
               { text: 'Completar', value: DECK_TYPE_CREATE.COMPLETE },
             ]}
           />
-          <FieldText form={newSForm} field="name" label="Nombre" />
+          <FieldText form={createSForm} field="name" label="Nombre" />
           <FieldTextarea
-            form={newSForm}
+            form={createSForm}
             field="description"
             label="Descripcion"
           />
@@ -71,10 +71,10 @@
       </form>
     </section>
 
-    <section class="max-w-4xl">
+    <section class="w-full max-w-4xl">
       <h2 class="h3 text-gray-100 text-center">Decks disponibles</h2>
       <ul
-        class="flex flex-wrap gap-4 justify-around py-4 md:max-h-[40rem] md:overflow-y-auto md:overflow-x-hidden"
+        class="flex flex-wrap gap-4 justify-around py-4 md:px-4 lg:px-0 md:max-h-[40rem] md:overflow-y-auto"
       >
         {#each data.decks as deck}
           <li class="w-full max-w-96">

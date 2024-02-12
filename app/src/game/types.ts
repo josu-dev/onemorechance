@@ -7,6 +7,16 @@ export * from '$shared/types.js';
 
 export type SocketInstance = Socket<ServerToClientEvents, ClientToServerEvents>;
 
+export type SocketState = {
+    initialized: boolean,
+    connected: boolean,
+    connecting: boolean,
+};
+
+export type SocketStore = ExposedReadable<SocketState> & {
+    socket: SocketInstance,
+};
+
 export type RoomStore = ExposedReadable<RoomClient>;
 
 export type GameStore = ExposedReadable<Game>;

@@ -12,13 +12,23 @@ import { GAME_STATUS, PLAYER_ROLE } from '$shared/constants.js';
 const INITIAL_USER: User = {
     id: '1',
     name: 'Josu',
-    socketId: 'undefined',
+    gamesPlayed: 0,
+    gamesWon: 0,
+    scoreLastGame: 0,
+    scoreLifetime: 0,
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
 };
 
 const INITIAL_USER2: User = {
     id: '2',
     name: 'Mikel',
-    socketId: 'undefined',
+    gamesPlayed: 0,
+    gamesWon: 0,
+    scoreLastGame: 0,
+    scoreLifetime: 0,
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
 };
 
 const INITIAL_ROOM: RoomClient = {

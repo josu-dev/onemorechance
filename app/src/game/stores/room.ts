@@ -39,10 +39,10 @@ export function createRoomStore(): RoomStore {
 export function createRoomActions(socket: SocketInstance, self: SelfStore, room: RoomStore) {
     return {
         createRoom() {
-            if (!self.value.registered) {
+            if (!self.value.registered || room.value.status !== ROOM_STATUS_CLIENT.NO_ROOM) {
                 return;
             }
-            socket.emit('room_create');
+            socket.emit('room_create', { roomId: room.value.id });
         },
         updateRoom(room: Room) {
             socket.emit('room_update', { room: room });

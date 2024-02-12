@@ -7,7 +7,6 @@
   import GameMessage from '$comps/game/GameMessage.svelte';
   import GameRateSentence from '$comps/game/GameRateSentence.svelte';
   import GameRoundWinner from '$comps/game/GameRoundWinner.svelte';
-  import { GAME_STATUS, ROOM_STATUS_CLIENT } from '$shared/constants.js';
   import {
     decks,
     game,
@@ -17,7 +16,10 @@
     room,
     roomActions,
     self,
+    socketActions,
   } from '$game/game.js';
+  import { GAME_STATUS, ROOM_STATUS_CLIENT } from '$shared/constants.js';
+  import { onMount } from 'svelte';
 
   $: if (dev) {
     debugData.set({
@@ -44,15 +46,19 @@
   $: if ($room.status === ROOM_STATUS_CLIENT.LEFT) {
     goto('/');
   }
+
+  onMount(() => {
+    return () => {
+      socketActions.disconnect();
+    };
+  });
 </script>
 
 <svelte:head>
   <title>{pageTitle}</title>
 </svelte:head>
 
-<main
-  class="h-full flex flex-col items-center justify-center overflow-y-auto p-1"
->
+<main class="main justify-center py-1">
   <h1 class="sr-only">A jugar One More Chance!</h1>
   {#if !$self.registered || $room.status === ROOM_STATUS_CLIENT.NO_ROOM}
     <GameMessage>
@@ -125,7 +131,11 @@
     />
   {:else if isRoundWinner || isScoreboard}
     <GameRoundWinner {game} {players}>
-      <div slot="actions" class="flex justify-center" class:hidden={!isScoreboard}>
+      <div
+        slot="actions"
+        class="flex justify-center"
+        class:hidden={!isScoreboard}
+      >
         <button
           on:click={() => {
             game.value.status = GAME_STATUS.ENDED;

@@ -2,11 +2,11 @@
   import { goto } from '$app/navigation';
   import ButtonIcon from '$comps/shared/ButtonIcon.svelte';
   import LinkBack from '$comps/shared/LinkBack.svelte';
-  import { DECK_TYPE } from '$shared/constants.js';
   import FieldText from '$lib/elements/form/FieldText.svelte';
   import FieldTextarea from '$lib/elements/form/FieldTextarea.svelte';
   import IconDelete from '$lib/icons/IconDelete.svelte';
   import IconSave from '$lib/icons/IconSave.svelte';
+  import { DECK_TYPE } from '$shared/constants.js';
   import toast from 'svelte-french-toast';
   import { superForm } from 'sveltekit-superforms';
   import ItemPanel from './ItemPanel.svelte';
@@ -31,7 +31,7 @@
   });
 </script>
 
-<main class="main">
+<main class="main main-p-header">
   <h1 class="h2 text-white text-center">
     Administrar deck '{data.deck.data.name}'
     <LinkBack href="/decks" className="icon-md" />

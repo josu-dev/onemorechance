@@ -4,11 +4,12 @@ import type { LibSQLDatabase } from 'drizzle-orm/libsql';
 import { drizzle } from "drizzle-orm/libsql";
 import * as schema from '../../../drizzle/schema.js';
 
-export type DBSchema = typeof schema;
 
-export type DB = LibSQLDatabase<DBSchema>;
+export type TablesSchema = typeof schema;
 
-function tursoClient(): DB {
+export type Database = LibSQLDatabase<TablesSchema>;
+
+function tursoClient(): Database {
     const turso = createClient({
         url: TURSO_DB_URL,
         authToken: TURSO_DB_AUTH_TOKEN

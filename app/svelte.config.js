@@ -9,7 +9,7 @@ const config = {
         alias: {
             $comps: './src/lib/components',
             $game: './src/game',
-            $shared: './shared',
+            $shared: './src/shared',
         }
     },
     preprocess: vitePreprocess({

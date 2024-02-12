@@ -1,6 +1,6 @@
 import { relations, sql } from 'drizzle-orm';
 import { index, integer, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core';
-import { DECK_TYPE, ROOM_STATUS } from '../shared/constants.js';
+import { DECK_TYPE, ROOM_STATUS } from '../src/shared/constants.ts';
 
 
 export const decks = sqliteTable(

@@ -4,6 +4,7 @@ import * as _game from '$game/stores/game.js';
 import * as _player from '$game/stores/player.js';
 import * as _room from '$game/stores/room.js';
 import * as _shared from '$game/stores/shared.js';
+import { user } from '$lib/stores/user.js';
 
 
 export const socket = _socket.createSocket();
@@ -51,4 +52,4 @@ export const decksActions = _decks.createDecksActions(socket, decks);
 _decks.attachDecksListeners(socket, decks);
 
 
-_shared.attachSharedListeners(socket, self, room, game, players);
+_shared.attachSharedListeners(socket, user, self, room, game, players);

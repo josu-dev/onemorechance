@@ -2,7 +2,7 @@ import { createClient } from '@libsql/client';
 import * as dotenv from "dotenv";
 import { sql } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/libsql';
-import * as schema from './schema.ts';
+import * as schema from './schema';
 
 dotenv.config({ path: ".env.local" });
 

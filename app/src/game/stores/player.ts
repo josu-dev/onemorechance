@@ -1,4 +1,4 @@
-import type { Player, PlayersStore, SelfPlayer, SelfStore, SocketInstance } from '$game/types.js';
+import type { Player, PlayersStore, SelfPlayer, SelfStore, SocketInstance, User } from '$game/types.js';
 import { uniqueId } from '$lib/utils/index.js';
 import { writable } from 'svelte/store';
 
@@ -56,11 +56,11 @@ export function createSelfStore(): SelfStore {
 
 export function createSelfActions(socket: SocketInstance, self: SelfStore) {
     return {
-        register(user: { id?: string, name: string; }) {
+        register(user: User) {
             if (self.value.registered) {
                 return;
             }
-            socket.emit('user_register', user);
+            socket.emit('user_register', { user });
         },
         unregister() {
             if (!self.value.registered) {

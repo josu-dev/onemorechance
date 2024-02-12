@@ -1,8 +1,8 @@
 import type { Server as HttpServer } from "http";
 import { customRandom, nanoid, random } from 'nanoid';
 import { Server } from 'socket.io';
-import { GAME } from '../shared/configs.js';
-import { DECK_TYPE, GAME_STATUS, PLAYER_RATING, PLAYER_ROLE, ROOM_STATUS } from '../shared/constants.js';
+import { GAME } from '../src/shared/configs.js';
+import { DECK_TYPE, GAME_STATUS, PLAYER_RATING, PLAYER_ROLE, ROOM_STATUS } from '../src/shared/constants.js';
 import importedDecks from '../static/decks/default.json' with { type: "json" };
 import type * as T from './types.js';
 
@@ -217,7 +217,7 @@ export function attach_socket_server(
                     continue;
                 }
                 removePlayerFromRoom(io, socket, user, room, user.id);
-                io.sockets.sockets.get(user.client.socketId)?.leave(roomId);
+                io.sockets.sockets.get(user.socketId)?.leave(roomId);
                 io.to(roomId).emit('player_disconnected', { playerId: user.id });
             }
 
@@ -225,22 +225,17 @@ export function attach_socket_server(
             users.delete(user.id);
         });
 
-        socket.on('user_register', ({ id, name }) => {
-            if (!id) {
-                id = nanoid();
-            }
-            const user: T.ServerUser = {
-                id: id,
-                client: {
-                    id: id,
-                    name: name,
-                    socketId: socket.id,
-                },
+        socket.on('user_register', ({ user }) => {
+            const userId = user.id;
+            const _user: T.ServerUser = {
+                id: userId,
+                client: user,
                 rooms: [],
+                socketId: socket.id,
             };
-            socket.data.userId = id;
-            users.set(id, user);
-            socket.emit('user_registered', { user: user.client });
+            users.set(userId, _user);
+            socket.data.userId = user.id;
+            socket.emit('user_registered', { user: _user.client });
         });
 
         socket.on('user_unregister', ({ id }) => {
@@ -463,7 +458,7 @@ export function attach_socket_server(
 
             removePlayerFromRoom(io, socket, kickedUser, room, playerId);
             io.to(room.room.id).emit('player_kicked', { roomId: room.id, playerId: playerId });
-            io.sockets.sockets.get(kickedUser.client.socketId)?.leave(roomId);
+            io.sockets.sockets.get(kickedUser.socketId)?.leave(roomId);
         });
 
         socket.on('player_update', ({ roomId, player }) => {
