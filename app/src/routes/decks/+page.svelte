@@ -7,7 +7,7 @@
   import { DECK_TYPE_CREATE } from '$lib/schemas/deck.js';
   import { t } from '$lib/utils/translate_constants.js';
   import { DECK_TYPE } from '$shared/constants.js';
-  import { superForm } from 'sveltekit-superforms/client';
+  import { superForm } from 'sveltekit-superforms';
 
   export let data;
 

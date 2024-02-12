@@ -4,7 +4,7 @@
   import { audioPlayer } from '$lib/stores/audio.js';
   import { user } from '$lib/stores/user.js';
   import { onMount } from 'svelte';
-  import { superForm } from 'sveltekit-superforms/client';
+  import { superForm } from 'sveltekit-superforms';
 
   export let data;
 

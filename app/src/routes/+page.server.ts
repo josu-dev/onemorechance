@@ -6,8 +6,8 @@ import { GAME } from '$shared/configs.js';
 import { fail } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
+import { message, setError, superValidate, } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
-import { message, setError, superValidate, } from 'sveltekit-superforms/server';
 import type { Actions, PageServerLoad } from './$types';
 
 

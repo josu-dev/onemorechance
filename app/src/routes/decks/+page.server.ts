@@ -2,8 +2,8 @@ import { DECK_TYPE_CREATE, deckInsertSchema } from '$lib/schemas/deck.js';
 import { decks } from '$lib/server/db.js';
 import { uniqueId } from '$lib/utils/index.js';
 import { fail } from '@sveltejs/kit';
+import { message, setError, superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
-import { message, setError, superValidate } from 'sveltekit-superforms/server';
 import type { Actions, PageServerLoad } from './$types.js';
 
 
