@@ -1,8 +1,8 @@
 import type { Server as HttpServer } from "http";
-import { customRandom, nanoid, random } from 'nanoid';
+import { nanoid } from 'nanoid';
 import { Server } from 'socket.io';
-import { GAME } from '../src/shared/configs.js';
 import { DECK_TYPE, GAME_STATUS, PLAYER_RATING, PLAYER_ROLE, ROOM_STATUS } from '../src/shared/constants.js';
+import { GAME } from '../src/shared/defaults.js';
 import importedDecks from '../static/decks/default.json' with { type: "json" };
 import type * as T from './types.js';
 
@@ -10,9 +10,6 @@ import type * as T from './types.js';
 const decks = importedDecks as Record<string, T.Deck>;
 
 const DEFAULT_DECK = decks[GAME.DEFAULT_DECK_ID];
-
-
-const randomRoomId = customRandom('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz', 6, random);
 
 
 const users = new Map<string, T.ServerUser>();
@@ -52,6 +49,7 @@ function removePlayerFromRoom(io: T.WebSocketServer, socket: T.WebSocketServerSo
 
     if (room.room.hostId === playerId) {
         const hostPlayer = room.players[0];
+        hostPlayer.host = true;
         hostPlayer.role = PLAYER_ROLE.HOST;
         room.room.hostId = hostPlayer.id;
     }
@@ -225,7 +223,39 @@ export function attach_socket_server(
             users.delete(user.id);
         });
 
-        socket.on('user_register', ({ user }) => {
+        // socket.on('user_register', ({ user }) => {
+        //     const userId = user.id;
+        //     const _user: T.ServerUser = {
+        //         id: userId,
+        //         client: user,
+        //         rooms: [],
+        //         socketId: socket.id,
+        //     };
+        //     users.set(userId, _user);
+        //     socket.data.userId = user.id;
+        //     socket.emit('user_registered', { user: _user.client });
+        // });
+
+        // socket.on('user_unregister', ({ id }) => {
+        //     const user = users.get(id);
+        //     if (!user) {
+        //         return;
+        //     }
+
+        //     for (const roomId of user.rooms) {
+        //         const room = rooms.get(roomId);
+        //         if (!room) {
+        //             continue;
+        //         }
+        //         removePlayerFromRoom(io, socket, user, room, id);
+        //     }
+
+        //     users.delete(id);
+        //     socket.data.userId = '';
+        //     socket.emit('user_unregistered');
+        // });
+
+        socket.on('room_create', ({ roomId, user }) => {
             const userId = user.id;
             const _user: T.ServerUser = {
                 id: userId,
@@ -235,107 +265,82 @@ export function attach_socket_server(
             };
             users.set(userId, _user);
             socket.data.userId = user.id;
-            socket.emit('user_registered', { user: _user.client });
-        });
 
-        socket.on('user_unregister', ({ id }) => {
-            const user = users.get(id);
-            if (!user) {
-                return;
-            }
-
-            for (const roomId of user.rooms) {
-                const room = rooms.get(roomId);
-                if (!room) {
-                    continue;
-                }
-                removePlayerFromRoom(io, socket, user, room, id);
-            }
-
-            users.delete(id);
-            socket.data.userId = '';
-            socket.emit('user_unregistered');
-        });
-
-        socket.on('room_create', () => {
-            const user = users.get(socket.data.userId);
-            if (!user) {
-                return;
-            }
-
-            const roomId = randomRoomId();
-
-            const player: T.ServerPlayer = {
-                userId: user.client.id,
-                roomId: roomId,
-                client: {
-                    id: user.client.id,
-                    name: user.client.name,
-                    role: PLAYER_ROLE.HOST,
-                    score: 0,
-                    scoreLast: 0,
-                    scoreTotal: 0,
-                    ready: false,
-                    current: {
-                        option: undefined,
-                        freestyle: undefined,
-                    },
-                    stock: {
-                        options: [],
-                        modifiers: [],
-                    },
-                    used: {
-                        freestyle: [],
-                        options: [],
-                        modifiers: [],
-                    },
-                    ratesReceived: {}
-                },
-            };
-
-            const room: T.ServerRoom = {
-                id: roomId,
-                room: {
-                    id: roomId,
-                    status: ROOM_STATUS.WAITING,
-                    hostId: player.userId,
-                    maxPlayers: GAME.MAX_PLAYERS
-                },
-                game: {
-                    id: nanoid(),
+            let room = rooms.get(roomId);
+            if (!room) {
+                const player: T.ServerPlayer = {
+                    userId: _user.client.id,
                     roomId: roomId,
-                    status: GAME_STATUS.NOT_STARTED,
-                    settings: {
-                        deckId: DEFAULT_DECK.id,
-                        fillTime: GAME.DEFAULT_FILL_TIME,
-                        rateTime: GAME.DEFAULT_RATE_TIME,
-                        players: GAME.DEFAULT_PLAYERS,
-                        rounds: GAME.DEFAULT_ROUNDS,
-                        options: GAME.DEFAULT_OPTIONS,
-                    },
-                    round: 0,
-                    deck: {
-                        id: DEFAULT_DECK.id,
-                        name: DEFAULT_DECK.name,
-                        type: DEFAULT_DECK.type,
-                    },
-                    current: {
-                        phrase: {
-                            id: '',
-                            text: '',
+                    client: {
+                        id: _user.client.id,
+                        host: true,
+                        name: _user.client.name,
+                        role: PLAYER_ROLE.HOST,
+                        score: 0,
+                        scoreLast: 0,
+                        scoreTotal: 0,
+                        ready: false,
+                        current: {
+                            option: undefined,
+                            freestyle: undefined,
                         },
-                        winner: '',
+                        stock: {
+                            options: [],
+                            modifiers: [],
+                        },
+                        used: {
+                            freestyle: [],
+                            options: [],
+                            modifiers: [],
+                        },
+                        ratesReceived: {}
                     },
-                    used: {
-                        phrases: [],
-                        options: [],
-                    }
+                };
 
-                },
-                players: [player.client]
-            };
+                room = {
+                    id: roomId,
+                    room: {
+                        id: roomId,
+                        status: ROOM_STATUS.WAITING,
+                        hostId: player.userId,
+                        maxPlayers: GAME.MAX_PLAYERS
+                    },
+                    game: {
+                        id: nanoid(),
+                        roomId: roomId,
+                        status: GAME_STATUS.NOT_STARTED,
+                        settings: {
+                            deckId: DEFAULT_DECK.id,
+                            fillTime: GAME.DEFAULT_FILL_TIME,
+                            rateTime: GAME.DEFAULT_RATE_TIME,
+                            players: GAME.DEFAULT_PLAYERS,
+                            rounds: GAME.DEFAULT_ROUNDS,
+                            options: GAME.DEFAULT_OPTIONS,
+                        },
+                        round: 0,
+                        deck: {
+                            id: DEFAULT_DECK.id,
+                            name: DEFAULT_DECK.name,
+                            type: DEFAULT_DECK.type,
+                        },
+                        current: {
+                            phrase: {
+                                id: '',
+                                text: '',
+                            },
+                            winner: '',
+                        },
+                        used: {
+                            phrases: [],
+                            options: [],
+                        }
 
-            user.rooms.push(roomId);
+                    },
+                    players: [player.client]
+                };
+            }
+
+            _user.rooms.push(roomId);
             rooms.set(roomId, room);
             socket.join(roomId);
             socket.emit('room_created', {
@@ -367,10 +372,9 @@ export function attach_socket_server(
             io.in(roomId).socketsLeave(roomId);
         });
 
-        socket.on('room_join', ({ roomId }) => {
-            const user = users.get(socket.data.userId);
+        socket.on('room_join', ({ roomId, user }) => {
             const room = rooms.get(roomId);
-            if (!room || !user) {
+            if (!room) {
                 return;
             }
 
@@ -387,16 +391,28 @@ export function attach_socket_server(
                     return;
                 }
             }
-            for (const roomId of user.rooms) {
-                const _room = rooms.get(roomId);
-                if (_room) {
-                    return;
-                }
-            }
+
+            // for (const roomId of user.rooms) {
+            //     const _room = rooms.get(roomId);
+            //     if (_room) {
+            //         return;
+            //     }
+            // }
+
+            const userId = user.id;
+            const _user: T.ServerUser = {
+                id: userId,
+                client: user,
+                rooms: [],
+                socketId: socket.id,
+            };
+            users.set(userId, _user);
+            socket.data.userId = user.id;
 
             const player: T.Player = {
                 id: user.id,
-                name: user.client.name,
+                host: false,
+                name: user.name,
                 role: PLAYER_ROLE.GUEST,
                 score: 0,
                 scoreLast: 0,
@@ -419,7 +435,7 @@ export function attach_socket_server(
             };
 
             socket.join(roomId);
-            user.rooms.push(roomId);
+            _user.rooms.push(roomId);
             room.players.push(player);
             socket.emit('room_joined', {
                 room: room.room,
@@ -457,7 +473,7 @@ export function attach_socket_server(
             }
 
             removePlayerFromRoom(io, socket, kickedUser, room, playerId);
-            io.to(room.room.id).emit('player_kicked', { roomId: room.id, playerId: playerId });
+            io.to(room.room.id).emit('player_kicked', { playerId: playerId });
             io.sockets.sockets.get(kickedUser.socketId)?.leave(roomId);
         });
 

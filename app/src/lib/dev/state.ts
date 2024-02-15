@@ -1,12 +1,14 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { createSocket } from '$game/socket';
-import * as _decks from '$game/stores/decks';
-import * as _game from '$game/stores/game';
-import * as _player from '$game/stores/player';
-import * as _room from '$game/stores/room';
-import type { DeckIdentifier, Game, Player, RoomClient, User } from '$game/types';
-import { GAME } from '$shared/configs.js';
+import * as _game from '$game/stores/game.js';
+import * as _player from '$game/stores/players.js';
+import * as _room from '$game/stores/room.js';
+import * as _self from '$game/stores/self.js';
+import { createSocketStore } from '$game/stores/socket.js';
+import type { DeckIdentifier, Game, Player, RoomClient, User } from '$game/types.js';
+import * as _decks from '$lib/stores/decks.js';
+import { user } from "$lib/stores/user.js";
 import { GAME_STATUS, PLAYER_ROLE } from '$shared/constants.js';
+import { GAME } from '$shared/defaults.js';
 
 
 const INITIAL_USER: User = {
@@ -72,6 +74,7 @@ const INITIAL_GAME: Game = {
 const INITIAL_PLAYERS: Player[] = [
     {
         id: '1',
+        host: true,
         name: 'Josu',
         role: 'HOST',
         score: 40,
@@ -96,6 +99,7 @@ const INITIAL_PLAYERS: Player[] = [
     },
     {
         id: '2',
+        host: false,
         name: 'Mikel',
         role: 'GUEST',
         score: -30,
@@ -120,6 +124,7 @@ const INITIAL_PLAYERS: Player[] = [
     },
     {
         id: '3',
+        host: false,
         name: 'Ander',
         role: 'GUEST',
         score: 0,
@@ -166,20 +171,20 @@ const INITIAL_DECKS: DeckIdentifier[] = [
 ];
 
 
-export const socket = createSocket();
+export const socket = createSocketStore();
 
 
-export const self = _player.createSelfStore();
+export const self = _self.createSelfStore(user);
 
-export const selfActions = _player.createSelfActions(socket, self);
+export const selfActions = _self.createSelfActions(socket, self);
 
-_player.attachSelfListeners(socket, self);
+_self.attachSelfListeners(socket, self);
 
-self.value.id = INITIAL_USER.id;
-self.value.registered = true;
-self.value.role = PLAYER_ROLE.HOST;
+self.value.player.id = INITIAL_USER.id;
+self.value.loaded = true;
+self.value.player.role = PLAYER_ROLE.HOST;
 
-export const players = _player.createPlayersStore();
+export const players = _player.createPlayersStore(self);
 
 export const playersActions = _player.createPlayersActions(socket, players);
 
@@ -199,7 +204,7 @@ export const game = _game.createGameStore();
 
 export const gameStatus = _game.createGameStatusStore(game);
 
-export const gameActions = _game.createGameActions(socket, self, game);
+export const gameActions = _game.createGameActions(socket, game);
 
 _game.attachGameListeners(socket, game);
 
@@ -207,10 +212,4 @@ game.mset(INITIAL_GAME);
 
 export const decks = _decks.createDecksStore();
 
-export const decksActions = _decks.createDecksActions(socket, decks);
-
-_decks.attachDecksListeners(socket, decks);
-
 decks.mset(INITIAL_DECKS);
-
-// TODO: attach common listeners between stores

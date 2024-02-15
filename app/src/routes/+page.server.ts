@@ -2,7 +2,7 @@ import { accountDeleteSchema, accountRegisterSchema } from '$lib/schemas/account
 import { roomCreateSchema, roomJoinSchema } from '$lib/schemas/room.js';
 import { rooms, users } from '$lib/server/db.js';
 import { redirectIfParam, uniqueRoomId } from '$lib/utils/index.js';
-import { GAME } from '$shared/configs.js';
+import { GAME } from '$shared/defaults.js';
 import { fail } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
@@ -91,7 +91,7 @@ export const actions: Actions = {
             id: uniqueRoomId(),
             name: uniqueRoomId(),
             hostId: locals.user.id,
-            playersMax: GAME.DEFAULT_PLAYERS,
+            playersMax: GAME.MAX_PLAYERS,
         }).returning({ id: rooms.id }).get();
 
         return message(form, { room });

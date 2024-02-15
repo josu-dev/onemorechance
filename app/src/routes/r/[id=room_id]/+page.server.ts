@@ -17,12 +17,12 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
     if (room.status === 'CLOSED') {
         error(400, 'La sala esta cerrada');
     }
-    if (room.playersCount >= room.playersMax) {
-        error(400, 'La sala esta llena');
-    }
+    // if (room.playersCount >= room.playersMax) {
+    //     error(400, 'La sala esta llena');
+    // }
 
-    await locals.db.update(rooms).set({ playersCount: room.playersCount + 1 }).where(eq(rooms.id, params.id));
-    room.playersCount += 1;
+    // await locals.db.update(rooms).set({ playersCount: room.playersCount + 1 }).where(eq(rooms.id, params.id));
+    // room.playersCount += 1;
 
     return {
         user: locals.user,

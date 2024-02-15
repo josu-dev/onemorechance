@@ -2,6 +2,7 @@
   import { goto } from '$app/navigation';
   import ButtonIcon from '$comps/shared/ButtonIcon.svelte';
   import LinkBack from '$comps/shared/LinkBack.svelte';
+  import FieldHidden from '$lib/elements/form/FieldHidden.svelte';
   import FieldText from '$lib/elements/form/FieldText.svelte';
   import FieldTextarea from '$lib/elements/form/FieldTextarea.svelte';
   import IconDelete from '$lib/icons/IconDelete.svelte';
@@ -25,6 +26,11 @@
 
   const deckDeleteSForm = superForm(data.deck.deleteForm, {
     onUpdated(event) {
+      if (!event.form.valid) {
+        toast.error(String(event.form.errors.confirm), { duration: 5000 });
+        return;
+      }
+
       toast.success('Deck eliminado', { duration: 5000 });
       goto('/decks');
     },
@@ -67,6 +73,7 @@
             method="post"
             use:deckDeleteSForm.enhance
           >
+            <FieldHidden form={deckDeleteSForm} field="id" />
             <ButtonIcon
               icon={IconDelete}
               type="submit"

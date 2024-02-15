@@ -15,7 +15,7 @@
     roomActions,
     self,
   } from '$lib/dev/state.js';
-  import { GAME } from '$shared/configs.js';
+  import { GAME } from '$shared/defaults.js';
   import {
     GAME_STATUS,
     ROOM_STATUS_CLIENT,
@@ -57,12 +57,12 @@
         description: "Toggle current player's role",
         onAction: () => {
           if (
-            !self.value.registered ||
+            !self.value.loaded ||
             room.value.status === ROOM_STATUS_CLIENT.NO_ROOM
           ) {
             return;
           }
-          self.value.id = self.value.id === '1' ? '3' : '1';
+          self.value.player.id = self.value.player.id === '1' ? '3' : '1';
           self.sync();
         },
       },
@@ -133,7 +133,7 @@
   class="h-full flex flex-col items-center justify-center overflow-y-auto p-1 ring-1 ring-cyan-500 md:ring-fuchsia-500 ring-inset"
 >
   <h1 class="sr-only">A jugar One More Chance!</h1>
-  {#if !$self.registered || $room.status === ROOM_STATUS_CLIENT.NO_ROOM}
+  {#if !$self.loaded || $room.status === ROOM_STATUS_CLIENT.NO_ROOM}
     <GameMessage>
       <svelte:fragment slot="title">
         Room not found, you shouldnt be seeing this 😅

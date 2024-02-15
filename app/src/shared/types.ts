@@ -47,6 +47,7 @@ export type Game = {
 
 export type Player = {
     id: string,
+    host: boolean,
     name: string,
     role: PlayerRole,
     score: number,
@@ -68,11 +69,6 @@ export type Player = {
         freestyle: string[],
     },
     ratesReceived: Record<string, string>,
-};
-
-export type SelfPlayer = Player & {
-    registered: boolean,
-    socketId: string,
 };
 
 export type User = {
@@ -124,13 +120,13 @@ export type Deck = DeckIdentifier & (DeckSelect | DeckComplete);
 
 
 export type ClientToServerEvents = {
-    user_register: (data: { user: User; }) => void;
-    user_unregister: (data: { id: string; }) => void;
+    // user_register: (data: { user: User; }) => void;
+    // user_unregister: (data: { id: string; }) => void;
 
-    room_create: (data: { roomId?: string; }) => void;
+    room_create: (data: { roomId: string; user: User; }) => void;
+    room_join: (data: { roomId: string; user: User; }) => void;
     room_update: (data: { room: Room; }) => void;
     room_close: (data: { roomId: string; }) => void;
-    room_join: (data: { roomId: string; }) => void;
     room_leave: (data: { roomId: string; }) => void;
     room_kick_player: (data: { roomId: string; playerId: string; }) => void;
 
@@ -147,8 +143,8 @@ export type ClientToServerEvents = {
 
 
 export type ServerToClientEvents = {
-    user_registered: (data: { user: User; }) => void;
-    user_unregistered: () => void;
+    // user_registered: (data: { user: User; }) => void;
+    // user_unregistered: () => void;
 
     room_created: (data: {
         room: Room,
@@ -168,7 +164,7 @@ export type ServerToClientEvents = {
     player_updated: (data: { player: Player; }) => void;
     player_joined: (data: { player: Player; }) => void;
     player_left: (data: { playerId: string; }) => void;
-    player_kicked: (data: { roomId: string, playerId: string; }) => void;
+    player_kicked: (data: { playerId: string; }) => void;
     player_disconnected: (data: { playerId: string; }) => void;
 
     decks_update: (data: { decks: DeckIdentifier[]; }) => void;

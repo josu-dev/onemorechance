@@ -1,7 +1,10 @@
-import type { DeckIdentifier, DecksStore, SocketInstance } from '$game/types.js';
+import type { DeckIdentifier } from '$game/types.js';
 import { DECK_TYPE } from '$shared/constants.js';
 import { writable } from 'svelte/store';
+import type { ExposedReadable } from './types.ts';
 
+
+export type DecksStore = ExposedReadable<DeckIdentifier[]>;
 
 function defaultDecks(): DeckIdentifier[] {
     return [
@@ -26,35 +29,24 @@ function defaultDecks(): DeckIdentifier[] {
     ];
 }
 
-
 export function createDecksStore(): DecksStore {
-    let decks: DeckIdentifier[] = defaultDecks();
+    let _decks: DeckIdentifier[] = defaultDecks();
 
-    const { subscribe, set } = writable<DeckIdentifier[]>(decks);
+    const { subscribe, set } = writable<DeckIdentifier[]>(_decks);
 
     return {
         subscribe,
         get value() {
-            return decks;
+            return _decks;
+        },
+        mset(value) {
+            _decks = value;
+            set(_decks);
         },
         sync() {
-            set(decks);
-        },
-        mset(value: DeckIdentifier[]) {
-            decks = value;
-            set(value);
+            set(_decks);
         },
     };
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function createDecksActions(socket: SocketInstance, decks: DecksStore) {
-    return {
-    };
-}
-
-export function attachDecksListeners(socket: SocketInstance, decks: DecksStore) {
-    socket.on('decks_update', (data) => {
-        decks.mset(data.decks);
-    });
-}
+export const decks = createDecksStore();

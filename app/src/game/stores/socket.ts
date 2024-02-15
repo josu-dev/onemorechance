@@ -1,14 +1,29 @@
-import type { SocketState, SocketStore } from '$game/types.js';
+import type { ExposedReadablePartial } from '$lib/stores/types.ts';
+import { logClient } from '$lib/utils/logging.ts';
+import type { ClientToServerEvents, ServerToClientEvents } from '$shared/types.js';
+import type { Socket } from 'socket.io-client';
 import { io } from 'socket.io-client';
 import { writable } from 'svelte/store';
 
+
+export type SocketInstance = Socket<ServerToClientEvents, ClientToServerEvents>;
+
+export type SocketState = {
+    initialized: boolean,
+    connected: boolean,
+    connecting: boolean,
+};
+
+export type SocketStore = ExposedReadablePartial<SocketState> & {
+    instance: SocketInstance,
+};
 
 export function createSocketStore(): SocketStore {
     const _socket = io({
         autoConnect: false,
     });
 
-    let _state = {
+    const _state = {
         initialized: false,
         connected: false,
         connecting: false,
@@ -21,14 +36,16 @@ export function createSocketStore(): SocketStore {
         get value() {
             return _state;
         },
+        mset(value) {
+            if (_state !== value) {
+                Object.assign(_state, value);
+            }
+            set(_state);
+        },
         sync() {
             set(_state);
         },
-        mset(value) {
-            _state = value;
-            set(_state);
-        },
-        get socket() {
+        get instance() {
             return _socket;
         },
     };
@@ -38,31 +55,32 @@ export function createSocketStore(): SocketStore {
 export function createSocketActions(socket: SocketStore) {
     return {
         connect() {
-            socket.socket.connect();
+            socket.instance.connect();
         },
         disconnect() {
-            socket.socket.disconnect();
+            socket.instance.disconnect();
         },
     };
 }
 
 
 export function attachSocketListeners(socket: SocketStore) {
-    socket.socket.on('connect', () => {
+    socket.instance.on('connect', () => {
         socket.mset({
             initialized: true,
             connected: true,
             connecting: false,
         });
-        console.log('connected to websocket');
+
+        logClient.debug('connected to websocket');
     });
 
-    socket.socket.on('disconnect', (reason) => {
+    socket.instance.on('disconnect', (reason) => {
         socket.mset({
             connected: false,
             connecting: false,
-            initialized: false,
         });
-        console.log('disconnected from websocket by: ', reason);
+
+        logClient.debug('disconnected from websocket by: ', reason);
     });
 }

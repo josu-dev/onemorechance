@@ -12,6 +12,8 @@ export const ROOM_STATUS_CLIENT = {
     ...ROOM_STATUS,
     NO_ROOM: 'NO_ROOM',
     CONNECTING: 'CONNECTING',
+    CONNECTION_LOST: 'CONNECTION_LOST',
+    KICKED: 'KICKED',
     FULL: 'FULL',
     LEFT: 'LEFT',
 } as const;

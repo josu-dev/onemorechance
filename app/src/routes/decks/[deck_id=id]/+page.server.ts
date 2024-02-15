@@ -66,7 +66,7 @@ export const actions: Actions = {
             return setError(form, 'confirm', 'Debes confirmar la eliminación');
         }
 
-        await locals.db.delete(decks).where(eq(decks.id, form.data.id)).execute();
+        await locals.db.delete(decks).where(eq(decks.id, form.data.id));
     },
     deck_update: async ({ locals, params, request }) => {
         const form = await superValidate(request, zod(deckUpdateSchema));

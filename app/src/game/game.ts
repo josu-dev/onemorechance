@@ -1,27 +1,29 @@
-import * as _socket from '$game/socket.js';
-import * as _decks from '$game/stores/decks.js';
 import * as _game from '$game/stores/game.js';
-import * as _player from '$game/stores/player.js';
+import * as _player from '$game/stores/players.js';
 import * as _room from '$game/stores/room.js';
+import * as _self from '$game/stores/self.js';
 import * as _shared from '$game/stores/shared.js';
+import * as _socket from '$game/stores/socket.js';
 import { user } from '$lib/stores/user.js';
+import { logClient } from '$lib/utils/logging.js';
+import { ROOM_STATUS_CLIENT } from '$shared/constants.js';
 
 
-export const socket = _socket.createSocket();
+export const socket = _socket.createSocketStore();
 
 export const socketActions = _socket.createSocketActions(socket);
 
 _socket.attachSocketListeners(socket);
 
 
-export const self = _player.createSelfStore();
+export const self = _self.createSelfStore(user);
 
-export const selfActions = _player.createSelfActions(socket, self);
+export const selfActions = _self.createSelfActions(socket, self);
 
-_player.attachSelfListeners(socket, self);
+_self.attachSelfListeners(socket, self);
 
 
-export const players = _player.createPlayersStore();
+export const players = _player.createPlayersStore(self);
 
 export const playersActions = _player.createPlayersActions(socket, players);
 
@@ -40,16 +42,28 @@ export const game = _game.createGameStore();
 
 export const gameStatus = _game.createGameStatusStore(game);
 
-export const gameActions = _game.createGameActions(socket, self, game);
+export const gameActions = _game.createGameActions(socket, game);
 
 _game.attachGameListeners(socket, game);
 
 
-export const decks = _decks.createDecksStore();
-
-export const decksActions = _decks.createDecksActions(socket, decks);
-
-_decks.attachDecksListeners(socket, decks);
-
-
 _shared.attachSharedListeners(socket, user, self, room, game, players);
+
+socket.instance.on('connect', () => {
+    self.value.connected = true;
+    self.sync();
+    if (!self.value.loaded) {
+        logClient.warn('User not loaded cannot auto connect');
+        return;
+    }
+
+    if (room.value.status !== ROOM_STATUS_CLIENT.CONNECTING) {
+        return;
+    }
+
+    if (room.value.hostId === self.value.user.id) {
+        roomActions.createRoom();
+    } else {
+        roomActions.joinRoom(room.value.id);
+    }
+});

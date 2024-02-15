@@ -2,7 +2,6 @@
   import CopyButton from '$comps/shared/CopyButton.svelte';
   import type {
     DeckIdentifier,
-    DecksStore,
     GameSettings,
     GameStore,
     Player,
@@ -10,8 +9,9 @@
     RoomStore,
     SelfStore,
   } from '$game/types.js';
-  import { GAME } from '$shared/configs.js';
-  import { DECK_TYPE, PLAYER_ROLE } from '$shared/constants.js';
+  import type { DecksStore } from '$lib/stores/decks.ts';
+  import { DECK_TYPE } from '$shared/constants.js';
+  import { GAME } from '$shared/defaults.js';
   import { createEventDispatcher } from 'svelte';
 
   export let self: SelfStore;
@@ -20,8 +20,7 @@
   export let players: PlayersStore;
   export let decks: DecksStore;
 
-  $: isHost = $self.role === PLAYER_ROLE.HOST;
-  $: isInvited = !isHost;
+  $: isInvited = !$self.player.host;
   $: playersAreReady = $players.every((player) => player.ready);
 
   let settings = {
@@ -159,7 +158,7 @@
               <div
                 class="grid place-items-center w-8 h-8 text-xl font-mono [&>*]:font-black rounded-md bg-white"
               >
-                {#if player.role === PLAYER_ROLE.HOST}
+                {#if player.host}
                   <span class="text-black">A</span>
                 {:else}
                   <span class="text-black">I</span>
@@ -168,7 +167,7 @@
               <span class="text-lg">{player.name}</span>
               <div class="ml-auto">
                 <label for="ready-{player.id}" class="sr-only">Listo</label>
-                {#if player.id === $self.id}
+                {#if player.me}
                   <input
                     type="checkbox"
                     id="ready-{player.id}"
@@ -178,7 +177,7 @@
                     class="form-checkbox text-success-500 w-6 h-6 rounded-md cursor-pointer"
                   />
                 {:else}
-                  {#if isHost}
+                  {#if $self.player.host}
                     <button
                       type="button"
                       on:click={() => askForKickPlayer(player)}
@@ -279,7 +278,7 @@
             </label>
           </div>
 
-          {#if isHost}
+          {#if $self.player.host}
             <div
               class="flex flex-wrap flex-row-reverse justify-around gap-2 w-full sm:gap-4 md:mt-4"
             >
@@ -302,7 +301,7 @@
     <div
       class="flex flex-col gap-2 sm:flex-row-reverse sm:gap-4 mt-4 md:mt-8 justify-around"
     >
-      {#if isHost}
+      {#if $self.player.host}
         <button
           type="button"
           on:click={askForStartGame}

@@ -19,7 +19,7 @@
         return;
       }
 
-      goto(`/decks/${form.message.inserted.id}`);
+      goto(`/decks/${form.message.deck.id}`);
     },
   });
 

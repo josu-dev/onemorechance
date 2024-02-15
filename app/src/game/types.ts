@@ -1,28 +1,21 @@
-import type { ExposedReadable } from '$lib/stores/types.js';
-import type { ClientToServerEvents, DeckIdentifier, Game, Player, RoomClient, SelfPlayer, ServerToClientEvents } from '$shared/types.js';
-import type { Socket } from 'socket.io-client';
+import type { ExposedReadablePartial } from '$lib/stores/types.ts';
 
 
-export * from '$shared/types.js';
+export type * from '$shared/types.js';
 
-export type SocketInstance = Socket<ServerToClientEvents, ClientToServerEvents>;
+export interface GameStateStore<T> extends ExposedReadablePartial<T> {
+    /**
+     * Reset the game state to its default value.
+     */
+    reset(): void;
+}
 
-export type SocketState = {
-    initialized: boolean,
-    connected: boolean,
-    connecting: boolean,
-};
+export type { SocketStore } from '$game/stores/socket.ts';
 
-export type SocketStore = ExposedReadable<SocketState> & {
-    socket: SocketInstance,
-};
+export type { SelfStore } from '$game/stores/self.ts';
 
-export type RoomStore = ExposedReadable<RoomClient>;
+export type { RoomStore } from '$game/stores/room.ts';
 
-export type GameStore = ExposedReadable<Game>;
+export type { GameStore } from '$game/stores/game.ts';
 
-export type SelfStore = ExposedReadable<SelfPlayer>;
-
-export type PlayersStore = ExposedReadable<Player[]>;
-
-export type DecksStore = ExposedReadable<DeckIdentifier[]>;
+export type { PlayersStore } from '$game/stores/players.ts';

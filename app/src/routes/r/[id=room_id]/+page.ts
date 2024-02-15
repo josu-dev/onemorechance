@@ -1,11 +1,14 @@
+import { browser } from '$app/environment';
 import { room, self, socketActions } from '$game/game.js';
 import type { PageLoad } from './$types.js';
 
 
 export const load: PageLoad = async ({ data }) => {
-    self.value.id = data.user.id;
-    self.value.name = data.user.name;
-    self.sync();
+    if (!self.value.loaded) {
+        self.value.loaded = true;
+        self.value.user = data.user;
+        self.sync();
+    }
 
     room.mset({
         id: data.room.id,
@@ -14,7 +17,10 @@ export const load: PageLoad = async ({ data }) => {
         hostId: data.room.hostId,
     });
 
-    socketActions.connect();
+    if (!browser) {
+        return {};
+    }
 
+    socketActions.connect();
     return {};
 };

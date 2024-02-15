@@ -8,7 +8,6 @@
   import GameRateSentence from '$comps/game/GameRateSentence.svelte';
   import GameRoundWinner from '$comps/game/GameRoundWinner.svelte';
   import {
-    decks,
     game,
     gameActions,
     gameStatus,
@@ -18,6 +17,7 @@
     self,
     socketActions,
   } from '$game/game.js';
+  import { decks } from '$lib/stores/decks.js';
   import { GAME_STATUS, ROOM_STATUS_CLIENT } from '$shared/constants.js';
   import { onMount } from 'svelte';
 
@@ -60,7 +60,7 @@
 
 <main class="main justify-center py-1">
   <h1 class="sr-only">A jugar One More Chance!</h1>
-  {#if !$self.registered || $room.status === ROOM_STATUS_CLIENT.NO_ROOM}
+  {#if !$self.loaded || $room.status === ROOM_STATUS_CLIENT.NO_ROOM}
     <GameMessage>
       <svelte:fragment slot="title">
         Room not loaded, you shouldnt be seeing this 😅
@@ -74,6 +74,13 @@
       <svelte:fragment slot="title">
         La sala ha sido cerrada por el anfitrión 😢
       </svelte:fragment>
+      <svelte:fragment slot="content">
+        <a class="button variant-primary" href="/">Volver al inicio</a>
+      </svelte:fragment>
+    </GameMessage>
+  {:else if $room.status === ROOM_STATUS_CLIENT.CONNECTING}
+    <GameMessage>
+      <svelte:fragment slot="title">Conectando a la sala...</svelte:fragment>
       <svelte:fragment slot="content">
         <a class="button variant-primary" href="/">Volver al inicio</a>
       </svelte:fragment>
