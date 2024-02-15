@@ -17,11 +17,10 @@ export const load: PageServerLoad = async ({ locals, url }) => {
     }
 
     const [
-        registerForm, deleteForm,
+        registerForm,
         roomCreateForm, roomJoinForm,
     ] = await Promise.all([
         superValidate(zod(accountRegisterSchema)),
-        superValidate(zod(accountDeleteSchema)),
         superValidate(zod(roomCreateSchema)),
         superValidate(zod(roomJoinSchema)),
     ]);
@@ -29,7 +28,6 @@ export const load: PageServerLoad = async ({ locals, url }) => {
     return {
         account: {
             registerForm: registerForm,
-            deleteForm: deleteForm,
         },
         room: {
             createForm: roomCreateForm,

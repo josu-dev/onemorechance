@@ -1,9 +1,15 @@
 <script lang="ts">
   import { browser } from '$app/environment';
+  import { enhance } from '$app/forms';
+  import { goto } from '$app/navigation';
   import { room, roomActions } from '$game/game.js';
   import { useClickOutside } from '$lib/actions/index.js';
   import { audioPlayer } from '$lib/stores/audio.js';
+  import { user } from '$lib/stores/user.js';
+  import { logClient } from '$lib/utils/logging.ts';
   import { ROOM_STATUS_CLIENT } from '$shared/constants.js';
+  import type { SubmitFunction } from '@sveltejs/kit';
+  import toast from 'svelte-french-toast';
 
   let menuButton: HTMLButtonElement;
 
@@ -32,6 +38,20 @@
   function leaveRoom() {
     roomActions.leaveRoom();
   }
+
+  const enhanceDeleteAccount: SubmitFunction = ({}) => {
+    return ({ result }) => {
+      if (result.type === 'success') {
+        open = false;
+        user.mset(undefined);
+        goto('/');
+        return;
+      }
+
+      logClient.error('Error al borrar la cuenta', result);
+      toast.error('Error al borrar la cuenta', { duration: 5000 });
+    };
+  };
 </script>
 
 <div class="relative flex flex-col">
@@ -63,7 +83,7 @@
       class="absolute right-0 top-[125%] min-w-[clamp(8rem,90vw,16rem)] sm:min-w-64 p-1 bg-black text-gray-300 ring-1 ring-gray-300 rounded-md overflow-hidden"
     >
       <div class="p-1">Menu</div>
-      <div class="mb-0.5 border-b border-gray-300/50"></div>
+      <div class="mb-0.5 border-b border-gray-300/50" />
       <div class="p-1">
         <div class="flex justify-between">
           <span>Audio</span>
@@ -156,7 +176,7 @@
         </div>
       </div>
 
-      <div class="mb-0.5 border-b border-gray-300/50"></div>
+      <div class="mb-0.5 border-b border-gray-300/50" />
 
       <div class="p-1">
         <div class="flex justify-between">
@@ -205,9 +225,40 @@
         </div>
       </div>
 
-      {#if inRoom}
-        <div class="mb-0.5 border-b border-gray-300/50"></div>
+      {#if $user}
+        <div class="mb-0.5 border-b border-gray-300/50" />
+        <div class="p-1">
+          <div class="flex justify-between">
+            <span>Cuenta</span>
+          </div>
+          <div class="flex flex-col">
+            <form
+              action="/?/account_delete"
+              method="post"
+              use:enhance={enhanceDeleteAccount}
+              class="flex flex-row items-center w-full gap-4"
+            >
+              <button
+                type="submit"
+                class="hover:text-gray-100 hover:underline underline-offset-2"
+                >Borrar cuenta</button
+              >
+              <label>
+                <span class="sr-only">Confirmar</span>
+                <input
+                  type="checkbox"
+                  name="confirm"
+                  required
+                  class="form-checkbox text-purple-700 w-5 h-5 rounded-md cursor-pointer"
+                />
+              </label>
+            </form>
+          </div>
+        </div>
+      {/if}
 
+      {#if inRoom}
+        <div class="mb-0.5 border-b border-gray-300/50" />
         <div class="p-1">
           <!-- <div class="flex justify-between">
             <span>Partida</span>

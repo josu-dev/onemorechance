@@ -16,13 +16,6 @@
     },
   });
 
-  const deleteSForm = superForm(data.account.deleteForm, {
-    invalidateAll: false,
-    onUpdated() {
-      user.mset(undefined);
-    },
-  });
-
   let playMenu = false;
 
   function togglePlayMenu() {
@@ -81,26 +74,32 @@
 
     <div class="flex flex-col justify-items-center items-center">
       {#if !$user}
-        <form
-          method="post"
-          action="?/account_register"
-          use:registerSForm.enhance
-          class="flex flex-col items-center gap-4"
-        >
-          <FieldText
-            form={registerSForm}
-            field="name"
-            label="Nombre"
-            labelHidden
-            placeholder="tu nombre..."
-            className="w-full [&_input]:text-center"
-          />
-          <button type="submit" class="button variant-primary w-full">
-            Registrar
-          </button>
-        </form>
+        <section class="flex flex-col gap-4 md:gap-5 w-48 max-w-[90vw]">
+          <h2 class="sr-only">Menu cuenta</h2>
+          <p class="text-center text-gray-50 text-2xl font-semibold">
+            Crea tu cuenta 😉
+          </p>
+          <form
+            method="post"
+            action="?/account_register"
+            use:registerSForm.enhance
+            class="flex flex-col items-center gap-3"
+          >
+            <FieldText
+              form={registerSForm}
+              field="name"
+              label="Nombre"
+              labelHidden
+              placeholder="tu nombre..."
+              className="mt-0 w-full [&_input]:text-center"
+            />
+            <button type="submit" class="button variant-primary w-full">
+              Registrar
+            </button>
+          </form>
+        </section>
       {:else if !playMenu}
-        <section class="flex flex-col gap-4 md:gap-6">
+        <section class="flex flex-col gap-4 md:gap-5 w-48 max-w-[90vw]">
           <h2 class="sr-only">Menu principal</h2>
           <p class="text-center text-gray-50 text-2xl font-semibold mb-2">
             Hola {$user.name}!
@@ -108,32 +107,12 @@
           <button on:click={togglePlayMenu} class="button variant-primary">
             Jugar
           </button>
-          <button disabled class="button variant-primary">
-            Decks (Proximamente)
-          </button>
-          <form
-            method="post"
-            action="?/account_delete"
-            use:deleteSForm.enhance
-            class="flex flex-row w-full items-center justify-center gap-4"
-          >
-            <label for="confirm">
-              <span class="sr-only">Confirmar</span>
-              <input
-                type="checkbox"
-                name="confirm"
-                required
-                class="form-checkbox text-success-500 w-6 h-6 rounded-md cursor-pointer"
-              />
-            </label>
-            <button type="submit" class="button variant-primary w-full">
-              Borrar cuenta
-            </button>
-          </form>
+          <a href="/decks" class="button variant-primary">Decks</a>
+          <a href="/stats" class="button variant-primary">Stats</a>
         </section>
       {:else}
-        <section class="flex flex-col gap-4 md:gap-6">
-          <h2 class="sr-only">Menu de partida</h2>
+        <section class="flex flex-col gap-4 md:gap-5 w-48 max-w-[90vw]">
+          <h2 class="sr-only">Menu partida</h2>
           <form
             action="?/room_create"
             method="post"
@@ -148,7 +127,7 @@
             action="?/room_join"
             method="post"
             use:roomJoinSForm.enhance
-            class="flex flex-col items-center gap-2"
+            class="flex flex-col items-center gap-3"
           >
             <FieldText
               form={roomJoinSForm}

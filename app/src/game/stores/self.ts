@@ -69,7 +69,9 @@ export function createSelfStore(user: UserStore): SelfStore {
         }
         else {
             _self.loaded = false;
-            _self.user = defaultSelf().user;
+            const d = defaultSelf();
+            _self.user = d.user;
+            _self.player = d.player;
         }
     });
 
@@ -89,15 +91,15 @@ export function createSelfStore(user: UserStore): SelfStore {
         },
         reset() {
             _self.connected = false;
-            const _default = defaultSelf();
-            _self.player = _default.player;
+            const d = defaultSelf();
+            _self.player = d.player;
             if (user.value) {
                 _self.loaded = true;
                 _self.user = user.value;
             }
             else {
                 _self.loaded = false;
-                _self.user = _default.user;
+                _self.user = d.user;
             }
             set(_self);
         },
