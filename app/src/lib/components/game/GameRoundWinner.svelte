@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { GameStore, Player, PlayersStore } from '$game/types.client.js';
+  import type { GameStore, Player, PlayersStore } from '$game/types.js';
 
   export let game: GameStore;
   export let players: PlayersStore;

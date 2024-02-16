@@ -1,17 +1,19 @@
 <script lang="ts">
   import CopyButton from '$comps/shared/CopyButton.svelte';
-  import { GAME } from '$game/configs.js';
-  import { DECK_TYPE, PLAYER_ROLE } from '$game/enums.js';
   import type {
-    DecksStore,
+    DeckCompact,
+    DeckIdentifier,
     GameSettings,
     GameStore,
     Player,
     PlayersStore,
     RoomStore,
     SelfStore,
-  } from '$game/types.client.js';
-  import type { DeckIdentifier } from '$game/types.js';
+  } from '$game/types.js';
+  import type { DecksStore } from '$lib/stores/decks.ts';
+  import { logClient } from '$lib/utils/logging.ts';
+  import { DECK_TYPE } from '$shared/constants.js';
+  import { GAME } from '$shared/defaults.js';
   import { createEventDispatcher } from 'svelte';
 
   export let self: SelfStore;
@@ -20,8 +22,7 @@
   export let players: PlayersStore;
   export let decks: DecksStore;
 
-  $: isHost = $self.role === PLAYER_ROLE.HOST;
-  $: isInvited = !isHost;
+  $: isInvited = !$self.player.host;
   $: playersAreReady = $players.every((player) => player.ready);
 
   let settings = {
@@ -36,12 +37,48 @@
   let deck = {
     id: '',
     name: '',
-    type: 'CHOOSE',
+    type: 'SELECT',
     description: '',
   } as DeckIdentifier;
 
-  $: if ($game.deck.id !== deck.id) {
-    deck = $game.deck;
+  let deckData: DeckCompact = {
+    id: deck.id,
+    n: deck.name,
+    t: deck.type,
+    d: deck.description,
+    s: [],
+  };
+
+  function fetchDeckData(id: string) {
+    fetch(
+      `/api/v1/decks/${id}?compact=true&random=true&limit=${
+        settings.rounds * 2
+      }`,
+    )
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error('Error fetching deck data', { cause: res });
+        }
+        return res.json();
+      })
+      .then((data) => {
+        deckData.id = data.d.id;
+        deckData.n = data.d.n;
+        deckData.t = data.d.t;
+        deckData.d = data.d.d;
+        deckData.s = data.s;
+      })
+      .catch((err) => {
+        logClient.error('Error fetching deck data', err);
+      });
+  }
+
+  $: if ($game.settings.deckId !== deck.id) {
+    const newDeck = $decks.find((deck) => deck.id === $game.settings.deckId);
+    if (newDeck) {
+      deck = newDeck;
+      $game.deck.id = newDeck.id;
+    }
   }
 
   const dispatch = createEventDispatcher<{
@@ -51,7 +88,7 @@
     update_settings: GameSettings;
     close_room: true;
     leave_room: true;
-    start_game: true;
+    start_game: DeckCompact;
   }>();
 
   function dispatchCloseRoom() {
@@ -64,7 +101,7 @@
     dispatch('leave_room', true);
   }
   function dispatchStartGame() {
-    dispatch('start_game', true);
+    dispatch('start_game', deckData);
   }
   function dispatchToggleReady(state: boolean) {
     dispatch('toggle_ready', state);
@@ -101,6 +138,7 @@
 
     deck = newDeck;
     settings.deckId = newDeck.id;
+    fetchDeckData(newDeck.id);
   }
 
   function askForKickPlayer(player: Player) {
@@ -127,6 +165,10 @@
   function askForStartGame() {
     if (!playersAreReady) {
       // TODO: Show info message
+      return;
+    }
+    if (!deckData.id) {
+      alert('Selecciona una baraja');
       return;
     }
     // TODO: Show modal
@@ -159,7 +201,7 @@
               <div
                 class="grid place-items-center w-8 h-8 text-xl font-mono [&>*]:font-black rounded-md bg-white"
               >
-                {#if player.role === PLAYER_ROLE.HOST}
+                {#if player.host}
                   <span class="text-black">A</span>
                 {:else}
                   <span class="text-black">I</span>
@@ -168,7 +210,7 @@
               <span class="text-lg">{player.name}</span>
               <div class="ml-auto">
                 <label for="ready-{player.id}" class="sr-only">Listo</label>
-                {#if player.id === $self.id}
+                {#if player.me}
                   <input
                     type="checkbox"
                     id="ready-{player.id}"
@@ -178,7 +220,7 @@
                     class="form-checkbox text-success-500 w-6 h-6 rounded-md cursor-pointer"
                   />
                 {:else}
-                  {#if isHost}
+                  {#if $self.player.host}
                     <button
                       type="button"
                       on:click={() => askForKickPlayer(player)}
@@ -241,7 +283,7 @@
               />
             </label>
           </div>
-          {#if deck.type === DECK_TYPE.CHOOSE}
+          {#if deck.type === DECK_TYPE.SELECT}
             <div class="w-full">
               <label class="flex items-center justify-between">
                 <span>Opciones</span>
@@ -266,20 +308,25 @@
                 }}
                 class="select variant-primary w-48 ml-4 overflow-hidden text-ellipsis"
               >
+                <option title="Sin seleccionar" value="">
+                  Sin seleccionar
+                </option>
                 {#each $decks as deck}
-                  <option
-                    selected={deck.id === $game.deck.id}
-                    title={deck.description}
-                    value={deck.id}
-                  >
-                    {deck.name}
-                  </option>
+                  {#if deck.type === DECK_TYPE.COMPLETE}
+                    <option
+                      selected={deck.id === $game.deck.id}
+                      title={deck.description}
+                      value={deck.id}
+                    >
+                      {deck.name}
+                    </option>
+                  {/if}
                 {/each}
               </select>
             </label>
           </div>
 
-          {#if isHost}
+          {#if $self.player.host}
             <div
               class="flex flex-wrap flex-row-reverse justify-around gap-2 w-full sm:gap-4 md:mt-4"
             >
@@ -302,7 +349,7 @@
     <div
       class="flex flex-col gap-2 sm:flex-row-reverse sm:gap-4 mt-4 md:mt-8 justify-around"
     >
-      {#if isHost}
+      {#if $self.player.host}
         <button
           type="button"
           on:click={askForStartGame}

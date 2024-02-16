@@ -1,16 +1,18 @@
-import { GAME } from '$game/configs.js';
-import type { GameStatus, PlayerRating } from '$game/enums.js';
-import { GAME_STATUS } from '$game/enums.js';
-import type { Game, GameSettings, GameStore, SelfStore, SocketInstance } from '$game/types.client.js';
-import type { Option } from '$game/types.js';
+import type { Game, GameSettings, GameStatus, Option, PlayerRating, SocketStore } from '$game/types.js';
+import type { GameStateStore } from '$game/types.ts';
 import type { Readable } from '$lib/stores/types.js';
-import { uniqueRoomId, uniqueURLSafeId } from '$lib/utils/index.js';
+import { uniqueId, uniqueRoomId } from '$lib/utils/index.js';
+import { GAME_STATUS } from "$shared/constants.js";
+import { GAME } from '$shared/defaults.js';
 import { derived, writable } from 'svelte/store';
+
+
+export type GameStore = GameStateStore<Game>;
 
 
 function defaultGame(): Game {
     return {
-        id: uniqueURLSafeId(),
+        id: uniqueId(),
         roomId: uniqueRoomId(),
         status: GAME_STATUS.NOT_STARTED,
         settings: {
@@ -23,23 +25,22 @@ function defaultGame(): Game {
         },
         round: 0,
         deck: {
-            id: uniqueURLSafeId(),
+            id: uniqueId(),
             name: 'Not a deck',
-            type: 'CHOOSE',
+            type: 'SELECT',
         },
         current: {
-            phrase: {
-                id: uniqueURLSafeId(),
+            sentence: {
+                id: uniqueId(),
                 text: 'Not a phrase',
             },
         },
         used: {
-            phrases: [],
+            sentences: [],
             options: [],
         },
     };
 }
-
 
 export function createGameStore(): GameStore {
     let _game: Game = defaultGame();
@@ -51,40 +52,46 @@ export function createGameStore(): GameStore {
         get value() {
             return _game;
         },
+        mset(value) {
+            if (_game !== value) {
+                Object.assign(_game, value);
+            }
+            set(_game);
+        },
         sync() {
             set(_game);
         },
-        mset(value: Game) {
-            _game = value;
-            set(value);
-        },
-    };
-}
-
-export function createGameActions(socket: SocketInstance, self: SelfStore, game: GameStore,) {
-    return {
-        setSettings(settings: Partial<GameSettings>) {
-            socket.emit('game_set_settings', { roomId: game.value.roomId, settings: settings });
-        },
-        ratePlayer(playerId: string, rate: PlayerRating) {
-            socket.emit('game_rate_player', { roomId: game.value.roomId, playerId: playerId, rate: rate });
-        },
-        setSelectedOption(option: Option[]) {
-            socket.emit('game_set_option', { roomId: game.value.roomId, option: option });
-        },
-        setFreestyle(text: string[]) {
-            socket.emit('game_set_freestyle', { roomId: game.value.roomId, freestyle: text });
+        reset() {
+            _game = defaultGame();
+            set(_game);
         }
     };
 }
 
-export function attachGameListeners(socket: SocketInstance, game: GameStore) {
-    socket.on('game_player_rated', ({ playerId }) => {
+export function createGameActions(socket: SocketStore, game: GameStore) {
+    return {
+        setSettings(settings: Partial<GameSettings>) {
+            socket.instance.emit('game_set_settings', { roomId: game.value.roomId, settings: settings });
+        },
+        ratePlayer(playerId: string, rate: PlayerRating) {
+            socket.instance.emit('game_rate_player', { roomId: game.value.roomId, playerId: playerId, rate: rate });
+        },
+        setSelectedOption(option: Option[]) {
+            socket.instance.emit('game_set_option', { roomId: game.value.roomId, option: option });
+        },
+        setFreestyle(text: string[]) {
+            socket.instance.emit('game_set_freestyle', { roomId: game.value.roomId, freestyle: text });
+        }
+    };
+}
+
+export function attachGameListeners(socket: SocketStore, game: GameStore) {
+    socket.instance.on('game_player_rated', ({ playerId }) => {
         game.value.current.ratingPlayer = playerId;
         game.sync();
     });
 
-    socket.on('game_updated', (data) => {
+    socket.instance.on('game_updated', (data) => {
         game.mset(data.game);
     });
 }

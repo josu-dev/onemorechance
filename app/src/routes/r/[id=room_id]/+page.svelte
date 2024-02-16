@@ -7,9 +7,7 @@
   import GameMessage from '$comps/game/GameMessage.svelte';
   import GameRateSentence from '$comps/game/GameRateSentence.svelte';
   import GameRoundWinner from '$comps/game/GameRoundWinner.svelte';
-  import { GAME_STATUS, ROOM_STATUS } from '$game/enums.js';
   import {
-    decks,
     game,
     gameActions,
     gameStatus,
@@ -17,7 +15,11 @@
     room,
     roomActions,
     self,
+    socketActions,
   } from '$game/game.js';
+  import { decks } from '$lib/stores/decks.js';
+  import { GAME_STATUS, ROOM_STATUS_CLIENT } from '$shared/constants.js';
+  import { onMount } from 'svelte';
 
   $: if (dev) {
     debugData.set({
@@ -29,7 +31,7 @@
   }
 
   $: pageTitle = `${
-    $room.status === ROOM_STATUS.IN_GAME ? 'Jugando' : 'Esperando'
+    $room.status === ROOM_STATUS_CLIENT.GAME_ON ? 'Jugando' : 'Esperando'
   } - One More Chance`;
 
   $: isNotStarted = $gameStatus === GAME_STATUS.NOT_STARTED;
@@ -41,20 +43,24 @@
   $: isScoreboard = $gameStatus === GAME_STATUS.END_SCOREBOARD;
   $: isEnded = $gameStatus === GAME_STATUS.ENDED;
 
-  $: if ($room.status === ROOM_STATUS.LEFT) {
+  $: if ($room.status === ROOM_STATUS_CLIENT.LEFT) {
     goto('/');
   }
+
+  onMount(() => {
+    return () => {
+      socketActions.disconnect();
+    };
+  });
 </script>
 
 <svelte:head>
   <title>{pageTitle}</title>
 </svelte:head>
 
-<main
-  class="h-full flex flex-col items-center justify-center overflow-y-auto p-1"
->
+<main class="main justify-center py-1">
   <h1 class="sr-only">A jugar One More Chance!</h1>
-  {#if !$self.registered || $room.status === ROOM_STATUS.NO_ROOM}
+  {#if !$self.loaded || $room.status === ROOM_STATUS_CLIENT.NO_ROOM}
     <GameMessage>
       <svelte:fragment slot="title">
         Room not loaded, you shouldnt be seeing this 😅
@@ -63,11 +69,18 @@
         <a class="button variant-primary" href="/">Volver al inicio</a>
       </svelte:fragment>
     </GameMessage>
-  {:else if $room.status === ROOM_STATUS.CLOSED}
+  {:else if $room.status === ROOM_STATUS_CLIENT.CLOSED}
     <GameMessage>
       <svelte:fragment slot="title">
         La sala ha sido cerrada por el anfitrión 😢
       </svelte:fragment>
+      <svelte:fragment slot="content">
+        <a class="button variant-primary" href="/">Volver al inicio</a>
+      </svelte:fragment>
+    </GameMessage>
+  {:else if $room.status === ROOM_STATUS_CLIENT.CONNECTING}
+    <GameMessage>
+      <svelte:fragment slot="title">Conectando a la sala...</svelte:fragment>
       <svelte:fragment slot="content">
         <a class="button variant-primary" href="/">Volver al inicio</a>
       </svelte:fragment>
@@ -97,8 +110,8 @@
       on:leave_room={() => {
         roomActions.leaveRoom();
       }}
-      on:start_game={() => {
-        roomActions.startGame();
+      on:start_game={(e) => {
+        roomActions.startGame(e.detail);
       }}
     />
   {:else if isPreRound || isPostRound}
@@ -125,7 +138,11 @@
     />
   {:else if isRoundWinner || isScoreboard}
     <GameRoundWinner {game} {players}>
-      <div slot="actions" class="flex justify-center" class:hidden={!isScoreboard}>
+      <div
+        slot="actions"
+        class="flex justify-center"
+        class:hidden={!isScoreboard}
+      >
         <button
           on:click={() => {
             game.value.status = GAME_STATUS.ENDED;

@@ -2,10 +2,18 @@
   import { dev } from '$app/environment';
   import Header from '$comps/layout/Header.svelte';
   import HyperDebug, { debugEnabled } from '$lib/components/HyperDebug.svelte';
-  import { Toaster } from 'svelte-french-toast';
+  import { user } from '$lib/stores/user.js';
+  import { logClient } from '$lib/utils/logging.js';
+  import toast, { Toaster } from 'svelte-french-toast';
   import { defineCommand, definePage } from 'svelte-hypercommands';
   import CommandPalette from 'svelte-hypercommands/CommandPalette.svelte';
   import '../app.pcss';
+
+  export let data;
+
+  if (data.user) {
+    user.mset(data.user);
+  }
 
   const globalCommands = defineCommand([
     {
@@ -43,13 +51,54 @@
         document.head.appendChild(style);
       },
     },
+    {
+      id: 'dev:test_decks_api',
+      category: 'Dev',
+      name: 'Test Decks API',
+      description: 'Test the decks API',
+      onAction: () => {
+        fetch(
+          '/api/v1/decks/s32MfRhVvT-nyzIahFawu?compact=true&limit=10&page=1&random=true',
+        ).then((res) => {
+          if (res.ok) {
+            toast.success('Decks API is working');
+          } else {
+            toast.error(
+              `Decks API is not working, ${res.status} ${res.statusText}`,
+            );
+          }
+          logClient.dev('Decks API', res);
+        });
+      },
+      shortcut: '$mod+Shift+D',
+    },
   ]);
 
   const globalPages = definePage([
     {
+      name: 'Decks',
+      url: '/decks',
+      description: 'List of all decks',
+    },
+    {
+      name: 'Ranking',
+      url: '/ranking',
+      description: 'List of all decks',
+    },
+    {
       name: 'Stages',
       url: '/game/stages',
       description: 'Debug the game stages',
+    },
+    {
+      name: 'Home',
+      url: '/',
+      description: 'Root of the app',
+    },
+    {
+      name: 'UI Test',
+      url: '/ui',
+      description: 'Test the UI components',
     },
   ]);
 </script>
@@ -62,11 +111,11 @@
 <Toaster
   position="bottom-left"
   containerClassName="omc-toast-container"
-  toastOptions={{
-    className: 'omc-toast',
-  }}
+  toastOptions={{ className: 'omc-toast' }}
 />
 
 <Header />
 
-<slot />
+<div class="h-full max-h-full [&:has(>.main-p-header)]:pt-12">
+  <slot />
+</div>

@@ -2,12 +2,12 @@ declare global {
     namespace App {
         // interface Error {}
         interface Locals {
-            user?: {
-                id: string;
-                name: string;
-            };
+            db: import('$lib/server/db').Database;
+            user?: import('$shared/types.js').User;
         }
-        // interface PageData {}
+        interface PageData {
+            user?: import('$shared/types.js').User;
+        }
         // interface Platform {}
     }
 }

@@ -1,7 +1,9 @@
 import type * as SocketIO from 'socket.io';
-import type * as Client from '../src/game/types.client.js';
-import type { ClientToServerEvents, ServerToClientEvents } from '../src/game/types.js';
+import * as Shared from '../src/shared/types.js';
 
+export type * from '../src/shared/types.js';
+
+export type * from '../src/shared/constants.js';
 
 export type InterServerEvents = Record<string, never>;
 
@@ -10,40 +12,36 @@ export type SocketData = {
 };
 
 export type WebSocketServer = SocketIO.Server<
-    ClientToServerEvents,
-    ServerToClientEvents,
+    Shared.ClientToServerEvents,
+    Shared.ServerToClientEvents,
     InterServerEvents,
     SocketData
 >;
 
 export type WebSocketServerSocket = SocketIO.Socket<
-    ClientToServerEvents,
-    ServerToClientEvents,
+    Shared.ClientToServerEvents,
+    Shared.ServerToClientEvents,
     InterServerEvents,
     SocketData
 >;
 
-export type { Client };
-
-export type * from '../src/game/enums.js';
-
-export type * from '../src/game/types.js';
-
-export type User = {
+export type ServerUser = {
     id: string,
+    client: Shared.User,
     rooms: string[],
-    client: Client.User,
+    socketId: string,
 };
 
-export type Player = {
+export type ServerPlayer = {
     userId: string,
     roomId: string,
-    client: Client.Player,
+    client: Shared.Player,
 };
 
-export type Room = {
+export type ServerRoom = {
     id: string,
-    room: Client.Room,
-    game: Client.Game,
-    players: Client.Player[],
+    room: Shared.Room,
+    game: Shared.Game,
+    players: Shared.Player[],
+    deck: Shared.DeckCompact,
 };

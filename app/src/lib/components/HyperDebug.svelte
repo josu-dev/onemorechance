@@ -6,7 +6,7 @@
 </script>
 
 <script lang="ts">
-  import SuperDebug from 'sveltekit-superforms/client/SuperDebug.svelte';
+  import SuperDebug from 'sveltekit-superforms';
 
   export let label: string | undefined = undefined;
   export let stringTruncate: number | undefined = undefined;

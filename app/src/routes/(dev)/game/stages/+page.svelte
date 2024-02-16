@@ -5,11 +5,7 @@
   import GameMessage from '$comps/game/GameMessage.svelte';
   import GameRateSentence from '$comps/game/GameRateSentence.svelte';
   import GameRoundWinner from '$comps/game/GameRoundWinner.svelte';
-  import { GAME } from '$game/configs.js';
-  import type { GameStatus } from '$game/enums.js';
-  import { GAME_STATUS, ROOM_STATUS } from '$game/enums.js';
   import {
-    decks,
     game,
     gameActions,
     gameStatus,
@@ -18,10 +14,15 @@
     roomActions,
     self,
   } from '$lib/dev/state.js';
+  import { decks } from '$lib/stores/decks.ts';
+  import {
+    GAME_STATUS,
+    ROOM_STATUS_CLIENT,
+    type GameStatus,
+  } from '$shared/constants.js';
+  import { GAME } from '$shared/defaults.js';
   import { onMount } from 'svelte';
   import { helpers } from 'svelte-hypercommands/CommandPalette.svelte';
-
-  // export let data;
 
   $: debugData.set({ $game, $players, $room, $self });
 
@@ -56,12 +57,12 @@
         description: "Toggle current player's role",
         onAction: () => {
           if (
-            !self.value.registered ||
-            room.value.status === ROOM_STATUS.NO_ROOM
+            !self.value.loaded ||
+            room.value.status === ROOM_STATUS_CLIENT.NO_ROOM
           ) {
             return;
           }
-          self.value.id = self.value.id === '1' ? '3' : '1';
+          self.value.player.id = self.value.player.id === '1' ? '3' : '1';
           self.sync();
         },
       },
@@ -111,7 +112,7 @@
   });
 
   $: pageTitle = `${
-    $room.status === ROOM_STATUS.IN_GAME ? 'Jugando' : 'Esperando'
+    $room.status === ROOM_STATUS_CLIENT.GAME_ON ? 'Jugando' : 'Esperando'
   } - One More Chance`;
 
   $: isNotStarted = $gameStatus === GAME_STATUS.NOT_STARTED;
@@ -132,7 +133,7 @@
   class="h-full flex flex-col items-center justify-center overflow-y-auto p-1 ring-1 ring-cyan-500 md:ring-fuchsia-500 ring-inset"
 >
   <h1 class="sr-only">A jugar One More Chance!</h1>
-  {#if !$self.registered || $room.status === ROOM_STATUS.NO_ROOM}
+  {#if !$self.loaded || $room.status === ROOM_STATUS_CLIENT.NO_ROOM}
     <GameMessage>
       <svelte:fragment slot="title">
         Room not found, you shouldnt be seeing this 😅
@@ -148,8 +149,8 @@
       {game}
       {players}
       {decks}
-      on:start_game={() => {
-        roomActions.startGame();
+      on:start_game={(e) => {
+        roomActions.startGame(e.detail);
       }}
       on:close_room={() => {
         roomActions.closeRoom();
@@ -193,7 +194,11 @@
     />
   {:else if isRoundWinner || isScoreboard}
     <GameRoundWinner {game} {players}>
-      <div slot="actions" class="flex justify-center" class:hidden={!isScoreboard}>
+      <div
+        slot="actions"
+        class="flex justify-center"
+        class:hidden={!isScoreboard}
+      >
         <button
           on:click={() => {
             game.value.status = GAME_STATUS.ENDED;

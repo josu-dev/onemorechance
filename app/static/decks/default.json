@@ -2,8 +2,8 @@
   "1": {
     "id": "1",
     "name": "Humor negro",
-    "type": "CHOOSE",
-    "phrases": [
+    "type": "SELECT",
+    "sentences": [
       {
         "id": "0",
         "text": "Si pudiera tener cualquier superpoder, elegiría {{}}"
@@ -90,7 +90,7 @@
       },
       {
         "id": "21",
-        "text": "No soy gay pero {{}} me banco“"
+        "text": "No soy gay pero {{}} me banco"
       },
       {
         "id": "22",
@@ -138,11 +138,11 @@
       },
       {
         "id": "33",
-        "text": "Mi profesor de matematicas me dijo que estoy con los numeros primos... yo le respondi “Que decis solo estoy pensando en {{}}“"
+        "text": "Mi profesor de matematicas me dijo que estoy con los numeros primos... yo le respondi Que decis solo estoy pensando en {{}}"
       },
       {
         "id": "34",
-        "text": "Le conte a mi abuelita que queria ser comediante me dijo “Ah como tu tio que siempre esta contando chistes sobre {{}}“"
+        "text": "Le conte a mi abuelita que queria ser comediante me dijo Ah como tu tio que siempre esta contando chistes sobre {{}}"
       }
     ],
     "options": [
@@ -788,7 +788,7 @@
     "id": "2",
     "name": "Refranes inventados",
     "type": "COMPLETE",
-    "phrases": [
+    "sentences": [
       {
         "id": "194",
         "text": "Más aburrido que {{}}"
@@ -938,8 +938,8 @@
   "3": {
     "id": "3",
     "name": "Family friendly",
-    "type": "CHOOSE",
-    "phrases": [
+    "type": "COMPLETE",
+    "sentences": [
       {
         "id": "230",
         "text": "El mejor regalo que recibí en Navidad fue un {{}}"
