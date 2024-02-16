@@ -3,14 +3,15 @@ import { nanoid } from 'nanoid';
 import { Server } from 'socket.io';
 import { DECK_TYPE, GAME_STATUS, PLAYER_RATING, PLAYER_ROLE, ROOM_STATUS } from '../src/shared/constants.js';
 import { GAME } from '../src/shared/defaults.js';
-import importedDecks from '../static/decks/default.json' with { type: "json" };
 import type * as T from './types.js';
 
 
-const decks = importedDecks as Record<string, T.Deck>;
-
-const DEFAULT_DECK = decks[GAME.DEFAULT_DECK_ID];
-
+const DEFAULT_DECK_IDENTIFIER: T.DeckIdentifier = {
+    id: '',
+    name: 'Unselected deck',
+    type: DECK_TYPE.SELECT,
+    description: 'This deck is not selected',
+};
 
 const users = new Map<string, T.ServerUser>();
 
@@ -61,8 +62,8 @@ function setupNewGame(room: T.ServerRoom) {
     room.game.status = GAME_STATUS.NOT_STARTED;
     room.game.round = 0;
     room.game.used.options = [];
-    room.game.used.phrases = [];
-    room.game.current.phrase = {
+    room.game.used.sentences = [];
+    room.game.current.sentence = {
         id: '',
         text: '',
     };
@@ -95,30 +96,35 @@ function newRound(io: T.WebSocketServer, socket: T.WebSocketServerSocket, room: 
         player.ratesReceived = {};
     }
 
-    const deck = decks[room.game.deck.id];
+    const deck = room.deck;
 
-    let phrase = deck.phrases[Math.floor(Math.random() * deck.phrases.length)]!;
-    while (room.game.used.phrases.includes(phrase.id)) {
-        phrase = deck.phrases[Math.floor(Math.random() * deck.phrases.length)]!;
+    const sentence = deck.s[(room.game.round - 1) % deck.s.length];
+    if (room.game.round > deck.s.length) {
+        room.game.used.sentences.length = 0;
+        console['warn']('Deck ran out of sentences', room.game, room.deck);
     }
 
-    room.game.used.phrases.push(phrase.id);
-    room.game.current.phrase = phrase;
+    room.game.used.sentences.push(sentence.id);
+    room.game.current.sentence = {
+        id: sentence.id,
+        text: sentence.t,
+    };
 
-    if (deck.type === DECK_TYPE.SELECT) {
-        for (const player of room.players) {
-            const missingOptions = room.game.settings.options - player.stock.options.length;
-            for (let i = 0; i < missingOptions; i++) {
-                // @ts-ignore - We know that deck is a DeckChoose
-                let option = deck.options[Math.floor(Math.random() * deck.options.length)];
-                while (room.game.used.options.includes(option.id)) {
-                    // @ts-ignore - We know that deck is a DeckChoose
-                    option = deck.options[Math.floor(Math.random() * deck.options.length)];
-                }
-                player.stock.options.push(option);
-                room.game.used.options.push(option.id);
-            }
-        }
+    if (deck.t === DECK_TYPE.SELECT) {
+        // TODO: Implement select deck
+        // for (const player of room.players) {
+        //     const missingOptions = room.game.settings.options - player.stock.options.length;
+        //     for (let i = 0; i < missingOptions; i++) {
+        //         // @ts-ignore - We know that deck is a DeckChoose
+        //         let option = deck.options[Math.floor(Math.random() * deck.options.length)];
+        //         while (room.game.used.options.includes(option.id)) {
+        //             // @ts-ignore - We know that deck is a DeckChoose
+        //             option = deck.options[Math.floor(Math.random() * deck.options.length)];
+        //         }
+        //         player.stock.options.push(option);
+        //         room.game.used.options.push(option.id);
+        //     }
+        // }
     }
 
     room.game.status = GAME_STATUS.FILL_SENTENCE;
@@ -223,38 +229,6 @@ export function attach_socket_server(
             users.delete(user.id);
         });
 
-        // socket.on('user_register', ({ user }) => {
-        //     const userId = user.id;
-        //     const _user: T.ServerUser = {
-        //         id: userId,
-        //         client: user,
-        //         rooms: [],
-        //         socketId: socket.id,
-        //     };
-        //     users.set(userId, _user);
-        //     socket.data.userId = user.id;
-        //     socket.emit('user_registered', { user: _user.client });
-        // });
-
-        // socket.on('user_unregister', ({ id }) => {
-        //     const user = users.get(id);
-        //     if (!user) {
-        //         return;
-        //     }
-
-        //     for (const roomId of user.rooms) {
-        //         const room = rooms.get(roomId);
-        //         if (!room) {
-        //             continue;
-        //         }
-        //         removePlayerFromRoom(io, socket, user, room, id);
-        //     }
-
-        //     users.delete(id);
-        //     socket.data.userId = '';
-        //     socket.emit('user_unregistered');
-        // });
-
         socket.on('room_create', ({ roomId, user }) => {
             const userId = user.id;
             const _user: T.ServerUser = {
@@ -310,7 +284,7 @@ export function attach_socket_server(
                         roomId: roomId,
                         status: GAME_STATUS.NOT_STARTED,
                         settings: {
-                            deckId: DEFAULT_DECK.id,
+                            deckId: DEFAULT_DECK_IDENTIFIER.id,
                             fillTime: GAME.DEFAULT_FILL_TIME,
                             rateTime: GAME.DEFAULT_RATE_TIME,
                             players: GAME.DEFAULT_PLAYERS,
@@ -318,25 +292,28 @@ export function attach_socket_server(
                             options: GAME.DEFAULT_OPTIONS,
                         },
                         round: 0,
-                        deck: {
-                            id: DEFAULT_DECK.id,
-                            name: DEFAULT_DECK.name,
-                            type: DEFAULT_DECK.type,
-                        },
+                        deck: { ...DEFAULT_DECK_IDENTIFIER },
                         current: {
-                            phrase: {
+                            sentence: {
                                 id: '',
                                 text: '',
                             },
                             winner: '',
                         },
                         used: {
-                            phrases: [],
+                            sentences: [],
                             options: [],
                         }
 
                     },
-                    players: [player.client]
+                    players: [player.client],
+                    deck: {
+                        id: DEFAULT_DECK_IDENTIFIER.id,
+                        n: DEFAULT_DECK_IDENTIFIER.name,
+                        t: DEFAULT_DECK_IDENTIFIER.type,
+                        d: DEFAULT_DECK_IDENTIFIER.description,
+                        s: []
+                    }
                 };
             }
 
@@ -391,13 +368,6 @@ export function attach_socket_server(
                     return;
                 }
             }
-
-            // for (const roomId of user.rooms) {
-            //     const _room = rooms.get(roomId);
-            //     if (_room) {
-            //         return;
-            //     }
-            // }
 
             const userId = user.id;
             const _user: T.ServerUser = {
@@ -545,11 +515,16 @@ export function attach_socket_server(
             io.to(roomId).emit('player_updated', { player: player });
         });
 
-        socket.on('game_start', ({ roomId }) => {
+        socket.on('game_start', ({ roomId, deck }) => {
             const room = rooms.get(roomId);
             if (!room || room.room.hostId !== socket.data.userId) {
                 return;
             }
+            room.deck = deck;
+            room.game.deck.id = deck.id;
+            room.game.deck.name = deck.n;
+            room.game.deck.type = deck.t;
+            room.game.deck.description = deck.d;
 
             setupNewGame(room);
             io.to(roomId).emit('game_started', { game: room.game, players: room.players });
@@ -563,14 +538,8 @@ export function attach_socket_server(
             }
 
             if (settings.deckId) {
-                const deck = decks[settings.deckId];
-                if (deck) {
-                    room.game.settings.deckId = deck.id;
-                    room.game.deck.id = deck.id;
-                    room.game.deck.name = deck.name;
-                    room.game.deck.type = deck.type;
-                    room.game.deck.description = deck.description;
-                }
+                room.game.settings.deckId = settings.deckId;
+                room.game.deck.id = settings.deckId;
             }
             if (settings.fillTime) {
                 room.game.settings.fillTime = settings.fillTime;

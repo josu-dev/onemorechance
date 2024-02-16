@@ -16,7 +16,7 @@
     "check:wss": "tsc ./server/sockets.ts --noEmit --module nodenext --resolveJsonModule --skipLibCheck && echo wss check passed ✅ && exit 0",
     "lint": "eslint .",
     "db:drop": "tsx drizzle/drop",
-    "db:generate": "npx drizzle-kit generate:sqlite --out ./drizzle/migrations --breakpoints --schema=./drizzle/schema",
+    "db:generate": "npx drizzle-kit generate:sqlite --out ./drizzle/migrations --breakpoints --schema=./drizzle/schema.ts",
     "db:migrate": "tsx drizzle/migrate",
     "db:seed": "tsx drizzle/seed",
     "db:studio": "npx drizzle-kit studio --config ./drizzle/config.ts"

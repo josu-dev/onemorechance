@@ -15,16 +15,14 @@
   export let data;
 
   const optionsEnabled = data.deck.data.type === DECK_TYPE.SELECT;
-
-  const deckUpdateSForm = superForm(data.deck.updateForm, {
-    resetForm: false,
-    onUpdated(event) {
-      data.deck.data = event.form.message.updated;
-      toast.success('Deck actualizado', { duration: 5000 });
-    },
-  });
+  const isOwner = !!data.user && data.deck.data.userId === data.user.id;
 
   const deckDeleteSForm = superForm(data.deck.deleteForm, {
+    onSubmit(event) {
+      if (!isOwner) {
+        event.cancel();
+      }
+    },
     onUpdated(event) {
       if (!event.form.valid) {
         toast.error(String(event.form.errors.confirm), { duration: 5000 });
@@ -33,6 +31,24 @@
 
       toast.success('Deck eliminado', { duration: 5000 });
       goto('/decks');
+    },
+  });
+
+  const deckUpdateSForm = superForm(data.deck.updateForm, {
+    resetForm: false,
+    onSubmit(event) {
+      if (!isOwner) {
+        event.cancel();
+      }
+    },
+    onUpdated(event) {
+      if (!event.form.valid) {
+        toast.error(String(event.form.errors._errors), { duration: 5000 });
+        return;
+      }
+
+      data.deck.data = event.form.message.deck;
+      toast.success('Deck actualizado', { duration: 5000 });
     },
   });
 </script>
@@ -59,35 +75,39 @@
           field="name"
           label="Nombre del deck"
           required
+          disabled={!isOwner}
         />
         <FieldTextarea
           form={deckUpdateSForm}
           field="description"
           label="Descripción"
           required
+          disabled={!isOwner}
         />
 
-        <div class="flex justify-end gap-4">
-          <form
-            action="?/deck_delete"
-            method="post"
-            use:deckDeleteSForm.enhance
-          >
-            <FieldHidden form={deckDeleteSForm} field="id" />
+        {#if isOwner}
+          <div class="flex justify-end gap-4">
+            <form
+              action="?/deck_delete"
+              method="post"
+              use:deckDeleteSForm.enhance
+            >
+              <FieldHidden form={deckDeleteSForm} field="id" />
+              <ButtonIcon
+                icon={IconDelete}
+                type="submit"
+                label="Eliminar deck"
+                className="variant-primary"
+              />
+            </form>
             <ButtonIcon
-              icon={IconDelete}
+              icon={IconSave}
               type="submit"
-              label="Eliminar deck"
+              label="Guardar cambios"
               className="variant-primary"
             />
-          </form>
-          <ButtonIcon
-            icon={IconSave}
-            type="submit"
-            label="Guardar cambios"
-            className="variant-primary"
-          />
-        </div>
+          </div>
+        {/if}
       </form>
     </section>
 
@@ -97,6 +117,7 @@
         items={data.sentences.data}
         deleteSV={data.sentences.deleteForm}
         insertSV={data.sentences.insertForm}
+        {isOwner}
       />
 
       {#if optionsEnabled}
@@ -105,6 +126,7 @@
           items={data.options.data}
           deleteSV={data.options.deleteForm}
           insertSV={data.options.insertForm}
+          {isOwner}
         />
       {/if}
     </div>

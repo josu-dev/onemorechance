@@ -19,7 +19,11 @@ export const load: PageServerLoad = async ({ locals }) => {
 };
 
 export const actions: Actions = {
-    create: async ({ request, locals }) => {
+    create: async ({ locals, request }) => {
+        if (!locals.user) {
+            return fail(401, { message: 'Unauthorized' });
+        }
+
         const form = await superValidate(request, zod(deckInsertSchema));
         if (!form.valid) {
             return fail(400, { form });
@@ -33,6 +37,7 @@ export const actions: Actions = {
             type: form.data.type,
             name: form.data.name,
             description: form.data.description,
+            userId: locals.user.id
         }).returning().get();
 
         return message(form, { deck: insertedDeck });

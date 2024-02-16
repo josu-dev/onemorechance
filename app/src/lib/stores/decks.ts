@@ -1,38 +1,25 @@
 import type { DeckIdentifier } from '$game/types.js';
-import { DECK_TYPE } from '$shared/constants.js';
+import { logClient } from '$lib/utils/logging.ts';
 import { writable } from 'svelte/store';
 import type { ExposedReadable } from './types.ts';
 
 
-export type DecksStore = ExposedReadable<DeckIdentifier[]>;
+export type Deck = DeckIdentifier & {
+    sentencesCount: number;
+};
 
-function defaultDecks(): DeckIdentifier[] {
-    return [
-        {
-            id: "1",
-            name: "Humor negro",
-            type: DECK_TYPE.SELECT,
-            description: "Ni que fueras tan gracioso"
-        },
-        {
-            id: "2",
-            name: "Refranes inventados",
-            type: DECK_TYPE.COMPLETE,
-            description: 'Pone a prueba tu creatividad'
-        },
-        {
-            id: "3",
-            name: "Family friendly",
-            type: DECK_TYPE.COMPLETE,
-            description: 'Todos podemos jugar juntos'
-        }
-    ];
+export type DecksStore = ExposedReadable<Deck[]> & {
+    refresh: () => void;
+};
+
+function defaultDecks(): Deck[] {
+    return [];
 }
 
 export function createDecksStore(): DecksStore {
-    let _decks: DeckIdentifier[] = defaultDecks();
+    let _decks: Deck[] = defaultDecks();
 
-    const { subscribe, set } = writable<DeckIdentifier[]>(_decks);
+    const { subscribe, set } = writable(_decks);
 
     return {
         subscribe,
@@ -46,6 +33,22 @@ export function createDecksStore(): DecksStore {
         sync() {
             set(_decks);
         },
+        refresh() {
+            fetch('/api/v1/decks?page=1&limit=100')
+                .then((res) => {
+                    if (!res.ok) {
+                        return [];
+                    }
+                    return res.json();
+                })
+                .then((data) => {
+                    _decks = data;
+                    set(_decks);
+                })
+                .catch((e) => {
+                    logClient.error('Failed to fetch decks', e);
+                });
+        }
     };
 }
 

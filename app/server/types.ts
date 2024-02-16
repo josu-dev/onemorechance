@@ -43,4 +43,5 @@ export type ServerRoom = {
     room: Shared.Room,
     game: Shared.Game,
     players: Shared.Player[],
+    deck: Shared.DeckCompact,
 };

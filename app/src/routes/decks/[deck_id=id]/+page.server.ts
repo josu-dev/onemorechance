@@ -3,8 +3,9 @@ import { deleteSchema } from '$lib/schemas/shared.js';
 import { decks, options, sentences } from '$lib/server/db.js';
 import { uniqueId } from '$lib/utils/index.js';
 import { DECK_TYPE } from '$shared/constants.js';
+import { LibsqlError } from '@libsql/client';
 import { error, fail } from '@sveltejs/kit';
-import { eq, inArray } from 'drizzle-orm';
+import { and, eq, inArray } from 'drizzle-orm';
 import { message, setError, superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import type { Actions, PageServerLoad } from './$types.js';
@@ -40,24 +41,27 @@ export const load: PageServerLoad = async ({ locals, params }) => {
     return {
         deck: {
             data: deck,
+            deleteForm: deckDeleteForm,
             updateForm: deckUpdateForm,
-            deleteForm: deckDeleteForm
         },
         sentences: {
             data: deckSentences,
+            deleteForm: seDeleteForm,
             insertForm: seInsertForm,
-            deleteForm: seDeleteForm
         },
         options: {
             data: deckOptions,
+            deleteForm: opDeleteForm,
             insertForm: opInsertForm,
-            deleteForm: opDeleteForm
         },
     };
 };
 
 export const actions: Actions = {
     deck_delete: async ({ locals, request }) => {
+        if (!locals.user) {
+            return fail(401, { message: 'Unauthorized' });
+        }
         const form = await superValidate(request, zod(deleteSchema));
         if (!form.valid) {
             return fail(400, { form });
@@ -66,61 +70,128 @@ export const actions: Actions = {
             return setError(form, 'confirm', 'Debes confirmar la eliminación');
         }
 
-        await locals.db.delete(decks).where(eq(decks.id, form.data.id));
+        await (locals.db
+            .delete(decks)
+            .where(and(
+                eq(decks.id, form.data.id),
+                eq(decks.userId, locals.user.id)
+            ))
+        );
     },
     deck_update: async ({ locals, params, request }) => {
+        if (!locals.user) {
+            return fail(401, { message: 'Unauthorized' });
+        }
         const form = await superValidate(request, zod(deckUpdateSchema));
         if (!form.valid) {
             return fail(400, { form });
         }
 
-        const updatedDeck = await locals.db.update(decks).set({
-            name: form.data.name,
-            description: form.data.description
-        }).where(eq(decks.id, params.deck_id)).returning();
+        const updatedDeck = await (locals.db
+            .update(decks)
+            .set({
+                name: form.data.name,
+                description: form.data.description
+            })
+            .where(and(
+                eq(decks.id, params.deck_id),
+                eq(decks.userId, locals.user.id)
+            ))
+            .returning()
+            .get()
+        );
 
-        if (updatedDeck.length < 1) {
-            return fail(404, { form });
+        if (!updatedDeck) {
+            return setError(form, '', 'No se encontró el deck que buscas o no tienes permisos para editarlo');
         }
 
-        return message(form, { updated: updatedDeck[0] });
-    },
-    sentences_insert: async ({ locals, request }) => {
-        const form = await superValidate(request, zod(sentencesInsertSchema));
-        if (!form.valid) {
-            return fail(400, { form });
-        }
-        const deckId = await locals.db.select().from(decks).where(eq(decks.id, form.data.deckId)).get();
-        if (!deckId) {
-            return fail(404, { form });
-        }
-        if (form.data.items.length === 0) {
-            return fail(400, { form });
-        }
-
-        const values: typeof sentences.$inferInsert[] = [];
-
-        for (const sentence of form.data.items) {
-            values.push({
-                id: uniqueId(),
-                deckId: form.data.deckId,
-                text: sentence.text
-            });
-        }
-
-        const insertedSentences = await locals.db.insert(sentences).values(values).returning().execute();
-
-        return message(form, { inserted: insertedSentences });
+        return message(form, { deck: updatedDeck });
     },
     sentences_delete: async ({ locals, request }) => {
+        if (!locals.user) {
+            return fail(401, { message: 'Unauthorized' });
+        }
         const form = await superValidate(request, zod(sentencesDeleteSchema));
         if (!form.valid) {
             return fail(400, { form });
         }
 
+        const deck = await (locals.db
+            .select({ id: decks.id })
+            .from(decks)
+            .where(and(
+                eq(decks.id, form.data.deckId),
+                eq(decks.userId, locals.user.id)
+            ))
+            .get()
+        );
+        if (!deck) {
+            return setError(form, '', 'No se encontró el deck que buscas o no tienes permisos para editarlo');
+        }
+
         const deletedIds = await locals.db.delete(sentences).where(
             inArray(sentences.id, form.data.ids)
         ).returning({ id: sentences.id });
+
+        return message(form, { deleted: deletedIds });
+    },
+    sentences_insert: async ({ locals, request }) => {
+        if (!locals.user) {
+            return fail(401, { message: 'Unauthorized' });
+        }
+        const form = await superValidate(request, zod(sentencesInsertSchema));
+        if (!form.valid) {
+            return fail(400, { form });
+        }
+        if (form.data.items.length === 0) {
+            return setError(form, '', 'No hay sentencias para insertar');
+        }
+
+        const deck = await (locals.db
+            .select({ id: decks.id })
+            .from(decks)
+            .where(and(
+                eq(decks.id, form.data.deckId),
+                eq(decks.userId, locals.user.id)
+            ))
+            .get()
+        );
+        if (!deck) {
+            return setError(form, '', 'No se encontró el deck que buscas o no tienes permisos para editarlo');
+        }
+
+        const values: typeof sentences.$inferInsert[] = [];
+        for (const sentence of form.data.items) {
+            values.push({
+                id: uniqueId(),
+                deckId: deck.id,
+                text: sentence.text
+            });
+        }
+
+        let inserted: typeof sentences.$inferSelect[];
+        try {
+            inserted = await locals.db.insert(sentences).values(values).returning();
+        }
+        catch (e) {
+            if (e instanceof LibsqlError && e.code === 'SQLITE_CONSTRAINT') {
+                return fail(400, { form, message: 'Error al insertar sentencias' });
+            }
+
+            return fail(500, { form, message: 'Error al insertar sentencias' });
+        }
+
+        return message(form, { inserted: inserted });
+    },
+    options_delete: async ({ locals, request }) => {
+        const form = await superValidate(request, zod(optionsDeleteSchema));
+        if (!form.valid) {
+            return fail(400, { form });
+        }
+
+        const deletedIds = await locals.db.delete(options).where(
+            inArray(options.id, form.data.ids)
+        ).returning({ id: options.id });
 
         return message(form, { deleted: deletedIds });
     },
@@ -151,16 +222,4 @@ export const actions: Actions = {
 
         return message(form, { inserted: insertedOptions });
     },
-    options_delete: async ({ locals, request }) => {
-        const form = await superValidate(request, zod(optionsDeleteSchema));
-        if (!form.valid) {
-            return fail(400, { form });
-        }
-
-        const deletedIds = await locals.db.delete(options).where(
-            inArray(options.id, form.data.ids)
-        ).returning({ id: options.id });
-
-        return message(form, { deleted: deletedIds });
-    }
 };

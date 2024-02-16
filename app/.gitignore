@@ -12,3 +12,4 @@ vite.config.ts.timestamp-*
 !/server/*.ts
 !/server/index.js
 /drizzle/migrations
+/.local

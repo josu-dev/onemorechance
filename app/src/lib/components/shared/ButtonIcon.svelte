@@ -7,6 +7,7 @@
   export let size: 'xs' | 'sm' | 'md' | 'lg' | 'xl' = 'md';
   export let label = '';
   export let form: string | undefined = undefined;
+  export let disabled = false;
 
   const iconClass = {
     xs: 'icon-xs',
@@ -23,6 +24,7 @@
   class="button button-icon {iconClass[size]} {className}"
   title={label}
   {form}
+  {disabled}
 >
   <span class="sr-only">{label}</span>
   <svelte:component this={icon} />

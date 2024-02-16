@@ -110,8 +110,8 @@
       on:leave_room={() => {
         roomActions.leaveRoom();
       }}
-      on:start_game={() => {
-        roomActions.startGame();
+      on:start_game={(e) => {
+        roomActions.startGame(e.detail);
       }}
     />
   {:else if isPreRound || isPostRound}

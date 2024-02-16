@@ -1,5 +1,6 @@
 import { browser } from '$app/environment';
 import { room, self, socketActions } from '$game/game.js';
+import { decks } from '$lib/stores/decks.js';
 import type { PageLoad } from './$types.js';
 
 
@@ -20,6 +21,8 @@ export const load: PageLoad = async ({ data }) => {
     if (!browser) {
         return {};
     }
+
+    decks.mset(data.decks);
 
     socketActions.connect();
     return {};

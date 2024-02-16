@@ -1,4 +1,4 @@
-import type { GameStateStore, Room, RoomClient, SocketStore } from '$game/types.js';
+import type { DeckCompact, GameStateStore, Room, RoomClient, SocketStore } from '$game/types.js';
 import { uniqueId } from '$lib/utils/index.js';
 import { ROOM_STATUS_CLIENT } from '$shared/constants.js';
 import { writable } from 'svelte/store';
@@ -91,14 +91,14 @@ export function createRoomActions(socket: SocketStore, self: SelfStore, room: Ro
                 { roomId: room.value.id, playerId: playerId }
             );
         },
-        startGame() {
+        startGame(deck: DeckCompact) {
             const hostId = room.value.hostId;
             const playerId = self.value.player.id;
             if (!hostId || hostId !== playerId) {
                 return;
             }
 
-            socket.instance.emit('game_start', { roomId: room.value.id });
+            socket.instance.emit('game_start', { roomId: room.value.id, deck: deck });
         },
     };
 }

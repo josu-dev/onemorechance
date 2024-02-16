@@ -59,14 +59,14 @@ const INITIAL_GAME: Game = {
         type: 'COMPLETE',
     },
     current: {
-        phrase: {
+        sentence: {
             id: '1',
             text: 'Nunca saldría con alguien que le guste {{}}',
         },
         winner: INITIAL_USER.id,
     },
     used: {
-        phrases: [],
+        sentences: [],
         options: [],
     },
 };
@@ -149,27 +149,6 @@ const INITIAL_PLAYERS: Player[] = [
     }
 ];
 
-const INITIAL_DECKS: DeckIdentifier[] = [
-    {
-        id: "1",
-        type: "SELECT",
-        name: "Humor negro",
-        description: "Completa con lo que te atrevas"
-    },
-    {
-        id: "2",
-        type: "COMPLETE",
-        name: "Refranes inventados",
-        description: "Sos bueno para darle sentido?"
-    },
-    {
-        id: "3",
-        type: "COMPLETE",
-        name: "Family friendly",
-        description: "Apto para la familia"
-    }
-];
-
 
 export const socket = createSocketStore();
 
@@ -209,7 +188,3 @@ export const gameActions = _game.createGameActions(socket, game);
 _game.attachGameListeners(socket, game);
 
 game.mset(INITIAL_GAME);
-
-export const decks = _decks.createDecksStore();
-
-decks.mset(INITIAL_DECKS);

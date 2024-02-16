@@ -12,19 +12,19 @@
 
   let countDownDuration = $game.settings.fillTime;
 
-  let basePhrase = $game.current.phrase;
-  let emptyPhrase = basePhrase.text.replace(/{{}}/g, '...');
+  let baseSentence = $game.current.sentence;
+  let emptySentence = baseSentence.text.replace(/{{}}/g, '...');
 
   let options: Option[] = [];
   let option: string | undefined = undefined;
   $: filledOptions =
-    (option && basePhrase.text.replace(/{{}}/g, option)) ?? undefined;
+    (option && baseSentence.text.replace(/{{}}/g, option)) ?? undefined;
 
   let freestyle: string | undefined = undefined;
   $: filledFreestyle =
-    (freestyle && basePhrase.text.replace(/{{}}/g, freestyle)) ?? undefined;
+    (freestyle && baseSentence.text.replace(/{{}}/g, freestyle)) ?? undefined;
 
-  $: filledPhrase = filledOptions || filledFreestyle || emptyPhrase;
+  $: filledPhrase = filledOptions || filledFreestyle || emptySentence;
 
   const dispatch = createEventDispatcher<{
     freestyle: string[];
@@ -63,7 +63,7 @@
   <div class="flex flex-col gap-4 md:flex-row md:gap-16 md:justify-around">
     <div class="flex flex-col items-center">
       <div class="card variant-primary w-[18rem] h-[24rem]">
-        <p class="text-center text-pretty text-2xl line-clamp-[10] break-all">
+        <p class="text-center text-pretty text-2xl line-clamp-[10] break-words">
           “{filledPhrase}“
         </p>
       </div>

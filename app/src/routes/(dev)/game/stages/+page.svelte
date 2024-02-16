@@ -6,7 +6,6 @@
   import GameRateSentence from '$comps/game/GameRateSentence.svelte';
   import GameRoundWinner from '$comps/game/GameRoundWinner.svelte';
   import {
-    decks,
     game,
     gameActions,
     gameStatus,
@@ -15,12 +14,13 @@
     roomActions,
     self,
   } from '$lib/dev/state.js';
-  import { GAME } from '$shared/defaults.js';
+  import { decks } from '$lib/stores/decks.ts';
   import {
     GAME_STATUS,
     ROOM_STATUS_CLIENT,
     type GameStatus,
   } from '$shared/constants.js';
+  import { GAME } from '$shared/defaults.js';
   import { onMount } from 'svelte';
   import { helpers } from 'svelte-hypercommands/CommandPalette.svelte';
 
@@ -149,8 +149,8 @@
       {game}
       {players}
       {decks}
-      on:start_game={() => {
-        roomActions.startGame();
+      on:start_game={(e) => {
+        roomActions.startGame(e.detail);
       }}
       on:close_room={() => {
         roomActions.closeRoom();

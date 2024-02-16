@@ -35,12 +35,12 @@ export type Game = {
     deck: DeckIdentifier,
     round: number,
     current: {
-        phrase: Phrase,
+        sentence: Sentence,
         ratingPlayer?: string,
         winner?: string,
     },
     used: {
-        phrases: string[],
+        sentences: string[],
         options: string[],
     },
 };
@@ -88,7 +88,7 @@ export type Modifier = {
     description: string,
 };
 
-export type Phrase = {
+export type Sentence = {
     id: string,
     text: string,
 };
@@ -103,26 +103,37 @@ export type DeckIdentifier = {
     name: string,
     type: DeckType,
     description?: string,
+    userId?: string,
 };
 
 export type DeckSelect = {
     type: 'SELECT',
-    phrases: Phrase[],
+    sentences: Sentence[],
     options: Option[],
 };
 
 export type DeckComplete = {
     type: 'COMPLETE',
-    phrases: Phrase[],
+    sentences: Sentence[],
 };
 
 export type Deck = DeckIdentifier & (DeckSelect | DeckComplete);
 
+export type DeckIdentifierCompact = {
+    id: string,
+    n: string,
+    t: DeckType,
+    d?: string,
+};
+
+export type DeckCompact = DeckIdentifierCompact & {
+    s: {
+        id: string,
+        t: string,
+    }[],
+};
 
 export type ClientToServerEvents = {
-    // user_register: (data: { user: User; }) => void;
-    // user_unregister: (data: { id: string; }) => void;
-
     room_create: (data: { roomId: string; user: User; }) => void;
     room_join: (data: { roomId: string; user: User; }) => void;
     room_update: (data: { room: Room; }) => void;
@@ -134,7 +145,7 @@ export type ClientToServerEvents = {
     player_set_name: (data: { roomId: string; name: string; }) => void;
     player_set_ready: (data: { roomId: string; state: boolean; }) => void;
 
-    game_start: (data: { roomId: string; }) => void;
+    game_start: (data: { roomId: string; deck: DeckCompact; }) => void;
     game_set_settings: (data: { roomId: string; settings: Partial<GameSettings>; }) => void;
     game_set_freestyle: (data: { roomId: string; freestyle: string[]; }) => void;
     game_set_option: (data: { roomId: string; option: Option[]; }) => void;
@@ -143,9 +154,6 @@ export type ClientToServerEvents = {
 
 
 export type ServerToClientEvents = {
-    // user_registered: (data: { user: User; }) => void;
-    // user_unregistered: () => void;
-
     room_created: (data: {
         room: Room,
         game: Game,

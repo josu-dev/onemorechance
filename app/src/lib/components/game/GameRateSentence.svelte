@@ -99,10 +99,10 @@
         {#if player.id === ratingPlayer}
           <div class="card variant-primary w-[18rem] h-[24rem]">
             <p
-              class="text-center text-pretty text-2xl line-clamp-[10] break-all"
+              class="text-center text-pretty text-2xl line-clamp-[10] break-words"
             >
               “{fillSentence(
-                $game.current.phrase.text,
+                $game.current.sentence.text,
                 $game.deck.type,
                 player.current.option,
                 player.current.freestyle,

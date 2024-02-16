@@ -1,6 +1,7 @@
 <script lang="ts">
   import CopyButton from '$comps/shared/CopyButton.svelte';
   import type {
+    DeckCompact,
     DeckIdentifier,
     GameSettings,
     GameStore,
@@ -10,6 +11,7 @@
     SelfStore,
   } from '$game/types.js';
   import type { DecksStore } from '$lib/stores/decks.ts';
+  import { logClient } from '$lib/utils/logging.ts';
   import { DECK_TYPE } from '$shared/constants.js';
   import { GAME } from '$shared/defaults.js';
   import { createEventDispatcher } from 'svelte';
@@ -39,8 +41,44 @@
     description: '',
   } as DeckIdentifier;
 
-  $: if ($game.deck.id !== deck.id) {
-    deck = $game.deck;
+  let deckData: DeckCompact = {
+    id: deck.id,
+    n: deck.name,
+    t: deck.type,
+    d: deck.description,
+    s: [],
+  };
+
+  function fetchDeckData(id: string) {
+    fetch(
+      `/api/v1/decks/${id}?compact=true&random=true&limit=${
+        settings.rounds * 2
+      }`,
+    )
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error('Error fetching deck data', { cause: res });
+        }
+        return res.json();
+      })
+      .then((data) => {
+        deckData.id = data.d.id;
+        deckData.n = data.d.n;
+        deckData.t = data.d.t;
+        deckData.d = data.d.d;
+        deckData.s = data.s;
+      })
+      .catch((err) => {
+        logClient.error('Error fetching deck data', err);
+      });
+  }
+
+  $: if ($game.settings.deckId !== deck.id) {
+    const newDeck = $decks.find((deck) => deck.id === $game.settings.deckId);
+    if (newDeck) {
+      deck = newDeck;
+      $game.deck.id = newDeck.id;
+    }
   }
 
   const dispatch = createEventDispatcher<{
@@ -50,7 +88,7 @@
     update_settings: GameSettings;
     close_room: true;
     leave_room: true;
-    start_game: true;
+    start_game: DeckCompact;
   }>();
 
   function dispatchCloseRoom() {
@@ -63,7 +101,7 @@
     dispatch('leave_room', true);
   }
   function dispatchStartGame() {
-    dispatch('start_game', true);
+    dispatch('start_game', deckData);
   }
   function dispatchToggleReady(state: boolean) {
     dispatch('toggle_ready', state);
@@ -100,6 +138,7 @@
 
     deck = newDeck;
     settings.deckId = newDeck.id;
+    fetchDeckData(newDeck.id);
   }
 
   function askForKickPlayer(player: Player) {
@@ -126,6 +165,10 @@
   function askForStartGame() {
     if (!playersAreReady) {
       // TODO: Show info message
+      return;
+    }
+    if (!deckData.id) {
+      alert('Selecciona una baraja');
       return;
     }
     // TODO: Show modal
@@ -265,14 +308,19 @@
                 }}
                 class="select variant-primary w-48 ml-4 overflow-hidden text-ellipsis"
               >
+                <option title="Sin seleccionar" value="">
+                  Sin seleccionar
+                </option>
                 {#each $decks as deck}
-                  <option
-                    selected={deck.id === $game.deck.id}
-                    title={deck.description}
-                    value={deck.id}
-                  >
-                    {deck.name}
-                  </option>
+                  {#if deck.type === DECK_TYPE.COMPLETE}
+                    <option
+                      selected={deck.id === $game.deck.id}
+                      title={deck.description}
+                      value={deck.id}
+                    >
+                      {deck.name}
+                    </option>
+                  {/if}
                 {/each}
               </select>
             </label>

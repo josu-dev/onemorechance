@@ -13,6 +13,7 @@ const deckBaseSchema = z.object({
     type: z.nativeEnum(DECK_TYPE_CREATE).default(DECK_TYPE_CREATE.UNSET),
     name: z.string(),
     description: z.string(),
+    userId: z.string().nullish(),
 });
 
 export const deckInsertSchema = deckBaseSchema;

@@ -34,6 +34,7 @@
     deckId: string;
     items: ItemInsert[];
   }>;
+  export let isOwner: boolean;
 
   const isSentence = type === 'sentence';
   const title = isSentence ? 'Sentencias' : 'Opciones';
@@ -57,6 +58,11 @@
 
   const deleteSForm = superForm(deleteSV, {
     dataType: 'json',
+    onSubmit(event) {
+      if (!isOwner) {
+        event.cancel();
+      }
+    },
     onUpdated(event) {
       toDeleteCount = 0;
       for (let i = 0; i < _items.length; i++) {
@@ -84,6 +90,11 @@
 
   const insertSForm = superForm(insertSV, {
     dataType: 'json',
+    onSubmit(event) {
+      if (!isOwner) {
+        event.cancel();
+      }
+    },
     onUpdated(event) {
       for (const item of event.form.message.inserted) {
         _items.push({
@@ -150,96 +161,102 @@
         {#each _items as item (item.id)}
           <li class="flex text-gray-300 py-2 px-2 gap-2">
             <p class="flex-1">{item.text}</p>
-            <ButtonIcon
-              icon={IconX}
-              size="sm"
-              label="Marcar para eliminar"
-              className="variant-primary {item.toDelete ? '!bg-red-700' : ''}"
-              on:click={() => {
-                item.toDelete = !item.toDelete;
-                toggleItemToDelete(item);
-              }}
-            />
+            {#if isOwner}
+              <ButtonIcon
+                icon={IconX}
+                size="sm"
+                label="Marcar para eliminar"
+                className="variant-primary {item.toDelete ? '!bg-red-700' : ''}"
+                on:click={() => {
+                  item.toDelete = !item.toDelete;
+                  toggleItemToDelete(item);
+                }}
+              />
+            {/if}
           </li>
         {/each}
       </ul>
     </div>
 
-    <div class="flex-1">
-      <h2 class="h3 text-gray-100">
-        Nuevas {isSentence ? 'sentencias' : 'opciones'}
-      </h2>
-      <form
-        action={actionInsert}
-        method="post"
-        use:insertSForm.enhance
-        id={insertFormId}
-        class="flex flex-col gap-2 max-h-[24rem] p-1 overflow-y-auto"
-      >
-        {#each $seInsertForm.items as _, i}
-          <div class="relative">
-            <FieldTextarea
-              form={insertSForm}
-              field="items[{i}].text"
-              label="{isSentence ? 'Sentencia' : 'Opcion'} {totalItems + i + 1}"
-              rows={2}
-              bind:this={toInsertInputs[i]}
-            />
-            <div class="absolute top-4 right-1 flex gap-2">
-              {#if isSentence}
+    {#if isOwner}
+      <div class="flex-1">
+        <h2 class="h3 text-gray-100">
+          Nuevas {isSentence ? 'sentencias' : 'opciones'}
+        </h2>
+        <form
+          action={actionInsert}
+          method="post"
+          use:insertSForm.enhance
+          id={insertFormId}
+          class="flex flex-col gap-2 max-h-[24rem] p-1 overflow-y-auto"
+        >
+          {#each $seInsertForm.items as _, i}
+            <div class="relative">
+              <FieldTextarea
+                form={insertSForm}
+                field="items[{i}].text"
+                label="{isSentence ? 'Sentencia' : 'Opcion'} {totalItems +
+                  i +
+                  1}"
+                rows={2}
+                bind:this={toInsertInputs[i]}
+              />
+              <div class="absolute top-4 right-1 flex gap-2">
+                {#if isSentence}
+                  <ButtonIcon
+                    icon={IconSpace}
+                    on:click={() => {
+                      addPlaceHolder(i);
+                      tick().then(toInsertInputs[i]?.focus);
+                    }}
+                    size="sm"
+                    label="Insertar marcador para respuesta"
+                    className="variant-primary"
+                  />
+                {/if}
                 <ButtonIcon
-                  icon={IconSpace}
-                  on:click={() => {
-                    addPlaceHolder(i);
-                    tick().then(toInsertInputs[i]?.focus);
-                  }}
+                  icon={IconX}
+                  on:click={() => removeEntry(i)}
                   size="sm"
-                  label="Insertar marcador para respuesta"
+                  label="Eliminar sentencia"
                   className="variant-primary"
                 />
-              {/if}
-              <ButtonIcon
-                icon={IconX}
-                on:click={() => removeEntry(i)}
-                size="sm"
-                label="Eliminar sentencia"
-                className="variant-primary"
-              />
+              </div>
             </div>
-          </div>
-        {/each}
-      </form>
-      <div class="flex justify-center gap-8 mt-4">
-        <ButtonIcon
-          icon={IconPlus}
-          on:click={(e) => {
-            addEntry();
-            // @ts-ignore
-            const rect = e.target?.getBoundingClientRect();
-            const offset = 16; // 16px
-            tick().then(() => {
-              const main = document.querySelector('main');
-              if (main) {
-                main.scrollTo({
-                  top: rect.top + main.scrollHeight - offset,
-                  behavior: 'instant',
-                });
-              }
-            });
-          }}
-          label="Agregar sentencia"
-          className="button variant-primary p-1 w-max"
-        />
-        {#if $seInsertForm.items.length > 0}
+          {/each}
+        </form>
+        <div class="flex justify-center gap-8 mt-4">
           <ButtonIcon
-            icon={IconSave}
-            type="submit"
-            form={insertFormId}
-            label="Guardar sentencias"
+            icon={IconPlus}
+            on:click={(e) => {
+              addEntry();
+              // @ts-ignore
+              const rect = e.target?.getBoundingClientRect();
+              const offset = 16; // 16px
+              tick().then(() => {
+                const main = document.querySelector('main');
+                if (main) {
+                  main.scrollTo({
+                    top: rect.top + main.scrollHeight - offset,
+                    behavior: 'instant',
+                  });
+                }
+              });
+            }}
+            label="Agregar sentencia"
             className="button variant-primary p-1 w-max"
           />
-        {/if}
+          {#if $seInsertForm.items.length > 0}
+            <ButtonIcon
+              icon={IconSave}
+              type="submit"
+              form={insertFormId}
+              label="Guardar sentencias"
+              className="button variant-primary p-1 w-max"
+            />
+          {/if}
+        </div>
       </div>
-    </div>
+    {/if}
   </div>
 </section>

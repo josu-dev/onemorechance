@@ -30,13 +30,13 @@ function defaultGame(): Game {
             type: 'SELECT',
         },
         current: {
-            phrase: {
+            sentence: {
                 id: uniqueId(),
                 text: 'Not a phrase',
             },
         },
         used: {
-            phrases: [],
+            sentences: [],
             options: [],
         },
     };

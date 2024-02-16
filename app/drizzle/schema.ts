@@ -3,6 +3,10 @@ import { index, integer, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqli
 import { DECK_TYPE, ROOM_STATUS } from '../src/shared/constants.ts';
 
 
+/**
+ * Remember to update related types in the shared folder 
+ * See: ../src/shared/types.ts
+ */
 export const decks = sqliteTable(
     'decks',
     {
@@ -10,6 +14,7 @@ export const decks = sqliteTable(
         type: text('type', { enum: [DECK_TYPE.COMPLETE, DECK_TYPE.SELECT] }).notNull(),
         name: text('name').notNull(),
         description: text('description').notNull(),
+        userId: text('user_id').references(() => users.id, { onDelete: 'set null' }),
         createdAt: integer('created_at').notNull().default(sql`(strftime('%s', 'now'))`),
         updatedAt: integer('updated_at').notNull().default(sql`(strftime('%s', 'now'))`),
     },
@@ -17,12 +22,17 @@ export const decks = sqliteTable(
         idIdx: uniqueIndex('decks_id_idx').on(decks.id),
         nameIdx: index('decks_name_idx').on(decks.name),
         descriptionIdx: index('decks_description_idx').on(decks.description),
+        userIdIdx: index('decks_user_id_idx').on(decks.userId),
     })
 );
 
-export const deckRelations = relations(decks, ({ many }) => ({
+export const deckRelations = relations(decks, ({ one, many }) => ({
     sentences: many(sentences),
     options: many(options),
+    user: one(users, {
+        fields: [decks.userId],
+        references: [users.id],
+    }),
 }));
 
 export const sentences = sqliteTable(
@@ -69,6 +79,11 @@ export const optionRelations = relations(options, ({ one }) => ({
     })
 }));
 
+
+/**
+ * Remember to update related types in the shared folder 
+ * See: ../src/shared/types.ts
+ */
 export const users = sqliteTable(
     'users',
     {
@@ -86,6 +101,11 @@ export const users = sqliteTable(
         nameIdx: index('player_name_idx').on(users.name),
     })
 );
+
+export const userRelations = relations(users, ({ many }) => ({
+    rooms: many(rooms),
+    decks: many(decks),
+}));
 
 export const rooms = sqliteTable(
     'rooms',
