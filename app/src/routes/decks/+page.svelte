@@ -31,7 +31,7 @@
 
 <main class="main main-p-header">
   <h1 class="h2 text-white text-center">
-    One More Chance decks
+    OMC decks
     <LinkBack href="/" className="icon-md" />
   </h1>
 

@@ -108,7 +108,7 @@
             Jugar
           </button>
           <a href="/decks" class="button variant-primary">Decks</a>
-          <a href="/stats" class="button variant-primary">Stats</a>
+          <a href="/ranking" class="button variant-primary">Ranking</a>
         </section>
       {:else}
         <section class="flex flex-col gap-4 md:gap-5 w-48 max-w-[90vw]">

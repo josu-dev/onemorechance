@@ -59,6 +59,11 @@
       description: 'List of all decks',
     },
     {
+      name: 'Ranking',
+      url: '/ranking',
+      description: 'List of all decks',
+    },
+    {
       name: 'Stages',
       url: '/game/stages',
       description: 'Debug the game stages',
