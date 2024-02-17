@@ -25,7 +25,7 @@ Based on the H.D.P game (Hasta donde puedas) omc is a boardgame made in the brow
 
 ## Folder Structure 📁
 
-```
+```text
 🌳 onemorechance/
 ┣ 📁 .github/ -- Actions
 ┣ 📁 app/ -- The app itself
@@ -39,6 +39,7 @@ Based on the H.D.P game (Hasta donde puedas) omc is a boardgame made in the brow
 ┣ 📔 Makefile - Shortcut linux commands
 
 ```
+
 ## License 📜
 
 Check the [LICENSE](LICENSE) file for license rights and limitations (MIT).

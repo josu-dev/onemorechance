@@ -1,13 +1,9 @@
+import type { User } from '$shared/types.js';
 import { writable } from 'svelte/store';
 import type { ExposedReadable } from './types.js';
 
 
-type User = {
-    id: string,
-    name: string,
-};
-
-type UserStore = ExposedReadable<{ id: string, name: string; } | undefined>;
+export type UserStore = ExposedReadable<User | undefined>;
 
 export function createUserStore(): UserStore {
     let _user: User | undefined = undefined;
@@ -22,7 +18,7 @@ export function createUserStore(): UserStore {
         sync() {
             set(_user);
         },
-        mset(value: User | undefined) {
+        mset(value) {
             _user = value;
             set(value);
         },

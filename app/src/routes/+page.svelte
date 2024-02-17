@@ -1,38 +1,45 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
-  import { debugData } from '$comps/HyperDebug.svelte';
-  import { ROOM_STATUS } from '$game/enums.js';
-  import {
-    room,
-    roomActions,
-    self,
-    selfActions,
-    socketActions,
-  } from '$game/game.js';
+  import Seo from '$comps/layout/Seo.svelte';
+  import FieldText from '$lib/elements/form/FieldText.svelte';
   import { audioPlayer } from '$lib/stores/audio.js';
   import { user } from '$lib/stores/user.js';
   import { onMount } from 'svelte';
-  import { superForm } from 'sveltekit-superforms/client';
+  import { superForm } from 'sveltekit-superforms';
 
   export let data;
 
-  user.mset(data.user);
-  // user.mset({
-  //   id: '1',
-  //   name: 'juan',
-  // });
+  const registerSForm = superForm(data.account.registerForm, {
+    invalidateAll: false,
+    onUpdated({ form }) {
+      const _user = form.message.user;
+      user.mset(_user);
+    },
+  });
+
+  let playMenu = false;
+
+  function togglePlayMenu() {
+    playMenu = !playMenu;
+  }
+
+  const roomCreateSForm = superForm(data.room.createForm, {
+    invalidateAll: false,
+    onUpdated({ form }) {
+      const room = form.message.room;
+      goto(`/r/${room.id}`);
+    },
+  });
+
+  const roomJoinSForm = superForm(data.room.joinForm, {
+    invalidateAll: false,
+    onUpdated({ form }) {
+      const room = form.message.room;
+      goto(`/r/${room.id}`);
+    },
+  });
 
   onMount(() => {
-    if (user.value) {
-      self.value.id = user.value.id;
-      self.value.name = user.value.name;
-      self.sync();
-    }
-
-    socketActions.connect();
-
-    debugData.set(audioPlayer);
-
     function startLobbyMusic() {
       audioPlayer.play('music_lobby.mp3', { loop: true });
       document.removeEventListener('click', startLobbyMusic);
@@ -44,56 +51,14 @@
       document.removeEventListener('click', startLobbyMusic);
     };
   });
-
-  const signInForm = superForm(data.signUpForm, {
-    onUpdated({ form }) {
-      const _user = form.message.user;
-      user.mset(_user);
-      selfActions.register(_user);
-    },
-  });
-
-  const signOutForm = superForm(data.signOutForm, {
-    onUpdated({ form }) {
-      user.mset(undefined);
-      selfActions.unregister();
-    },
-  });
-
-  let playMenu = false;
-
-  function togglePlayMenu() {
-    playMenu = !playMenu;
-  }
-
-  function createRoom() {
-    console.log('createRoom', roomActions, self);
-    roomActions.createRoom();
-  }
-
-  let roomId = '';
-
-  function joinRoom() {
-    roomActions.joinRoom(roomId);
-  }
-
-  $: if ($room.status === ROOM_STATUS.IN_LOBBY) {
-    console.log('room', room);
-    goto(`/${$room.id}`);
-  }
-
-  $: if ($room.status === ROOM_STATUS.CONNECTING) {
-    console.log(`Connecting to room ${$room.id}`);
-  }
 </script>
 
-<svelte:head>
-  <title>One More Chance</title>
-</svelte:head>
+<Seo
+  title="One More Chance"
+  description="Listo para mostrarle a tus amigos que si sos el mas capo?, o bueno un itento de comico. Juga con tus amigos y obligalos a reir de tus casi chistes"
+/>
 
-<main
-  class="h-full flex flex-col items-center justify-center overflow-y-auto p-1"
->
+<main class="main justify-center pb-0">
   <h1 class="text-4xl text-white font-bold text-center mb-2">
     ONE MORE CHANCE
   </h1>
@@ -111,32 +76,32 @@
 
     <div class="flex flex-col justify-items-center items-center">
       {#if !$user}
-        <form
-          method="post"
-          action="?/signIn"
-          use:signInForm.enhance
-          class="flex flex-col items-center gap-4"
-        >
-          <label for="name" class="">
-            <span class="sr-only">Nombre</span>
-            <input
-              type="text"
-              id="name"
-              name="name"
-              autocomplete="off"
-              required
-              minlength="3"
-              maxlength="24"
+        <section class="flex flex-col gap-4 md:gap-5 w-48 max-w-[90vw]">
+          <h2 class="sr-only">Menu cuenta</h2>
+          <p class="text-center text-gray-50 text-2xl font-semibold">
+            Crea tu cuenta 😉
+          </p>
+          <form
+            method="post"
+            action="?/account_register"
+            use:registerSForm.enhance
+            class="flex flex-col items-center gap-3"
+          >
+            <FieldText
+              form={registerSForm}
+              field="name"
+              label="Nombre"
+              labelHidden
               placeholder="tu nombre..."
-              class="text-center block w-full bg-black text-white border border-white rounded-md"
+              className="mt-0 w-full [&_input]:text-center"
             />
-          </label>
-          <button type="submit" class="button variant-primary w-full">
-            Registrar
-          </button>
-        </form>
+            <button type="submit" class="button variant-primary w-full">
+              Registrar
+            </button>
+          </form>
+        </section>
       {:else if !playMenu}
-        <section class="flex flex-col gap-4 md:gap-6">
+        <section class="flex flex-col gap-4 md:gap-5 w-48 max-w-[90vw]">
           <h2 class="sr-only">Menu principal</h2>
           <p class="text-center text-gray-50 text-2xl font-semibold mb-2">
             Hola {$user.name}!
@@ -144,55 +109,36 @@
           <button on:click={togglePlayMenu} class="button variant-primary">
             Jugar
           </button>
-          <button disabled class="button variant-primary">
-            Decks (Proximamente)
-          </button>
-          <form
-            method="post"
-            action="?/signIn"
-            use:signOutForm.enhance
-            class="flex flex-row w-full items-center justify-center gap-4"
-          >
-            <label for="confirm">
-              <span class="sr-only">Confirmar</span>
-              <input
-                type="checkbox"
-                id="confirm"
-                name="confirm"
-                required
-                class="form-checkbox text-success-500 w-6 h-6 rounded-md cursor-pointer"
-              />
-            </label>
-            <button type="submit" class="button variant-primary w-full">
-              Borrar cuenta
-            </button>
-          </form>
+          <a href="/decks" class="button variant-primary">Decks</a>
+          <a href="/ranking" class="button variant-primary">Ranking</a>
         </section>
       {:else}
-        <section class="flex flex-col gap-4 md:gap-6">
-          <form on:submit|preventDefault={createRoom} class="flex">
+        <section class="flex flex-col gap-4 md:gap-5 w-48 max-w-[90vw]">
+          <h2 class="sr-only">Menu partida</h2>
+          <form
+            action="?/room_create"
+            method="post"
+            use:roomCreateSForm.enhance
+            class="flex"
+          >
             <button type="submit" class="button variant-primary w-full">
               Crear sala
             </button>
           </form>
           <form
-            on:submit|preventDefault={joinRoom}
-            class="flex flex-col items-center gap-2"
+            action="?/room_join"
+            method="post"
+            use:roomJoinSForm.enhance
+            class="flex flex-col items-center gap-3"
           >
-            <label for="roomId" class="">
-              <span class="sr-only">Codigo de sala</span>
-              <input
-                type="text"
-                id="roomId"
-                name="roomId"
-                autocomplete="off"
-                required
-                pattern={'[A-Za-z0-9]{6}'}
-                bind:value={roomId}
-                placeholder="codigo..."
-                class="text-center block w-48 h-10 bg-black text-white border border-white rounded-md"
-              />
-            </label>
+            <FieldText
+              form={roomJoinSForm}
+              field="id"
+              label="Codigo de sala"
+              labelHidden
+              placeholder="codigo..."
+              className="w-full [&_input]:text-center"
+            />
             <button type="submit" class="button variant-primary w-full">
               Unirse a sala
             </button>

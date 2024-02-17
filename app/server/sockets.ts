@@ -1,28 +1,24 @@
 import type { Server as HttpServer } from "http";
-import { customRandom, nanoid, random } from 'nanoid';
+import { nanoid } from 'nanoid';
 import { Server } from 'socket.io';
-import { GAME } from '../src/game/configs.js';
-import { DECK_TYPE, GAME_STATUS, PLAYER_RATING, PLAYER_ROLE, ROOM_STATUS } from '../src/game/enums.js';
-import importedDecks from '../static/decks/default.json' with { type: "json" };
+import { DECK_TYPE, GAME_STATUS, PLAYER_RATING, PLAYER_ROLE, ROOM_STATUS } from '../src/shared/constants.js';
+import { GAME } from '../src/shared/defaults.js';
 import type * as T from './types.js';
 
 
-const decks = importedDecks as Record<string, T.Deck>;
+const DEFAULT_DECK_IDENTIFIER: T.DeckIdentifier = {
+    id: '',
+    name: 'Unselected deck',
+    type: DECK_TYPE.SELECT,
+    description: 'This deck is not selected',
+};
 
-const DEFAULT_DECK = decks[GAME.DEFAULT_DECK_ID];
+const users = new Map<string, T.ServerUser>();
 
-
-const randomRoomId = customRandom('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz', 6, random);
-
-
-const users = new Map<string, T.User>();
-
-// const players = new Map<string, T.Player>();
-
-const rooms = new Map<string, T.Room>();
+const rooms = new Map<string, T.ServerRoom>();
 
 
-function removePlayerFromRoom(io: T.WebSocketServer, socket: T.WebSocketServerSocket, user: T.User, room: T.Room, playerId: string) {
+function removePlayerFromRoom(io: T.WebSocketServer, socket: T.WebSocketServerSocket, user: T.ServerUser, room: T.ServerRoom, playerId: string) {
     let roomIndex = -1;
     for (let i = 0; i < user.rooms.length; i++) {
         if (user.rooms[i] === room.room.id) {
@@ -52,18 +48,20 @@ function removePlayerFromRoom(io: T.WebSocketServer, socket: T.WebSocketServerSo
 
     if (room.room.hostId === playerId) {
         const hostPlayer = room.players[0];
+        hostPlayer.host = true;
         hostPlayer.role = PLAYER_ROLE.HOST;
         room.room.hostId = hostPlayer.id;
     }
+
     io.to(room.room.id).emit('room_updated', { room: room.room });
 }
 
-function setupNewGame(room: T.Room) {
+function setupNewGame(room: T.ServerRoom) {
     room.game.status = GAME_STATUS.NOT_STARTED;
     room.game.round = 0;
     room.game.used.options = [];
-    room.game.used.phrases = [];
-    room.game.current.phrase = {
+    room.game.used.sentences = [];
+    room.game.current.sentence = {
         id: '',
         text: '',
     };
@@ -72,48 +70,59 @@ function setupNewGame(room: T.Room) {
     for (const player of room.players) {
         player.ready = false;
         player.score = 0;
-        player.totalScore = 0;
+        player.scoreLast = 0;
+        player.scoreTotal = 0;
         player.current.option = undefined;
         player.current.freestyle = undefined;
         player.current.modifier = undefined;
         player.used.freestyle = [];
-        player.used.options = [];
         player.used.modifiers = [];
+        player.used.options = [];
+        player.ratesReceived = {};
     }
 }
 
-function newRound(io: T.WebSocketServer, socket: T.WebSocketServerSocket, room: T.Room) {
+function newRound(io: T.WebSocketServer, socket: T.WebSocketServerSocket, room: T.ServerRoom) {
     room.game.round += 1;
 
     for (const player of room.players) {
-        player.current.option = undefined;
         player.current.freestyle = undefined;
+        player.current.modifier = undefined;
+        player.current.option = undefined;
+        player.scoreLast = player.score;
         player.score = 0;
+        player.ratesReceived = {};
     }
 
-    const deck = decks[room.game.deck.id];
+    const deck = room.deck;
 
-    let phrase = deck.phrases[Math.floor(Math.random() * deck.phrases.length)]!;
-    while (room.game.used.phrases.includes(phrase.id)) {
-        phrase = deck.phrases[Math.floor(Math.random() * deck.phrases.length)]!;
+    const sentence = deck.s[(room.game.round - 1) % deck.s.length];
+    if (room.game.round > deck.s.length) {
+        room.game.used.sentences.length = 0;
+        console['warn']('Deck ran out of sentences', room.game, room.deck);
     }
 
-    room.game.current.phrase = phrase;
+    room.game.used.sentences.push(sentence.id);
+    room.game.current.sentence = {
+        id: sentence.id,
+        text: sentence.t,
+    };
 
-    if (deck.type === DECK_TYPE.CHOOSE) {
-        for (const player of room.players) {
-            const missingOptions = room.game.maxOptions - player.stock.options.length;
-            for (let i = 0; i < missingOptions; i++) {
-                // @ts-ignore - We know that deck is a DeckChoose
-                let option = deck.options[Math.floor(Math.random() * deck.options.length)];
-                while (room.game.used.options.includes(option.id)) {
-                    // @ts-ignore - We know that deck is a DeckChoose
-                    option = deck.options[Math.floor(Math.random() * deck.options.length)];
-                }
-                player.stock.options.push(option);
-                room.game.used.options.push(option.id);
-            }
-        }
+    if (deck.t === DECK_TYPE.SELECT) {
+        // TODO: Implement select deck
+        // for (const player of room.players) {
+        //     const missingOptions = room.game.settings.options - player.stock.options.length;
+        //     for (let i = 0; i < missingOptions; i++) {
+        //         // @ts-ignore - We know that deck is a DeckChoose
+        //         let option = deck.options[Math.floor(Math.random() * deck.options.length)];
+        //         while (room.game.used.options.includes(option.id)) {
+        //             // @ts-ignore - We know that deck is a DeckChoose
+        //             option = deck.options[Math.floor(Math.random() * deck.options.length)];
+        //         }
+        //         player.stock.options.push(option);
+        //         room.game.used.options.push(option.id);
+        //     }
+        // }
     }
 
     room.game.status = GAME_STATUS.FILL_SENTENCE;
@@ -127,9 +136,9 @@ function newRound(io: T.WebSocketServer, socket: T.WebSocketServerSocket, room: 
         for (let i = 0; i < playerCount; i++) {
             setTimeout(
                 (playerId) => {
-                    io.to(room.room.id).emit('game_rate_player', { playerId: playerId });
+                    io.to(room.room.id).emit('game_player_rated', { playerId: playerId });
                 },
-                i * GAME.DEFAULT_RATE_TIME,
+                i * room.game.settings.rateTime,
                 room.players[i].id
             );
         }
@@ -137,18 +146,25 @@ function newRound(io: T.WebSocketServer, socket: T.WebSocketServerSocket, room: 
         setTimeout(() => {
             let winnerId = '';
             let winnerScore = -1;
+
             for (const player of room.players) {
-                if (player.score > winnerScore) {
-                    winnerId = player.id;
-                    winnerScore = player.score;
+                let score = 0;
+                for (const rate of Object.values(player.ratesReceived)) {
+                    score += rate === PLAYER_RATING.GOD ? 10 : rate === PLAYER_RATING.MEH ? 0 : -10;
                 }
-                player.totalScore += player.score;
+                if (score > winnerScore) {
+                    winnerId = player.id;
+                    winnerScore = score;
+                }
+                player.score = score;
+                player.scoreTotal += score;
             }
+
             room.game.current.winner = winnerId;
             room.game.status = GAME_STATUS.ROUND_WINNER;
             io.to(room.room.id).emit('game_updated_all', { game: room.game, players: room.players });
 
-            if (room.game.round < room.game.maxRounds) {
+            if (room.game.round < room.game.settings.rounds) {
                 setTimeout(
                     newRound,
                     GAME.DEFAULT_RESULTS_TIME,
@@ -164,14 +180,15 @@ function newRound(io: T.WebSocketServer, socket: T.WebSocketServerSocket, room: 
                 io.to(room.room.id).emit('game_status_updated', { status: room.game.status });
 
                 setTimeout(() => {
+                    room.room.status = ROOM_STATUS.WAITING;
                     room.game.status = GAME_STATUS.ENDED;
-                    io.to(room.room.id).emit('game_status_updated', { status: room.game.status });
+                    io.to(room.room.id).emit('game_ended');
                 }, GAME.DEFAULT_SCOREBOARD_TIME);
             }, GAME.DEFAULT_RESULTS_TIME);
 
-        }, playerCount * GAME.DEFAULT_RATE_TIME);
+        }, playerCount * room.game.settings.rateTime);
 
-    }, GAME.DEFAULT_SELECTION_TIME);
+    }, room.game.settings.fillTime);
 }
 
 
@@ -202,7 +219,7 @@ export function attach_socket_server(
                     continue;
                 }
                 removePlayerFromRoom(io, socket, user, room, user.id);
-                io.sockets.sockets.get(user.client.socketId)?.leave(roomId);
+                io.sockets.sockets.get(user.socketId)?.leave(roomId);
                 io.to(roomId).emit('player_disconnected', { playerId: user.id });
             }
 
@@ -210,115 +227,95 @@ export function attach_socket_server(
             users.delete(user.id);
         });
 
-        socket.on('user_register', ({ id, name }) => {
-            if (!id) {
-                id = nanoid();
-            }
-            const user: T.User = {
-                id: id,
-                client: {
-                    id: id,
-                    name: name,
-                    socketId: socket.id,
-                },
+        socket.on('room_create', ({ roomId, user }) => {
+            const userId = user.id;
+            const _user: T.ServerUser = {
+                id: userId,
+                client: user,
                 rooms: [],
+                socketId: socket.id,
             };
-            socket.data.userId = id;
-            users.set(id, user);
-            socket.emit('user_registered', { user: user.client });
-        });
+            users.set(userId, _user);
+            socket.data.userId = user.id;
 
-        socket.on('user_unregister', ({ id }) => {
-            const user = users.get(id);
-            if (!user) {
-                return;
-            }
-
-            for (const roomId of user.rooms) {
-                const room = rooms.get(roomId);
-                if (!room) {
-                    continue;
-                }
-                removePlayerFromRoom(io, socket, user, room, id);
-            }
-
-            users.delete(id);
-            socket.data.userId = '';
-            socket.emit('user_unregistered', {});
-        });
-
-        socket.on('room_create', () => {
-            const user = users.get(socket.data.userId);
-            if (!user) {
-                return;
-            }
-
-            const roomId = randomRoomId();
-
-            const player: T.Player = {
-                userId: user.client.id,
-                roomId: roomId,
-                client: {
-                    id: user.client.id,
-                    name: user.client.name,
-                    role: PLAYER_ROLE.HOST,
-                    score: 0,
-                    totalScore: 0,
-                    ready: false,
-                    current: {
-                        option: undefined,
-                        freestyle: undefined,
-                    },
-                    stock: {
-                        options: [],
-                        modifiers: [],
-                    },
-                    used: {
-                        freestyle: [],
-                        options: [],
-                        modifiers: [],
-                    }
-                },
-            };
-
-            const room: T.Room = {
-                id: roomId,
-                room: {
-                    id: roomId,
-                    status: ROOM_STATUS.IN_LOBBY,
-                    hostId: player.userId,
-                    maxPlayers: GAME.MAX_PLAYERS
-                },
-                game: {
-                    id: nanoid(),
+            let room = rooms.get(roomId);
+            if (!room) {
+                const player: T.ServerPlayer = {
+                    userId: _user.client.id,
                     roomId: roomId,
-                    status: GAME_STATUS.NOT_STARTED,
-                    maxRounds: GAME.DEFAULT_ROUNDS,
-                    chooseTime: GAME.DEFAULT_SELECTION_TIME,
-                    maxOptions: GAME.DEFAULT_OPTIONS,
-                    round: 0,
-                    deck: {
-                        id: DEFAULT_DECK.id,
-                        name: DEFAULT_DECK.name,
-                        type: DEFAULT_DECK.type,
-                    },
-                    current: {
-                        phrase: {
-                            id: '',
-                            text: '',
+                    client: {
+                        id: _user.client.id,
+                        host: true,
+                        name: _user.client.name,
+                        role: PLAYER_ROLE.HOST,
+                        score: 0,
+                        scoreLast: 0,
+                        scoreTotal: 0,
+                        ready: false,
+                        current: {
+                            option: undefined,
+                            freestyle: undefined,
                         },
-                        winner: '',
+                        stock: {
+                            options: [],
+                            modifiers: [],
+                        },
+                        used: {
+                            freestyle: [],
+                            options: [],
+                            modifiers: [],
+                        },
+                        ratesReceived: {}
                     },
-                    used: {
-                        phrases: [],
-                        options: [],
+                };
+
+                room = {
+                    id: roomId,
+                    room: {
+                        id: roomId,
+                        status: ROOM_STATUS.WAITING,
+                        hostId: player.userId,
+                        maxPlayers: GAME.MAX_PLAYERS
+                    },
+                    game: {
+                        id: nanoid(),
+                        roomId: roomId,
+                        status: GAME_STATUS.NOT_STARTED,
+                        settings: {
+                            deckId: DEFAULT_DECK_IDENTIFIER.id,
+                            fillTime: GAME.DEFAULT_FILL_TIME,
+                            rateTime: GAME.DEFAULT_RATE_TIME,
+                            players: GAME.DEFAULT_PLAYERS,
+                            rounds: GAME.DEFAULT_ROUNDS,
+                            options: GAME.DEFAULT_OPTIONS,
+                        },
+                        round: 0,
+                        deck: { ...DEFAULT_DECK_IDENTIFIER },
+                        current: {
+                            sentence: {
+                                id: '',
+                                text: '',
+                            },
+                            winner: '',
+                        },
+                        used: {
+                            sentences: [],
+                            options: [],
+                        }
+
+                    },
+                    players: [player.client],
+                    deck: {
+                        id: DEFAULT_DECK_IDENTIFIER.id,
+                        n: DEFAULT_DECK_IDENTIFIER.name,
+                        t: DEFAULT_DECK_IDENTIFIER.type,
+                        d: DEFAULT_DECK_IDENTIFIER.description,
+                        s: []
                     }
+                };
+            }
 
-                },
-                players: [player.client],
-            };
-
-            user.rooms.push(roomId);
+            _user.rooms.push(roomId);
             rooms.set(roomId, room);
             socket.join(roomId);
             socket.emit('room_created', {
@@ -350,10 +347,9 @@ export function attach_socket_server(
             io.in(roomId).socketsLeave(roomId);
         });
 
-        socket.on('room_join', ({ roomId }) => {
-            const user = users.get(socket.data.userId);
+        socket.on('room_join', ({ roomId, user }) => {
             const room = rooms.get(roomId);
-            if (!room || !user) {
+            if (!room) {
                 return;
             }
 
@@ -370,19 +366,25 @@ export function attach_socket_server(
                     return;
                 }
             }
-            for (const roomId of user.rooms) {
-                const _room = rooms.get(roomId);
-                if (_room) {
-                    return;
-                }
-            }
 
-            const player: T.Client.Player = {
+            const userId = user.id;
+            const _user: T.ServerUser = {
+                id: userId,
+                client: user,
+                rooms: [],
+                socketId: socket.id,
+            };
+            users.set(userId, _user);
+            socket.data.userId = user.id;
+
+            const player: T.Player = {
                 id: user.id,
-                name: user.client.name,
+                host: false,
+                name: user.name,
                 role: PLAYER_ROLE.GUEST,
                 score: 0,
-                totalScore: 0,
+                scoreLast: 0,
+                scoreTotal: 0,
                 ready: false,
                 current: {
                     option: undefined,
@@ -396,11 +398,12 @@ export function attach_socket_server(
                     freestyle: [],
                     options: [],
                     modifiers: [],
-                }
+                },
+                ratesReceived: {}
             };
 
             socket.join(roomId);
-            user.rooms.push(roomId);
+            _user.rooms.push(roomId);
             room.players.push(player);
             socket.emit('room_joined', {
                 room: room.room,
@@ -438,8 +441,8 @@ export function attach_socket_server(
             }
 
             removePlayerFromRoom(io, socket, kickedUser, room, playerId);
-            io.to(room.room.id).emit('player_kicked', { roomId: room.id, playerId: playerId });
-            io.sockets.sockets.get(kickedUser.client.socketId)?.leave(roomId);
+            io.to(room.room.id).emit('player_kicked', { playerId: playerId });
+            io.sockets.sockets.get(kickedUser.socketId)?.leave(roomId);
         });
 
         socket.on('player_update', ({ roomId, player }) => {
@@ -510,45 +513,48 @@ export function attach_socket_server(
             io.to(roomId).emit('player_updated', { player: player });
         });
 
-        socket.on('game_start', ({ roomId }) => {
+        socket.on('game_start', ({ roomId, deck }) => {
             const room = rooms.get(roomId);
             if (!room || room.room.hostId !== socket.data.userId) {
                 return;
             }
+            room.deck = deck;
+            room.game.deck.id = deck.id;
+            room.game.deck.name = deck.n;
+            room.game.deck.type = deck.t;
+            room.game.deck.description = deck.d;
 
             setupNewGame(room);
             io.to(roomId).emit('game_started', { game: room.game, players: room.players });
             newRound(io, socket, room);
         });
 
-        socket.on('game_set_settings', ({ roomId, game }) => {
+        socket.on('game_set_settings', ({ roomId, settings }) => {
             const room = rooms.get(roomId);
             if (!room || room.room.hostId !== socket.data.userId) {
                 return;
             }
 
-            room.game.maxRounds = game.maxRounds;
-            room.game.chooseTime = game.chooseTime;
-            room.game.maxOptions = game.maxOptions;
-            room.game.deck = game.deck;
-            io.to(roomId).emit('game_updated', { game: room.game });
-        });
-
-        socket.on('game_set_deck', ({ roomId, deckId }) => {
-            const room = rooms.get(roomId);
-            if (!room || room.room.hostId !== socket.data.userId) {
-                return;
+            if (settings.deckId) {
+                room.game.settings.deckId = settings.deckId;
+                room.game.deck.id = settings.deckId;
+            }
+            if (settings.fillTime) {
+                room.game.settings.fillTime = settings.fillTime;
+            }
+            if (settings.options) {
+                room.game.settings.options = settings.options;
+            }
+            if (settings.players) {
+                room.game.settings.players = settings.players;
+            }
+            if (settings.rateTime) {
+                room.game.settings.rateTime = settings.rateTime;
+            }
+            if (settings.rounds) {
+                room.game.settings.rounds = settings.rounds;
             }
 
-            const deck = decks[deckId];
-            if (!deck) {
-                return;
-            }
-
-            room.game.deck.id = deck.id;
-            room.game.deck.name = deck.name;
-            room.game.deck.type = deck.type;
-            room.game.deck.description = deck.description;
             io.to(roomId).emit('game_updated', { game: room.game });
         });
 
@@ -617,7 +623,7 @@ export function attach_socket_server(
             }
 
             const player = room.players[playerIndex];
-            player.score += rate === PLAYER_RATING.GOD ? 10 : rate === PLAYER_RATING.MEH ? 0 : -10;
+            player.ratesReceived[user.id] = rate;
         });
     });
 }

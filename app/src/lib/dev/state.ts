@@ -1,30 +1,41 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { GAME } from '$game/configs';
-import { GAME_STATUS } from '$game/enums';
-import { createSocket } from '$game/socket';
-import * as _decks from '$game/stores/decks';
-import * as _game from '$game/stores/game';
-import * as _player from '$game/stores/player';
-import * as _room from '$game/stores/room';
-import type { DeckIdentifier, User } from '$game/types';
-import type { Game, Player, Room } from '$game/types.client';
+import * as _game from '$game/stores/game.js';
+import * as _player from '$game/stores/players.js';
+import * as _room from '$game/stores/room.js';
+import * as _self from '$game/stores/self.js';
+import { createSocketStore } from '$game/stores/socket.js';
+import type { DeckIdentifier, Game, Player, RoomClient, User } from '$game/types.js';
+import * as _decks from '$lib/stores/decks.js';
+import { user } from "$lib/stores/user.js";
+import { GAME_STATUS, PLAYER_ROLE } from '$shared/constants.js';
+import { GAME } from '$shared/defaults.js';
 
 
 const INITIAL_USER: User = {
     id: '1',
     name: 'Josu',
-    socketId: 'undefined',
+    gamesPlayed: 0,
+    gamesWon: 0,
+    scoreLastGame: 0,
+    scoreLifetime: 0,
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
 };
 
 const INITIAL_USER2: User = {
     id: '2',
     name: 'Mikel',
-    socketId: 'undefined',
+    gamesPlayed: 0,
+    gamesWon: 0,
+    scoreLastGame: 0,
+    scoreLifetime: 0,
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
 };
 
-const INITIAL_ROOM: Room = {
+const INITIAL_ROOM: RoomClient = {
     id: 'HJDNBH',
-    status: 'IN_LOBBY',
+    status: 'WAITING',
     hostId: INITIAL_USER.id,
     maxPlayers: GAME.MAX_PLAYERS
 };
@@ -33,9 +44,14 @@ const INITIAL_GAME: Game = {
     id: 'b28yeb812ed',
     roomId: INITIAL_ROOM.id,
     status: GAME_STATUS.NOT_STARTED,
-    maxRounds: GAME.DEFAULT_ROUNDS,
-    maxOptions: GAME.DEFAULT_OPTIONS,
-    chooseTime: GAME.DEFAULT_SELECTION_TIME,
+    settings: {
+        deckId: GAME.DEFAULT_DECK_ID,
+        fillTime: GAME.DEFAULT_FILL_TIME,
+        rateTime: GAME.DEFAULT_RATE_TIME,
+        players: GAME.DEFAULT_PLAYERS,
+        rounds: GAME.DEFAULT_ROUNDS,
+        options: GAME.DEFAULT_OPTIONS,
+    },
     round: 0,
     deck: {
         id: '2',
@@ -43,13 +59,14 @@ const INITIAL_GAME: Game = {
         type: 'COMPLETE',
     },
     current: {
-        phrase: {
+        sentence: {
             id: '1',
             text: 'Nunca saldría con alguien que le guste {{}}',
         },
+        winner: INITIAL_USER.id,
     },
     used: {
-        phrases: [],
+        sentences: [],
         options: [],
     },
 };
@@ -57,10 +74,12 @@ const INITIAL_GAME: Game = {
 const INITIAL_PLAYERS: Player[] = [
     {
         id: '1',
+        host: true,
         name: 'Josu',
         role: 'HOST',
-        score: 0,
-        totalScore: 0,
+        score: 40,
+        scoreLast: 40,
+        scoreTotal: 80,
         ready: false,
         current: {
             option: undefined,
@@ -76,13 +95,16 @@ const INITIAL_PLAYERS: Player[] = [
             options: [],
             modifiers: [],
         },
+        ratesReceived: {}
     },
     {
         id: '2',
+        host: false,
         name: 'Mikel',
         role: 'GUEST',
-        score: 0,
-        totalScore: 0,
+        score: -30,
+        scoreLast: 60,
+        scoreTotal: 30,
         ready: false,
         current: {
             option: undefined,
@@ -98,49 +120,56 @@ const INITIAL_PLAYERS: Player[] = [
             options: [],
             modifiers: [],
         },
+        ratesReceived: {}
+    },
+    {
+        id: '3',
+        host: false,
+        name: 'Ander',
+        role: 'GUEST',
+        score: 0,
+        scoreLast: 50,
+        scoreTotal: 50,
+        ready: false,
+        current: {
+            option: undefined,
+            modifier: undefined,
+            freestyle: undefined,
+        },
+        stock: {
+            options: [],
+            modifiers: [],
+        },
+        used: {
+            freestyle: [],
+            options: [],
+            modifiers: [],
+        },
+        ratesReceived: {}
     }
 ];
 
-const INITIAL_DECKS: DeckIdentifier[] = [
-    {
-        id: "1",
-        type: "CHOOSE",
-        name: "Humor negro",
-        description: "Completa con lo que te atrevas"
-    },
-    {
-        id: "2",
-        type: "COMPLETE",
-        name: "Refranes inventados",
-        description: "Sos bueno para darle sentido?"
-    },
-    {
-        id: "3",
-        type: "COMPLETE",
-        name: "Family friendly",
-        description: "Apto para la familia"
-    }
-];
+
+export const socket = createSocketStore();
 
 
-export const socket = createSocket();
+export const self = _self.createSelfStore(user);
 
+export const selfActions = _self.createSelfActions(socket, self);
 
-export const self = _player.createSelfStore();
+_self.attachSelfListeners(socket, self);
 
-export const selfActions = _player.createSelfActions(socket, self);
+self.value.player.id = INITIAL_USER.id;
+self.value.loaded = true;
+self.value.player.role = PLAYER_ROLE.HOST;
 
-_player.attachSelfListeners(socket, self);
-
-self.value.registered=true
-
-export const players = _player.createPlayersStore();
+export const players = _player.createPlayersStore(self);
 
 export const playersActions = _player.createPlayersActions(socket, players);
 
 _player.attachPlayersListeners(socket, players);
 
-players.mset(INITIAL_PLAYERS)
+players.mset(INITIAL_PLAYERS);
 
 export const room = _room.createRoomStore();
 
@@ -148,24 +177,14 @@ export const roomActions = _room.createRoomActions(socket, self, room);
 
 _room.attachRoomListeners(room, socket);
 
-room.mset(INITIAL_ROOM)
+room.mset(INITIAL_ROOM);
 
 export const game = _game.createGameStore();
 
 export const gameStatus = _game.createGameStatusStore(game);
 
-export const gameActions = _game.createGameActions(socket, self, game);
+export const gameActions = _game.createGameActions(socket, game);
 
 _game.attachGameListeners(socket, game);
 
-game.mset(INITIAL_GAME)
-
-export const decks = _decks.createDecksStore();
-
-export const decksActions = _decks.createDecksActions(socket, decks);
-
-_decks.attachDecksListeners(socket, decks);
-
-decks.mset(INITIAL_DECKS)
-
-// TODO: attach common listeners between stores
+game.mset(INITIAL_GAME);

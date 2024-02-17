@@ -2,14 +2,12 @@
     "[json]": {
         "editor.tabSize": 2
     },
-    "svelte.plugin.svelte.format.config.singleQuote": true,
-    "javascript.preferences.quoteStyle": "single",
-    "typescript.preferences.quoteStyle": "single",
-    "files.trimFinalNewlines": true,
     "files.insertFinalNewline": true,
+    "files.trimFinalNewlines": true,
+    "files.trimTrailingWhitespace": true,
+    "javascript.preferences.importModuleSpecifierEnding": "js",
+    "javascript.preferences.quoteStyle": "single",
+    "svelte.plugin.svelte.format.config.singleQuote": true,
     "typescript.preferences.importModuleSpecifierEnding": "js",
-    "javascript.preferences.importModuleSpecifierEnding": "js"
-    // "files.associations": {
-    //     "*.pcss": "css",
-    // }
+    "typescript.preferences.quoteStyle": "single"
 }

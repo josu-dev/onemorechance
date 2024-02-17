@@ -4,12 +4,8 @@
   import GameLobby from '$comps/game/GameLobby.svelte';
   import GameMessage from '$comps/game/GameMessage.svelte';
   import GameRateSentence from '$comps/game/GameRateSentence.svelte';
-  import GameScoreboard from '$comps/game/GameScoreboard.svelte';
-  import { GAME } from '$game/configs.js';
-  import type { GameStatus } from '$game/enums.js';
-  import { GAME_STATUS, ROOM_STATUS } from '$game/enums.js';
+  import GameRoundWinner from '$comps/game/GameRoundWinner.svelte';
   import {
-    decks,
     game,
     gameActions,
     gameStatus,
@@ -17,12 +13,18 @@
     room,
     roomActions,
     self,
-  } from '$lib/dev/state';
-  import { audioPlayer } from '$lib/stores/audio.js';
+  } from '$lib/dev/state.js';
+  import { decks } from '$lib/stores/decks.ts';
+  import {
+    GAME_STATUS,
+    ROOM_STATUS_CLIENT,
+    type GameStatus,
+  } from '$shared/constants.js';
+  import { GAME } from '$shared/defaults.js';
   import { onMount } from 'svelte';
   import { helpers } from 'svelte-hypercommands/CommandPalette.svelte';
 
-  // export let data;
+  $: debugData.set({ $game, $players, $room, $self });
 
   function setGameStatus(status: GameStatus) {
     game.value.status = status;
@@ -45,10 +47,9 @@
   }
 
   onMount(() => {
-    debugData.set(room);
     // debugData.set(audioPlayer);
     // emulateRateSentence();
-    // setGameStatus(GAME_STATUS.RATE_SENTENCE);
+    // setGameStatus(GAME_STATUS.ROUND_WINNER);
 
     const cmdCleanup = helpers.registerCommand([
       {
@@ -56,12 +57,12 @@
         description: "Toggle current player's role",
         onAction: () => {
           if (
-            !self.value.registered ||
-            room.value.status === ROOM_STATUS.NO_ROOM
+            !self.value.loaded ||
+            room.value.status === ROOM_STATUS_CLIENT.NO_ROOM
           ) {
             return;
           }
-          self.value.id = self.value.id === '1' ? '3' : '1';
+          self.value.player.id = self.value.player.id === '1' ? '3' : '1';
           self.sync();
         },
       },
@@ -87,6 +88,22 @@
         description: `Set game status to ${GAME_STATUS.RATE_SENTENCE}`,
         onAction: emulateRateSentence,
       },
+      {
+        category: 'GS',
+        name: 'Round Winner',
+        description: `Set game status to ${GAME_STATUS.ROUND_WINNER}`,
+        onAction: () => {
+          setGameStatus(GAME_STATUS.ROUND_WINNER);
+        },
+      },
+      {
+        category: 'GS',
+        name: 'Scoreboard',
+        description: `Set game status to ${GAME_STATUS.END_SCOREBOARD}`,
+        onAction: () => {
+          setGameStatus(GAME_STATUS.END_SCOREBOARD);
+        },
+      },
     ]);
 
     return () => {
@@ -95,7 +112,7 @@
   });
 
   $: pageTitle = `${
-    $room.status === ROOM_STATUS.IN_GAME ? 'Jugando' : 'Esperando'
+    $room.status === ROOM_STATUS_CLIENT.GAME_ON ? 'Jugando' : 'Esperando'
   } - One More Chance`;
 
   $: isNotStarted = $gameStatus === GAME_STATUS.NOT_STARTED;
@@ -116,7 +133,7 @@
   class="h-full flex flex-col items-center justify-center overflow-y-auto p-1 ring-1 ring-cyan-500 md:ring-fuchsia-500 ring-inset"
 >
   <h1 class="sr-only">A jugar One More Chance!</h1>
-  {#if !$self.registered || $room.status === ROOM_STATUS.NO_ROOM}
+  {#if !$self.loaded || $room.status === ROOM_STATUS_CLIENT.NO_ROOM}
     <GameMessage>
       <svelte:fragment slot="title">
         Room not found, you shouldnt be seeing this 😅
@@ -132,8 +149,8 @@
       {game}
       {players}
       {decks}
-      on:start_game={() => {
-        roomActions.startGame();
+      on:start_game={(e) => {
+        roomActions.startGame(e.detail);
       }}
       on:close_room={() => {
         roomActions.closeRoom();
@@ -160,7 +177,6 @@
   {:else if isFillSentence}
     <GameFillSentence
       {game}
-      initTimerOnMount
       on:freestyle={(event) => {
         gameActions.setFreestyle(event.detail);
       }}
@@ -177,21 +193,23 @@
       }}
     />
   {:else if isRoundWinner || isScoreboard}
-    <GameScoreboard {game} {players}>
-      <svelte:fragment slot="actions">
-        {#if isScoreboard}
-          <button
-            class="btn variant-filled-primary variant-outline-primary"
-            type="button"
-            on:click={() => {
-              setGameStatus(GAME_STATUS.NOT_STARTED);
-            }}
-          >
-            Volver al lobby
-          </button>
-        {/if}
-      </svelte:fragment>
-    </GameScoreboard>
+    <GameRoundWinner {game} {players}>
+      <div
+        slot="actions"
+        class="flex justify-center"
+        class:hidden={!isScoreboard}
+      >
+        <button
+          on:click={() => {
+            game.value.status = GAME_STATUS.ENDED;
+            game.sync();
+          }}
+          class="button variant-primary"
+        >
+          Volver al lobby
+        </button>
+      </div>
+    </GameRoundWinner>
   {:else}
     <GameMessage>
       <svelte:fragment slot="title">
