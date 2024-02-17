@@ -34,7 +34,7 @@ jobs:
 
   build_and_push:
     runs-on: ubuntu-22.04
-    needs: [gitleaks, codacy_scan]
+    needs: [gitleaks]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
