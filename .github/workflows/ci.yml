@@ -47,11 +47,6 @@ jobs:
 
       - name: Set up Docker Build
         uses: docker/setup-buildx-action@v2
-        with:
-          args: --build-arg="TURSO_DB_AUTH_TOKEN=${{ secrets.TURSO_DB_AUTH_TOKEN }}" --build-arg="TURSO_DB_URL=${{ secrets.TURSO_DB_URL }}"
-        env:
-          TURSO_DB_AUTH_TOKEN: ${{ secrets.TURSO_DB_AUTH_TOKEN }}
-          TURSO_DB_URL: ${{ secrets.TURSO_DB_URL }}
 
       - name: Build and push
         uses: docker/build-push-action@v5
@@ -60,6 +55,9 @@ jobs:
           file: ./app/Dockerfile
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/onemorechance:latest
+          secrets: |
+            TURSO_DB_AUTH_TOKEN=${{ secrets.TURSO_DB_AUTH_TOKEN }}
+            TURSO_DB_URL=${{ secrets.TURSO_DB_URL }}
 
   render_deploy:
     runs-on: ubuntu-latest
