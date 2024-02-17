@@ -10,6 +10,13 @@ declare global {
         }
         // interface Platform {}
     }
+
+    namespace NodeJS {
+        interface ProcessEnv {
+            SK_LOG_LEVEL?: string;
+            SK_LOG_LEVEL_CLIENT?: string;
+        }
+    }
 }
 
 export { };

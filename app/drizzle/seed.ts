@@ -46,7 +46,17 @@ async function main() {
 
                 if (deck.type === 'SELECT') {
                     const o: typeof schema.options.$inferInsert[] = [];
-                    for (const { text } of deck.options) {
+                    const half = Math.floor(deck.options.length / 2);
+                    for (const { text } of deck.options.slice(0, half)) {
+                        o.push({
+                            id: nanoid(),
+                            deckId: deckId,
+                            text: text,
+                        });
+                    }
+                    promises.push(tx.insert(schema.options).values(o));
+                    o.length = 0;
+                    for (const { text } of deck.options.slice(half)) {
                         o.push({
                             id: nanoid(),
                             deckId: deckId,
