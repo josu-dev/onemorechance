@@ -15,8 +15,6 @@ const DEFAULT_DECK_IDENTIFIER: T.DeckIdentifier = {
 
 const users = new Map<string, T.ServerUser>();
 
-// const players = new Map<string, T.Player>();
-
 const rooms = new Map<string, T.ServerRoom>();
 
 
