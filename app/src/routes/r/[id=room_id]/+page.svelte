@@ -7,6 +7,7 @@
   import GameMessage from '$comps/game/GameMessage.svelte';
   import GameRateSentence from '$comps/game/GameRateSentence.svelte';
   import GameRoundWinner from '$comps/game/GameRoundWinner.svelte';
+  import Seo from '$comps/layout/Seo.svelte';
   import {
     game,
     gameActions,
@@ -54,9 +55,11 @@
   });
 </script>
 
-<svelte:head>
-  <title>{pageTitle}</title>
-</svelte:head>
+<Seo
+  title={pageTitle}
+  description="Te vas a reir con y de tus amigos jugando unas partiditas de One More Chance"
+  titleOg="Partida en curso - One More Chance"
+/>
 
 <main class="main justify-center py-1">
   <h1 class="sr-only">A jugar One More Chance!</h1>

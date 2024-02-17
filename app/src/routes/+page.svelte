@@ -1,5 +1,6 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
+  import Seo from '$comps/layout/Seo.svelte';
   import FieldText from '$lib/elements/form/FieldText.svelte';
   import { audioPlayer } from '$lib/stores/audio.js';
   import { user } from '$lib/stores/user.js';
@@ -52,9 +53,10 @@
   });
 </script>
 
-<svelte:head>
-  <title>One More Chance</title>
-</svelte:head>
+<Seo
+  title="One More Chance"
+  description="Listo para mostrarle a tus amigos que si sos el mas capo?, o bueno un itento de comico. Juga con tus amigos y obligalos a reir de tus casi chistes"
+/>
 
 <main class="main justify-center pb-0">
   <h1 class="text-4xl text-white font-bold text-center mb-2">

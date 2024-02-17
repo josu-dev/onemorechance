@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Seo from '$comps/layout/Seo.svelte';
   import LinkBack from '$comps/shared/LinkBack.svelte';
   import Table from '$lib/elements/table/Table.svelte';
   import TableBody from '$lib/elements/table/TableBody.svelte';
@@ -10,7 +11,7 @@
 
   export let data;
 
-  const user = data.user
+  const user = data.user;
 
   const userRank = data.userRank ?? Infinity;
 
@@ -26,9 +27,14 @@
   ];
 </script>
 
+<Seo
+  title="Ranking - One More Chance"
+  description="Sos el mas capo de tus amigos o sos el maleta del grupo? Tenele miedo a los que estan arriba y reite de los que estan abajo en el ranking Global de One More Chance"
+/>
+
 <main class="main main-p-header">
   <h1 class="h2 text-white text-center">
-    OMC ranking
+    Ranking de los mas graciosos
     <LinkBack href="/" className="icon-md" />
   </h1>
 

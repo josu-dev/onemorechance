@@ -1,5 +1,6 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
+  import Seo from '$comps/layout/Seo.svelte';
   import LinkBack from '$comps/shared/LinkBack.svelte';
   import FieldSelect from '$lib/elements/form/FieldSelect.svelte';
   import FieldText from '$lib/elements/form/FieldText.svelte';
@@ -29,9 +30,14 @@
   };
 </script>
 
+<Seo
+  title="Decks - One More Chance"
+  description="Crea un nuevo deck o elige uno ya creado para cagarte de risa con tus amigos"
+/>
+
 <main class="main main-p-header">
   <h1 class="h2 text-white text-center">
-    OMC decks
+    Decks de la comunidad
     <LinkBack href="/" className="icon-md" />
   </h1>
 

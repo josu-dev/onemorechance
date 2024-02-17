@@ -11,3 +11,11 @@ function getLogLevel(level: string): number {
 export const logLevel = getLogLevel(PUBLIC_SK_LOG_LEVEL);
 
 export const logLevelClient = getLogLevel(PUBLIC_SK_LOG_LEVEL_CLIENT);
+
+export const openGraph = {
+    siteName: 'One More Chance',
+    image: '/logo/og-1200x630.png',
+    imageAlt: 'Logo de One More Chance',
+    imageWidth: '1200',
+    imageHeight: '630',
+};

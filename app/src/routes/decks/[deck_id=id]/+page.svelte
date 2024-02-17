@@ -1,5 +1,6 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
+  import Seo from '$comps/layout/Seo.svelte';
   import ButtonIcon from '$comps/shared/ButtonIcon.svelte';
   import LinkBack from '$comps/shared/LinkBack.svelte';
   import FieldHidden from '$lib/elements/form/FieldHidden.svelte';
@@ -53,9 +54,16 @@
   });
 </script>
 
+<Seo
+  title="Deck '{data.deck.data.name}' - One More Chance"
+  description={isOwner
+    ? `Administra tu deck '${data.deck.data.name}' para dejarlo fino como un violín`
+    : `Dale un vistazo rapido al deck '${data.deck.data.name}' para ver si vale la pena probarlo`}
+/>
+
 <main class="main main-p-header">
   <h1 class="h2 text-white text-center">
-    Administrar deck '{data.deck.data.name}'
+    {isOwner ? 'Administrar deck' : 'Deck'} '{data.deck.data.name}'
     <LinkBack href="/decks" className="icon-md" />
   </h1>
 
