@@ -33,8 +33,8 @@ jobs:
     with:
       runs-on: ubuntu-latest
       name: Codacy
-      secrets: |
-        project_token: ${{ secrets.CODACY_PROJECT_TOKEN }}
+    secrets:
+      project_token: ${{ secrets.CODACY_PROJECT_TOKEN }}
 
   build_and_push:
     runs-on: ubuntu-22.04
@@ -89,4 +89,4 @@ jobs:
     steps:
       - name: use curl to trigger the render deploy hook
         run: |
-          curl -X GET https://api.render.com/deploy/$(RENDER_HOOK_URL)
+          curl -X GET https://api.render.com/deploy/${{ env.RENDER_HOOK_URL }}
