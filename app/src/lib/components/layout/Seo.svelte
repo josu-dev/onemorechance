@@ -1,6 +1,6 @@
 <script>
   import { page } from '$app/stores';
-  import { openGraph } from '$lib/configs.ts';
+  import { OPEN_GRAPH } from '$lib/defaults.ts';
 
   /**
    * The title of the page
@@ -26,7 +26,7 @@
    * The name of the site
    * @type {string}
    */
-  export let siteName = openGraph.siteName;
+  export let siteName = OPEN_GRAPH.siteName;
   /**
    * The title of the page for Open Graph
    * @type {string | undefined}
@@ -47,10 +47,10 @@
    * @type {{url: string, alt: string, width: string, height: string}}
    */
   export let image = {
-    url: openGraph.image,
-    alt: openGraph.imageAlt,
-    width: openGraph.imageWidth,
-    height: openGraph.imageHeight,
+    url: OPEN_GRAPH.image,
+    alt: OPEN_GRAPH.imageAlt,
+    width: OPEN_GRAPH.imageWidth,
+    height: OPEN_GRAPH.imageHeight,
   };
 
   const currentUrl =

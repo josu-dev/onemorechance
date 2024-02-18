@@ -3,7 +3,7 @@
   import Header from '$comps/layout/Header.svelte';
   import HyperDebug, { debugEnabled } from '$lib/components/HyperDebug.svelte';
   import { user } from '$lib/stores/user.js';
-  import { logClient } from '$lib/utils/logging.js';
+  import { log } from '$lib/utils/logging.js';
   import toast, { Toaster } from 'svelte-french-toast';
   import { defineCommand, definePage } from 'svelte-hypercommands';
   import CommandPalette from 'svelte-hypercommands/CommandPalette.svelte';
@@ -67,7 +67,7 @@
               `Decks API is not working, ${res.status} ${res.statusText}`,
             );
           }
-          logClient.dev('Decks API', res);
+          log.dev('Decks API', res);
         });
       },
       shortcut: '$mod+Shift+D',

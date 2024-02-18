@@ -1,5 +1,5 @@
 import type { ExposedReadablePartial } from '$lib/stores/types.ts';
-import { logClient } from '$lib/utils/logging.ts';
+import { log } from '$lib/utils/logging.ts';
 import type { ClientToServerEvents, ServerToClientEvents } from '$shared/types.js';
 import type { Socket } from 'socket.io-client';
 import { io } from 'socket.io-client';
@@ -72,7 +72,7 @@ export function attachSocketListeners(socket: SocketStore) {
             connecting: false,
         });
 
-        logClient.debug('connected to websocket');
+        log.debug('connected to websocket');
     });
 
     socket.instance.on('disconnect', (reason) => {
@@ -81,6 +81,6 @@ export function attachSocketListeners(socket: SocketStore) {
             connecting: false,
         });
 
-        logClient.debug('disconnected from websocket by: ', reason);
+        log.debug('disconnected from websocket by: ', reason);
     });
 }

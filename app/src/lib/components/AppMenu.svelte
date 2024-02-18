@@ -6,7 +6,7 @@
   import { useClickOutside } from '$lib/actions/index.js';
   import { audioPlayer } from '$lib/stores/audio.js';
   import { user } from '$lib/stores/user.js';
-  import { logClient } from '$lib/utils/logging.ts';
+  import { log } from '$lib/utils/logging.ts';
   import { ROOM_STATUS_CLIENT } from '$shared/constants.js';
   import type { SubmitFunction } from '@sveltejs/kit';
   import toast from 'svelte-french-toast';
@@ -48,7 +48,7 @@
         return;
       }
 
-      logClient.error('Error al borrar la cuenta', result);
+      log.error('Error al borrar la cuenta', result);
       toast.error('Error al borrar la cuenta', { duration: 5000 });
     };
   };

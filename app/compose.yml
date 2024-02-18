@@ -6,9 +6,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      args:
-        TURSO_DB_AUTH_TOKEN: ${TURSO_DB_AUTH_TOKEN}
-        TURSO_DB_URL: ${TURSO_DB_URL}
     restart: always
     ports:
       - ${PORT}:${PORT}

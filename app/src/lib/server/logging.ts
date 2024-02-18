@@ -1,15 +1,15 @@
 import { dev } from '$app/environment';
-import { env } from '$env/dynamic/public';
-import { LOG_LEVEL_CLIENT } from '$lib/defaults.ts';
+import { env } from '$env/dynamic/private';
+import { LOG_LEVEL } from '$lib/defaults.ts';
 
 
 const logLevel = (() => {
-    if (!env.PUBLIC_LOG_LEVEL_SK_CLIENT) {
-        return LOG_LEVEL_CLIENT;
+    if (!env.LOG_LEVEL_SK) {
+        return LOG_LEVEL;
     }
-    const value = parseInt(env.PUBLIC_LOG_LEVEL_SK_CLIENT);
+    const value = parseInt(env.LOG_LEVEL_SK);
     if (isNaN(value)) {
-        return LOG_LEVEL_CLIENT;
+        return LOG_LEVEL;
     }
     return value;
 })();
@@ -58,7 +58,7 @@ function createLogger(level: number) {
 }
 
 /**
- * Clien side logger
+ * Server side only logger
  *
  * Log levels:
  * - _: fatal

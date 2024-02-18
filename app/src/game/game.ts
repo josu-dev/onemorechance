@@ -5,7 +5,7 @@ import * as _self from '$game/stores/self.js';
 import * as _shared from '$game/stores/shared.js';
 import * as _socket from '$game/stores/socket.js';
 import { user } from '$lib/stores/user.js';
-import { logClient } from '$lib/utils/logging.js';
+import { log } from '$lib/utils/logging.js';
 import { ROOM_STATUS_CLIENT } from '$shared/constants.js';
 
 
@@ -53,7 +53,7 @@ socket.instance.on('connect', () => {
     self.value.connected = true;
     self.sync();
     if (!self.value.loaded) {
-        logClient.warn('User not loaded cannot auto connect');
+        log.warn('User not loaded cannot auto connect');
         return;
     }
 

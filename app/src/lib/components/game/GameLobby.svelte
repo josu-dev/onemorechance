@@ -11,7 +11,7 @@
     SelfStore,
   } from '$game/types.js';
   import type { DecksStore } from '$lib/stores/decks.ts';
-  import { logClient } from '$lib/utils/logging.ts';
+  import { log } from '$lib/utils/logging.ts';
   import { DECK_TYPE } from '$shared/constants.js';
   import { GAME } from '$shared/defaults.js';
   import { createEventDispatcher } from 'svelte';
@@ -69,7 +69,7 @@
         deckData.s = data.s;
       })
       .catch((err) => {
-        logClient.error('Error fetching deck data', err);
+        log.error('Error fetching deck data', err);
       });
   }
 

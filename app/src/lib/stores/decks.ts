@@ -1,5 +1,5 @@
 import type { DeckIdentifier } from '$game/types.js';
-import { logClient } from '$lib/utils/logging.ts';
+import { log } from '$lib/utils/logging.ts';
 import { writable } from 'svelte/store';
 import type { ExposedReadable } from './types.ts';
 
@@ -46,7 +46,7 @@ export function createDecksStore(): DecksStore {
                     set(_decks);
                 })
                 .catch((e) => {
-                    logClient.error('Failed to fetch decks', e);
+                    log.error('Failed to fetch decks', e);
                 });
         }
     };

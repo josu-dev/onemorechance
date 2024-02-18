@@ -9,3 +9,15 @@ export const AUDIO = {
     VOLUME_MUSIC: 0.5,
     VOLUME_SFX: 0.5,
 } as const;
+
+export const LOG_LEVEL = 3;
+
+export const LOG_LEVEL_CLIENT = 3;
+
+export const OPEN_GRAPH = {
+    siteName: 'One More Chance',
+    image: '/logo/og-1200x630.png',
+    imageAlt: 'Logo de One More Chance',
+    imageWidth: '1200',
+    imageHeight: '630',
+};
