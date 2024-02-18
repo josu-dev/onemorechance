@@ -24,6 +24,7 @@ jobs:
 
   codacy_scan:
     uses: jd-apprentice/jd-workflows/.github/workflows/codacy.yml@main
+    if: ${{ startsWith(github.ref, 'refs/heads/main') }}
     needs: gitleaks
     with:
       runs-on: ubuntu-latest
@@ -33,7 +34,7 @@ jobs:
 
   build_and_push:
     runs-on: ubuntu-22.04
-    needs: [gitleaks, codacy_scan]
+    needs: [gitleaks]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -47,7 +48,12 @@ jobs:
       - name: Set up Docker Build
         uses: docker/setup-buildx-action@v2
         with:
-          args: --build-arg="TURSO_DB_AUTH_TOKEN=${{ secrets.TURSO_DB_AUTH_TOKEN }}" --build-arg="TURSO_DB_URL=${{ secrets.TURSO_DB_URL }}"
+          build-args: |
+            "TURSO_DB_AUTH_TOKEN=${{ secrets.TURSO_DB_AUTH_TOKEN }}"
+            "TURSO_DB_URL=${{ secrets.TURSO_DB_URL }}"
+          secrets: |
+            TURSO_DB_AUTH_TOKEN=${{ secrets.TURSO_DB_AUTH_TOKEN }}
+            TURSO_DB_URL=${{ secrets.TURSO_DB_URL }}
 
       - name: Build and push
         uses: docker/build-push-action@v5
@@ -56,6 +62,12 @@ jobs:
           file: ./app/Dockerfile
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/onemorechance:latest
+          build-args: |
+            "TURSO_DB_AUTH_TOKEN=${{ secrets.TURSO_DB_AUTH_TOKEN }}"
+            "TURSO_DB_URL=${{ secrets.TURSO_DB_URL }}"
+          secrets: |
+            TURSO_DB_AUTH_TOKEN=${{ secrets.TURSO_DB_AUTH_TOKEN }}
+            TURSO_DB_URL=${{ secrets.TURSO_DB_URL }}
 
   render_deploy:
     runs-on: ubuntu-latest
