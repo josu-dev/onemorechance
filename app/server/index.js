@@ -1,6 +1,6 @@
 import express from "express";
 import { handler } from "../build/handler.js";
-import { attach_socket_server } from "../build/server/sockets.js";
+import { attach_socket_server } from "../build/server_ws/server/sockets.js";
 
 
 const PORT = process.env.PORT || 3000;

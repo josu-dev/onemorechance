@@ -6,9 +6,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev",
-    "dev:start": "vite dev --host --force",
+    "dev:host": "vite dev --host --force",
     "start": "node .",
-    "build": "vite build && tsc ./server/sockets.ts --outDir ./build --module nodenext --resolveJsonModule",
+    "start:dev": "node -r dotenv/config .",
+    "build": "vite build && tsc ./server/sockets.ts --outDir ./build/server_ws --module nodenext --resolveJsonModule",
     "preview": "vite preview",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:all": "npm run check && npm run check:wss",
