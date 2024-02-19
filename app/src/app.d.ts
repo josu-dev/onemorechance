@@ -1,7 +1,7 @@
 declare global {
     namespace App {
         interface Error {
-            id: string;
+            id?: string;
             message: string;
         }
 

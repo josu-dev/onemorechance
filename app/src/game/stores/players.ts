@@ -1,4 +1,5 @@
 import type { GameStateStore, Player, SocketStore } from '$game/types.js';
+import { log } from '$lib/utils/logging.ts';
 import { writable } from 'svelte/store';
 import type { SelfStore } from './self.ts';
 
@@ -126,14 +127,17 @@ export function createPlayersActions(socket: SocketStore, players: PlayersStore)
 
 export function attachPlayersListeners(socket: SocketStore, players: PlayersStore) {
     socket.instance.on('player_joined', (data) => {
+        log.debug('player_joined', data);
         players.add(data.player);
     });
 
     socket.instance.on('player_left', (data) => {
+        log.debug('player_left', data);
         players.remove(data.playerId);
     });
 
     socket.instance.on('player_disconnected', (data) => {
+        log.debug('player_disconnected', data);
         players.remove(data.playerId);
     });
 }

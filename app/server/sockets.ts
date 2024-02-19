@@ -4,6 +4,7 @@ import { Server } from 'socket.io';
 import { DECK_TYPE, GAME_STATUS, PLAYER_RATING, PLAYER_ROLE, ROOM_STATUS } from '../src/shared/constants.js';
 import { GAME } from '../src/shared/defaults.js';
 import type * as T from './types.js';
+import { log } from './utils.js';
 
 
 const DEFAULT_DECK_IDENTIFIER: T.DeckIdentifier = {
@@ -83,6 +84,7 @@ function setupNewGame(room: T.ServerRoom) {
 }
 
 function newRound(io: T.WebSocketServer, socket: T.WebSocketServerSocket, room: T.ServerRoom) {
+    log.debug('New round', room.id, room.game.round, room.game.settings.rounds);
     room.game.round += 1;
 
     for (const player of room.players) {
@@ -99,7 +101,7 @@ function newRound(io: T.WebSocketServer, socket: T.WebSocketServerSocket, room: 
     const sentence = deck.s[(room.game.round - 1) % deck.s.length];
     if (room.game.round > deck.s.length) {
         room.game.used.sentences.length = 0;
-        console['warn']('Deck ran out of sentences', room.game, room.deck);
+        log.warn('Deck ran out of sentences', room.game, room.deck);
     }
 
     room.game.used.sentences.push(sentence.id);
@@ -203,7 +205,10 @@ export function attach_socket_server(
     >(server);
 
     io.on('connection', (socket) => {
+        log.info('Client connected', socket.id);
+
         socket.on('disconnect', () => {
+            log.info('Client disconnected', socket.id, 'user', socket.data.userId);
             if (!socket.data.userId) {
                 return;
             }
@@ -218,6 +223,8 @@ export function attach_socket_server(
                 if (!room) {
                     continue;
                 }
+
+                log.debug('User removed from room', roomId, user.id);
                 removePlayerFromRoom(io, socket, user, room, user.id);
                 io.sockets.sockets.get(user.socketId)?.leave(roomId);
                 io.to(roomId).emit('player_disconnected', { playerId: user.id });
@@ -228,6 +235,7 @@ export function attach_socket_server(
         });
 
         socket.on('room_create', ({ roomId, user }) => {
+            log.debug('Room create', roomId, user);
             const userId = user.id;
             const _user: T.ServerUser = {
                 id: userId,
@@ -328,10 +336,12 @@ export function attach_socket_server(
         socket.on('room_update', ({ room }) => {
             const _room = rooms.get(room.id);
             if (!_room) {
+                log.debug('Room update failed', room.id);
                 return;
             }
-            _room.room = room;
 
+            log.debug('Room update', room.id);
+            _room.room = room;
             io.to(room.id).emit('room_updated', { room: room });
         });
 
@@ -339,9 +349,11 @@ export function attach_socket_server(
             const user = users.get(socket.data.userId);
             const room = rooms.get(roomId);
             if (!user || !room || room.room.hostId !== user.client.id) {
+                log.debug(`Room close failer roomId=${roomId} userId=${user?.client.id} hostId=${room?.room.hostId}`);
                 return;
             }
 
+            log.debug('Room close', roomId);
             rooms.delete(roomId);
             io.to(roomId).emit('room_closed', { roomId });
             io.in(roomId).socketsLeave(roomId);
@@ -350,6 +362,7 @@ export function attach_socket_server(
         socket.on('room_join', ({ roomId, user }) => {
             const room = rooms.get(roomId);
             if (!room) {
+                log.debug('Room join failed', roomId);
                 return;
             }
 
@@ -363,10 +376,12 @@ export function attach_socket_server(
 
             for (const player of room.players) {
                 if (player.id === user.id) {
+                    log.debug('User already in room', roomId, user.id);
                     return;
                 }
             }
 
+            log.debug('Room join', roomId, user.id);
             const userId = user.id;
             const _user: T.ServerUser = {
                 id: userId,
@@ -417,9 +432,11 @@ export function attach_socket_server(
             const user = users.get(socket.data.userId);
             const room = rooms.get(roomId);
             if (!user || !room) {
+                log.debug('Room leave failed', roomId, user?.id);
                 return;
             }
 
+            log.debug('Room leave', roomId, user.id);
             removePlayerFromRoom(io, socket, user, room, user.id);
 
             socket.leave(room.room.id);
@@ -432,14 +449,17 @@ export function attach_socket_server(
             const room = rooms.get(roomId);
             const kickedUser = users.get(playerId);
             if (!user || !room || !kickedUser) {
+                log.debug('Room kick player failed', roomId, user?.id, playerId);
                 return;
             }
 
             const userId = user.id;
             if (userId !== room.room.hostId || userId === playerId) {
+                log.debug('Room kick player failed (not host)', roomId, userId, playerId);
                 return;
             }
 
+            log.debug('Room kick player', roomId, userId, playerId);
             removePlayerFromRoom(io, socket, kickedUser, room, playerId);
             io.to(room.room.id).emit('player_kicked', { playerId: playerId });
             io.sockets.sockets.get(kickedUser.socketId)?.leave(roomId);
@@ -449,6 +469,7 @@ export function attach_socket_server(
             const user = users.get(socket.data.userId);
             const room = rooms.get(roomId);
             if (!user || !room || user.id !== player.id) {
+                log.debug('Player update failed', roomId, user?.id, player.id);
                 return;
             }
 
@@ -460,9 +481,11 @@ export function attach_socket_server(
                 }
             }
             if (playerIndex === -1) {
+                log.debug('Player update failed (player not in room)', roomId, user.id, player.id);
                 return;
             }
 
+            log.debug('Player update', roomId, user.id, player.id);
             room.players[playerIndex] = player;
             io.to(roomId).emit('player_updated', { player: player });
         });
@@ -471,6 +494,7 @@ export function attach_socket_server(
             const user = users.get(socket.data.userId);
             const room = rooms.get(roomId);
             if (!user || !room) {
+                log.debug('Player set name failed', roomId, user?.id);
                 return;
             }
 
@@ -482,9 +506,11 @@ export function attach_socket_server(
                 }
             }
             if (playerIndex === -1) {
+                log.debug('Player set name failed (player not in room)', roomId, user.id);
                 return;
             }
 
+            log.debug('Player set name', roomId, user.id);
             const player = room.players[playerIndex];
             player.name = name;
             io.to(roomId).emit('player_updated', { player: player });
@@ -494,6 +520,7 @@ export function attach_socket_server(
             const user = users.get(socket.data.userId);
             const room = rooms.get(roomId);
             if (!user || !room) {
+                log.debug('Player set ready failed', roomId, user?.id);
                 return;
             }
 
@@ -505,9 +532,11 @@ export function attach_socket_server(
                 }
             }
             if (playerIndex === -1) {
+                log.debug('Player set ready failed (player not in room)', roomId, user.id);
                 return;
             }
 
+            log.debug('Player set ready', roomId, user.id);
             const player = room.players[playerIndex];
             player.ready = state;
             io.to(roomId).emit('player_updated', { player: player });
@@ -516,8 +545,11 @@ export function attach_socket_server(
         socket.on('game_start', ({ roomId, deck }) => {
             const room = rooms.get(roomId);
             if (!room || room.room.hostId !== socket.data.userId) {
+                log.debug('Game start failed (not host)', roomId, socket.data.userId);
                 return;
             }
+
+            log.debug('Game start', roomId, socket.data.userId);
             room.deck = deck;
             room.game.deck.id = deck.id;
             room.game.deck.name = deck.n;
@@ -532,9 +564,11 @@ export function attach_socket_server(
         socket.on('game_set_settings', ({ roomId, settings }) => {
             const room = rooms.get(roomId);
             if (!room || room.room.hostId !== socket.data.userId) {
+                log.debug('Game set settings failed (not host)', roomId, socket.data.userId);
                 return;
             }
 
+            log.debug('Game set settings', roomId, socket.data.userId, settings);
             if (settings.deckId) {
                 room.game.settings.deckId = settings.deckId;
                 room.game.deck.id = settings.deckId;
@@ -562,6 +596,7 @@ export function attach_socket_server(
             const user = users.get(socket.data.userId);
             const room = rooms.get(roomId);
             if (!user || !room) {
+                log.debug('Game set freestyle failed', roomId, user?.id);
                 return;
             }
 
@@ -573,9 +608,11 @@ export function attach_socket_server(
                 }
             }
             if (playerIndex === -1) {
+                log.debug('Game set freestyle failed (player not in room)', roomId, user.id);
                 return;
             }
 
+            log.debug('Game set freestyle', roomId, user.id);
             const player = room.players[playerIndex];
             player.current.freestyle = freestyle;
             socket.emit('player_updated', { player: player });
@@ -585,6 +622,7 @@ export function attach_socket_server(
             const user = users.get(socket.data.userId);
             const room = rooms.get(roomId);
             if (!user || !room) {
+                log.debug('Game set option failed', roomId, user?.id);
                 return;
             }
 
@@ -596,9 +634,11 @@ export function attach_socket_server(
                 }
             }
             if (playerIndex === -1) {
+                log.debug('Game set option failed (player not in room)', roomId, user.id);
                 return;
             }
 
+            log.debug('Game set option', roomId, user.id);
             const player = room.players[playerIndex];
             player.current.option = option;
             socket.emit('player_updated', { player: player });
@@ -608,6 +648,7 @@ export function attach_socket_server(
             const user = users.get(socket.data.userId);
             const room = rooms.get(roomId);
             if (!user || !room) {
+                log.debug('Game rate player failed', roomId, user?.id);
                 return;
             }
 
@@ -619,9 +660,11 @@ export function attach_socket_server(
                 }
             }
             if (playerIndex === -1) {
+                log.debug('Game rate player failed (player not in room)', roomId, user.id);
                 return;
             }
 
+            log.debug('Game rate player', roomId, user.id);
             const player = room.players[playerIndex];
             player.ratesReceived[user.id] = rate;
         });

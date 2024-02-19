@@ -2,6 +2,7 @@ import type { Game, GameSettings, GameStatus, Option, PlayerRating, SocketStore 
 import type { GameStateStore } from '$game/types.ts';
 import type { Readable } from '$lib/stores/types.js';
 import { uniqueId, uniqueRoomId } from '$lib/utils/index.js';
+import { log } from '$lib/utils/logging.ts';
 import { GAME_STATUS } from "$shared/constants.js";
 import { GAME } from '$shared/defaults.js';
 import { derived, writable } from 'svelte/store';
@@ -87,11 +88,13 @@ export function createGameActions(socket: SocketStore, game: GameStore) {
 
 export function attachGameListeners(socket: SocketStore, game: GameStore) {
     socket.instance.on('game_player_rated', ({ playerId }) => {
+        log.debug('game_player_rated', playerId);
         game.value.current.ratingPlayer = playerId;
         game.sync();
     });
 
     socket.instance.on('game_updated', (data) => {
+        log.debug('game_updated', data);
         game.mset(data.game);
     });
 }

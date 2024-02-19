@@ -72,7 +72,7 @@ export function attachSocketListeners(socket: SocketStore) {
             connecting: false,
         });
 
-        log.debug('connected to websocket');
+        log.debug(`Connected to websocket server`);
     });
 
     socket.instance.on('disconnect', (reason) => {
@@ -81,6 +81,6 @@ export function attachSocketListeners(socket: SocketStore) {
             connecting: false,
         });
 
-        log.debug('disconnected from websocket by: ', reason);
+        log.debug(`Disconnected from websocket server: ${reason}`);
     });
 }

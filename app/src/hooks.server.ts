@@ -1,6 +1,6 @@
 import { dev } from '$app/environment';
 import { db, users } from '$lib/server/db.js';
-import { log } from '$lib/server/logging.ts';
+import { log } from '$lib/server/logging';
 import type { Handle, HandleServerError } from '@sveltejs/kit';
 import { redirect, } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
@@ -8,9 +8,7 @@ import { nanoid } from 'nanoid';
 
 
 export const handle: Handle = async ({ event, resolve }) => {
-    if (!dev && (
-        event.route.id?.startsWith('/(dev)') || event.route.id?.startsWith('/decks')
-    )) {
+    if (!dev && event.route.id?.startsWith('/(dev)')) {
         redirect(302, '/');
     }
 
@@ -31,9 +29,9 @@ export const handle: Handle = async ({ event, resolve }) => {
 export const handleError: HandleServerError = async ({ error, event, status, message }) => {
     const errorId = nanoid();
 
-    log.error(`Uncaught error (${errorId}):\n`, error);
+    log.fatal(`Uncaught error (${errorId}):\n`, error);
     if (!dev) {
-        log.error(`Associated request (${errorId}):\n`, event.request);
+        log.fatal(`Associated request (${errorId}):\n`, event.request);
     }
 
     return {

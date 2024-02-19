@@ -1,6 +1,7 @@
 import express from "express";
 import { handler } from "../build/handler.js";
 import { attach_socket_server } from "../build/server_ws/server/sockets.js";
+import { log } from "../build/server_ws/server/utils.js";
 
 
 const PORT = process.env.PORT || 3000;
@@ -17,7 +18,15 @@ app.get('/healthz', (req, res) => {
 app.use(handler);
 
 const server = app.listen(PORT, () => {
-    console.info("server is listening on port", PORT);
+    log.core("Server listening on port", PORT);
 });
 
 attach_socket_server(server);
+
+server.on('error', (err) => {
+    log.fatal("Server error", err);
+});
+
+server.on('close', () => {
+    log.core("Server closed");
+});

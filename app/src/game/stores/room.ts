@@ -1,5 +1,6 @@
 import type { DeckCompact, GameStateStore, Room, RoomClient, SocketStore } from '$game/types.js';
 import { uniqueId } from '$lib/utils/index.js';
+import { log } from '$lib/utils/logging.js';
 import { ROOM_STATUS_CLIENT } from '$shared/constants.js';
 import { writable } from 'svelte/store';
 import type { SelfStore } from './self.js';
@@ -47,6 +48,7 @@ export function createRoomActions(socket: SocketStore, self: SelfStore, room: Ro
     return {
         createRoom() {
             if (!self.value.loaded || room.value.status !== ROOM_STATUS_CLIENT.NO_ROOM && room.value.status !== ROOM_STATUS_CLIENT.CONNECTING) {
+                log.debug('createRoom failed', 'self.value.loaded', self.value.loaded, 'room.value.status', room.value.status);
                 return;
             }
 
@@ -54,6 +56,7 @@ export function createRoomActions(socket: SocketStore, self: SelfStore, room: Ro
         },
         joinRoom(roomId: string) {
             if (!self.value.loaded || room.value.status !== ROOM_STATUS_CLIENT.NO_ROOM) {
+                log.debug('joinRoom failed', 'self.value.loaded', self.value.loaded, 'room.value.status', room.value.status);
                 return;
             }
 
@@ -66,14 +69,11 @@ export function createRoomActions(socket: SocketStore, self: SelfStore, room: Ro
             socket.instance.emit('room_update', { room: room });
         },
         closeRoom() {
-            if (!self.value.loaded) {
-                return;
-            }
-
             socket.instance.emit('room_close', { roomId: room.value.id });
         },
         leaveRoom() {
             if (!self.value.loaded || room.value.status === ROOM_STATUS_CLIENT.NO_ROOM) {
+                log.debug('leaveRoom failed', 'self.value.loaded', self.value.loaded, 'room.value.status', room.value.status);
                 return;
             }
 
@@ -95,6 +95,7 @@ export function createRoomActions(socket: SocketStore, self: SelfStore, room: Ro
             const hostId = room.value.hostId;
             const playerId = self.value.player.id;
             if (!hostId || hostId !== playerId) {
+                log.debug('startGame failed (not host)', 'hostId', hostId, 'playerId', playerId);
                 return;
             }
 
@@ -105,10 +106,12 @@ export function createRoomActions(socket: SocketStore, self: SelfStore, room: Ro
 
 export function attachRoomListeners(room: RoomStore, socket: SocketStore) {
     socket.instance.on('room_updated', (data) => {
+        log.debug('room_updated', data);
         room.mset(data.room);
     });
 
     socket.instance.on('room_full', () => {
+        log.debug('room_full');
         room.value.status = ROOM_STATUS_CLIENT.FULL;
         room.sync();
     });
