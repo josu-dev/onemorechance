@@ -28,14 +28,26 @@ export const handle: Handle = async ({ event, resolve }) => {
 
 export const handleError: HandleServerError = async ({ error, event, status, message }) => {
     const errorId = nanoid();
+    const isNotFound = status === 404;
 
-    log.fatal(`Uncaught error (${errorId}):\n`, error);
-    if (!dev) {
-        log.fatal(`Associated request (${errorId}):\n`, event.request);
+    if (isNotFound) {
+        log.error(`Unhandled not found error (${errorId}):\n`, error);
     }
+    else {
+        log.fatal(`Uncaught error (${errorId}):\n`, error);
+        if (!dev) {
+            log.fatal(`Associated request (${errorId}):\n`, event.request);
+        }
+    }
+
+    const errorMessage = status === 500 ?
+        `Error interno del servidor. Id: ${errorId}` :
+        isNotFound ?
+            `No se encontró el recurso solicitado. Id: ${errorId}` :
+            message;
 
     return {
         id: errorId,
-        message: status === 500 ? `Error interno del servidor. Id: ${errorId}` : message,
+        message: errorMessage,
     };
 };
