@@ -47,7 +47,7 @@ export function createRoomStore(): RoomStore {
 export function createRoomActions(socket: SocketStore, self: SelfStore, room: RoomStore) {
     return {
         createRoom() {
-            if (!self.value.loaded || room.value.status !== ROOM_STATUS_CLIENT.NO_ROOM && room.value.status !== ROOM_STATUS_CLIENT.CONNECTING) {
+            if (!self.value.loaded) {
                 log.debug('createRoom failed', 'self.value.loaded', self.value.loaded, 'room.value.status', room.value.status);
                 return;
             }
@@ -55,7 +55,7 @@ export function createRoomActions(socket: SocketStore, self: SelfStore, room: Ro
             socket.instance.emit('room_create', { roomId: room.value.id, user: self.value.user });
         },
         joinRoom(roomId: string) {
-            if (!self.value.loaded || room.value.status !== ROOM_STATUS_CLIENT.NO_ROOM) {
+            if (!self.value.loaded) {
                 log.debug('joinRoom failed', 'self.value.loaded', self.value.loaded, 'room.value.status', room.value.status);
                 return;
             }

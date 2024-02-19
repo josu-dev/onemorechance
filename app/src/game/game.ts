@@ -57,7 +57,7 @@ socket.instance.on('connect', () => {
         return;
     }
 
-    if (room.value.status !== ROOM_STATUS_CLIENT.CONNECTING) {
+    if (room.value.status !== ROOM_STATUS_CLIENT.CONNECTING && room.value.status !== ROOM_STATUS_CLIENT.CONNECTION_LOST) {
         return;
     }
 
