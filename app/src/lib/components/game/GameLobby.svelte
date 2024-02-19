@@ -77,7 +77,6 @@
     const newDeck = $decks.find((deck) => deck.id === $game.settings.deckId);
     if (newDeck) {
       deck = newDeck;
-      $game.deck.id = newDeck.id;
     }
   }
 
