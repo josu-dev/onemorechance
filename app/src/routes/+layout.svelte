@@ -116,6 +116,6 @@
 
 <Header />
 
-<div class="h-full max-h-full [&:has(>.main-p-header)]:pt-12">
+<div class="main-container">
   <slot />
 </div>

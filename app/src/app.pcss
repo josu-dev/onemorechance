@@ -118,9 +118,6 @@
     .main {
         @apply h-full flex flex-col items-center overflow-y-auto px-1;
     }
-    .main-p-header {
-        @apply pb-8;
-    }
 
     .badge {
         @apply text-xs font-medium me-2 px-1.5 py-0.5 rounded;
@@ -173,6 +170,26 @@ body {
 
 body {
     @apply text-gray-300;
+    --header-height: 3rem;
+    --main-bottom-padding: 3rem;
+}
+
+@media (min-width: 768px) {
+    body {
+        --header-height: 3.5rem;
+    }
+}
+
+.main-container {
+    @apply h-full overflow-hidden lg:overflow-auto;
+}
+
+.main-container:has(> .main-below-header) {
+    padding-top: var(--header-height);
+}
+
+.main-container > .main-with-pb {
+    padding-bottom: var(--main-bottom-padding);
 }
 
 .omc-toast-container div.omc-toast {

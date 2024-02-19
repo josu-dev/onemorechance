@@ -29,10 +29,10 @@
 
 <Seo
   title="Ranking - One More Chance"
-  description="Sos el mas capo de tus amigos o sos el maleta del grupo? Tenele miedo a los que estan arriba y reite de los que estan abajo en el ranking Global de One More Chance"
+  description="Sos el mas capo de tus amigos o sos el maleta del grupo? Tenele miedo a los que estan arriba y reite de los que estan abajo en el ranking Global"
 />
 
-<main class="main main-p-header">
+<main class="main main-below-header main-with-pb">
   <h1 class="h2 text-white text-center">
     Ranking de los mas graciosos
     <LinkBack href="/" className="icon-md" />

@@ -61,7 +61,7 @@
     : `Dale un vistazo rapido al deck '${data.deck.data.name}' para ver si vale la pena probarlo`}
 />
 
-<main class="main main-p-header">
+<main class="main main-below-header main-with-pb">
   <h1 class="h2 text-white text-center">
     {isOwner ? 'Administrar deck' : 'Deck'} '{data.deck.data.name}'
     <LinkBack href="/decks" className="icon-md" />

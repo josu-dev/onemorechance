@@ -35,7 +35,7 @@
   description="Crea un nuevo deck o elige uno ya creado para cagarte de risa con tus amigos"
 />
 
-<main class="main main-p-header">
+<main class="main main-below-header main-with-pb">
   <h1 class="h2 text-white text-center">
     Decks de la comunidad
     <LinkBack href="/" className="icon-md" />

@@ -38,7 +38,10 @@
 <button on:click={onClick} class="relative {className}">
   {#if tooltip}
     <div transition:scale class="absolute -top-8 left-1/2 -translate-x-1/2">
-      <div class="card p-1 pb-0 shadow-sm shadow-white/25 relative">
+      <div
+        class="card p-1 pb-0 bg-black shadow-sm shadow-white/25 relative"
+        style="--tw-shadow-colored: 0 0 4px 0 var(--tw-shadow-color);"
+      >
         <p class="text-sm">{tooltipText}</p>
         <div
           class="bg-black shadow-sm shadow-white/25 absolute rotate-45 w-2 h-2 -bottom-1 left-1/2 -translate-x-1/2 -z-10"

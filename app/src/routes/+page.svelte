@@ -55,10 +55,10 @@
 
 <Seo
   title="One More Chance"
-  description="Listo para mostrarle a tus amigos que si sos el mas capo?, o bueno un itento de comico. Juga con tus amigos y obligalos a reir de tus casi chistes"
+  description="Listo para mostrarle a tus amigos que si sos el mas capo?, o bueno un intento de comico. Juga con tus amigos y obligalos a reir de tus casi chistes"
 />
 
-<main class="main justify-center pb-0">
+<main class="main justify-center">
   <h1 class="text-4xl text-white font-bold text-center mb-2">
     ONE MORE CHANCE
   </h1>
