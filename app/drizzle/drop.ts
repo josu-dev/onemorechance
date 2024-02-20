@@ -38,7 +38,4 @@ async function main() {
     console['log']("✅ Database emptied");
 }
 
-main().catch((e) => {
-
-    console.error(e);
-});
+main().catch(console['error']);

@@ -1,6 +1,7 @@
 import type * as SocketIO from 'socket.io';
 import * as Shared from '../src/shared/types.js';
 
+
 export type * from '../src/shared/types.js';
 
 export type * from '../src/shared/constants.js';
@@ -28,7 +29,7 @@ export type WebSocketServerSocket = SocketIO.Socket<
 export type ServerUser = {
     id: string,
     client: Shared.User,
-    rooms: string[],
+    rooms: Set<string>,
     socketId: string,
 };
 
@@ -43,5 +44,5 @@ export type ServerRoom = {
     room: Shared.Room,
     game: Shared.Game,
     players: Shared.Player[],
-    deck: Shared.DeckCompact,
+    deck: Pick<Shared.DeckFull, 'id' | 'type' | 's' | 'o'>,
 };

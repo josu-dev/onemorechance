@@ -12,6 +12,7 @@
     players,
     room,
     roomActions,
+    roomStatus,
     self,
   } from '$lib/dev/state.js';
   import { decks } from '$lib/stores/decks.ts';
@@ -58,7 +59,7 @@
         onAction: () => {
           if (
             !self.value.loaded ||
-            room.value.status === ROOM_STATUS_CLIENT.NO_ROOM
+            room.value.status === ROOM_STATUS_CLIENT.NO_LOADED
           ) {
             return;
           }
@@ -99,9 +100,9 @@
       {
         category: 'GS',
         name: 'Scoreboard',
-        description: `Set game status to ${GAME_STATUS.END_SCOREBOARD}`,
+        description: `Set game status to ${GAME_STATUS.GAME_WINNER}`,
         onAction: () => {
-          setGameStatus(GAME_STATUS.END_SCOREBOARD);
+          setGameStatus(GAME_STATUS.GAME_WINNER);
         },
       },
     ]);
@@ -111,18 +112,8 @@
     };
   });
 
-  $: pageTitle = `${
-    $room.status === ROOM_STATUS_CLIENT.GAME_ON ? 'Jugando' : 'Esperando'
-  } - One More Chance`;
-
-  $: isNotStarted = $gameStatus === GAME_STATUS.NOT_STARTED;
-  $: isPreRound = $gameStatus === GAME_STATUS.PRE_ROUND;
-  $: isFillSentence = $gameStatus === GAME_STATUS.FILL_SENTENCE;
-  $: isRateSentence = $gameStatus === GAME_STATUS.RATE_SENTENCE;
-  $: isRoundWinner = $gameStatus === GAME_STATUS.ROUND_WINNER;
-  $: isPostRound = $gameStatus === GAME_STATUS.POST_ROUND;
-  $: isScoreboard = $gameStatus === GAME_STATUS.END_SCOREBOARD;
-  $: isEnded = $gameStatus === GAME_STATUS.ENDED;
+  $: pageTitle =
+    ($roomStatus.isGameActive ? 'Jugando' : 'Esperando') + ` - One More Chance`;
 </script>
 
 <svelte:head>
@@ -133,7 +124,7 @@
   class="h-full flex flex-col items-center justify-center overflow-y-auto p-1 ring-1 ring-cyan-500 md:ring-fuchsia-500 ring-inset"
 >
   <h1 class="sr-only">A jugar One More Chance!</h1>
-  {#if !$self.loaded || $room.status === ROOM_STATUS_CLIENT.NO_ROOM}
+  {#if !$self.loaded || $roomStatus.isNotLoaded}
     <GameMessage>
       <svelte:fragment slot="title">
         Room not found, you shouldnt be seeing this 😅
@@ -142,7 +133,27 @@
         <a class="btn variant-filled-primary" href="/">Volver al inicio</a>
       </svelte:fragment>
     </GameMessage>
-  {:else if isNotStarted || isEnded}
+  {:else if $roomStatus.isNotFound || $roomStatus.isClosed}
+    <GameMessage>
+      <svelte:fragment slot="title">
+        {#if $roomStatus.isNotFound}
+          La sala no existe, puede que haya sido cerrada 😢
+        {:else}
+          La sala ha sido cerrada por el anfitrión 😢
+        {/if}
+      </svelte:fragment>
+      <svelte:fragment slot="content">
+        <a class="button variant-primary" href="/">Volver al inicio</a>
+      </svelte:fragment>
+    </GameMessage>
+  {:else if $roomStatus.isConnecting}
+    <GameMessage>
+      <svelte:fragment slot="title">Conectando a la sala...</svelte:fragment>
+      <svelte:fragment slot="content">
+        <a class="button variant-primary" href="/">Volver al inicio</a>
+      </svelte:fragment>
+    </GameMessage>
+  {:else if $gameStatus.isNotStarted || $gameStatus.isEnded}
     <GameLobby
       {self}
       {room}
@@ -150,7 +161,7 @@
       {players}
       {decks}
       on:start_game={(e) => {
-        roomActions.startGame(e.detail);
+        roomActions.startGame();
       }}
       on:close_room={() => {
         roomActions.closeRoom();
@@ -170,11 +181,11 @@
         // roomActions.updateSettings(event.detail);
       }}
     />
-  {:else if isPreRound || isPostRound}
+  {:else if $gameStatus.isPreRound || $gameStatus.isPostRound}
     <GameMessage>
       <svelte:fragment slot="title">Cargando...</svelte:fragment>
     </GameMessage>
-  {:else if isFillSentence}
+  {:else if $gameStatus.isFillSentence}
     <GameFillSentence
       {game}
       on:freestyle={(event) => {
@@ -184,7 +195,7 @@
         gameActions.setSelectedOption(event.detail);
       }}
     />
-  {:else if isRateSentence}
+  {:else if $gameStatus.isRateSentence}
     <GameRateSentence
       {game}
       {players}
@@ -192,12 +203,12 @@
         gameActions.ratePlayer(event.detail.playerId, event.detail.rate);
       }}
     />
-  {:else if isRoundWinner || isScoreboard}
+  {:else if $gameStatus.isRoundWinner || $gameStatus.isGameWinner}
     <GameRoundWinner {game} {players}>
       <div
         slot="actions"
         class="flex justify-center"
-        class:hidden={!isScoreboard}
+        class:hidden={!$gameStatus.isGameWinner}
       >
         <button
           on:click={() => {
@@ -213,7 +224,7 @@
   {:else}
     <GameMessage>
       <svelte:fragment slot="title">
-        Game status '{$gameStatus}' not implemented yet, sorry 😅
+        Game status '{$gameStatus.value}' not implemented yet, sorry 😅
       </svelte:fragment>
     </GameMessage>
   {/if}

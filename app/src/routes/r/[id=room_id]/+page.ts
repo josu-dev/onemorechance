@@ -24,6 +24,6 @@ export const load: PageLoad = async ({ data }) => {
 
     decks.mset(data.decks);
 
-    socketActions.connect();
+    socketActions.connect(data.user.id);
     return {};
 };

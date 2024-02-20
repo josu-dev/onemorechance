@@ -4,10 +4,9 @@ import * as _player from '$game/stores/players.js';
 import * as _room from '$game/stores/room.js';
 import * as _self from '$game/stores/self.js';
 import { createSocketStore } from '$game/stores/socket.js';
-import type { DeckIdentifier, Game, Player, RoomClient, User } from '$game/types.js';
-import * as _decks from '$lib/stores/decks.js';
+import type { Game, Player, RoomClient, User } from '$game/types.js';
 import { user } from "$lib/stores/user.js";
-import { GAME_STATUS, PLAYER_ROLE } from '$shared/constants.js';
+import { GAME_STATUS, PLAYER_ROLE, ROOM_STATUS_CLIENT } from '$shared/constants.js';
 import { GAME } from '$shared/defaults.js';
 
 
@@ -35,7 +34,7 @@ const INITIAL_USER2: User = {
 
 const INITIAL_ROOM: RoomClient = {
     id: 'HJDNBH',
-    status: 'WAITING',
+    status: ROOM_STATUS_CLIENT.LOBBY_WAITING,
     hostId: INITIAL_USER.id,
     maxPlayers: GAME.MAX_PLAYERS
 };
@@ -76,7 +75,7 @@ const INITIAL_PLAYERS: Player[] = [
         id: '1',
         host: true,
         name: 'Josu',
-        role: 'HOST',
+        role: PLAYER_ROLE.HOST,
         score: 40,
         scoreLast: 40,
         scoreTotal: 80,
@@ -101,7 +100,7 @@ const INITIAL_PLAYERS: Player[] = [
         id: '2',
         host: false,
         name: 'Mikel',
-        role: 'GUEST',
+        role: PLAYER_ROLE.GUEST,
         score: -30,
         scoreLast: 60,
         scoreTotal: 30,
@@ -126,7 +125,7 @@ const INITIAL_PLAYERS: Player[] = [
         id: '3',
         host: false,
         name: 'Ander',
-        role: 'GUEST',
+        role: PLAYER_ROLE.GUEST,
         score: 0,
         scoreLast: 50,
         scoreTotal: 50,
@@ -176,6 +175,8 @@ export const room = _room.createRoomStore();
 export const roomActions = _room.createRoomActions(socket, self, room);
 
 _room.attachRoomListeners(room, socket);
+
+export const roomStatus = _room.createRoomStatusStore(room);
 
 room.mset(INITIAL_ROOM);
 

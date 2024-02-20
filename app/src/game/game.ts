@@ -30,12 +30,13 @@ export const playersActions = _player.createPlayersActions(socket, players);
 _player.attachPlayersListeners(socket, players);
 
 
-
 export const room = _room.createRoomStore();
 
 export const roomActions = _room.createRoomActions(socket, self, room);
 
 _room.attachRoomListeners(room, socket);
+
+export const roomStatus = _room.createRoomStatusStore(room);
 
 
 export const game = _game.createGameStore();
@@ -49,7 +50,7 @@ _game.attachGameListeners(socket, game);
 
 _shared.attachSharedListeners(socket, user, self, room, game, players);
 
-socket.instance.on('connect', () => {
+socket.instance.on('initialized', () => {
     self.value.connected = true;
     self.sync();
     if (!self.value.loaded) {
@@ -58,6 +59,7 @@ socket.instance.on('connect', () => {
     }
 
     if (room.value.status !== ROOM_STATUS_CLIENT.CONNECTING && room.value.status !== ROOM_STATUS_CLIENT.CONNECTION_LOST) {
+        log.debug('Auto connecting to room cant connect to', room.value.status);
         return;
     }
 

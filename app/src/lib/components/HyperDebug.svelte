@@ -24,7 +24,7 @@
   {#if $debugEnabled}
     <div
       use:useClickOutside={{ handler: () => debugEnabled.set(false) }}
-      class="fixed inset-0 my-8 mx-auto h-max max-w-[95vw] sm:max-w-[min(90vw,1024px)] overflow-y-auto"
+      class="fixed inset-0 my-auto mx-auto h-max max-h-[90vh] max-w-[95vw] sm:max-w-[min(90vw,1024px)] overflow-y-auto"
     >
       <SuperDebug
         data={$debugData}

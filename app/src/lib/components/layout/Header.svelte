@@ -2,7 +2,7 @@
   import { browser } from '$app/environment';
   import { enhance } from '$app/forms';
   import { goto } from '$app/navigation';
-  import { room, roomActions } from '$game/game.js';
+  import { roomActions, roomStatus } from '$game/game.js';
   import { useClickOutside } from '$lib/actions/index.js';
   import IconMaximize from '$lib/icons/IconMaximize.svelte';
   import IconMenu from '$lib/icons/IconMenu.svelte';
@@ -12,7 +12,6 @@
   import { audioPlayer } from '$lib/stores/audio.js';
   import { user } from '$lib/stores/user.js';
   import { log } from '$lib/utils/logging.ts';
-  import { ROOM_STATUS_CLIENT } from '$shared/constants.js';
   import type { SubmitFunction } from '@sveltejs/kit';
   import toast from 'svelte-french-toast';
 
@@ -25,8 +24,9 @@
   }
 
   $: inRoom =
-    $room.status === ROOM_STATUS_CLIENT.WAITING ||
-    $room.status === ROOM_STATUS_CLIENT.GAME_ON;
+    $roomStatus.isConnecting ||
+    $roomStatus.isInLobby ||
+    $roomStatus.isGameActive;
 
   function gotoHome() {
     goto('/');
@@ -38,7 +38,7 @@
     roomActions.leaveRoom();
   }
 
-  $: if (pendingClose && $room.status === ROOM_STATUS_CLIENT.LEFT) {
+  $: if (pendingClose && $roomStatus.isRoomLeft) {
     pendingClose = false;
     open = false;
   }
@@ -47,12 +47,25 @@
 
   function toggleFullscreen() {
     if (document.fullscreenElement) {
-      document.exitFullscreen();
-      isFullscreen = false;
-    } else {
-      document.documentElement.requestFullscreen();
-      isFullscreen = true;
+      document
+        .exitFullscreen()
+        .then(() => {
+          isFullscreen = false;
+        })
+        .catch((e) => {
+          log.error('Error al salir de pantalla completa', e);
+        });
+      return;
     }
+
+    document.documentElement
+      .requestFullscreen()
+      .then(() => {
+        isFullscreen = true;
+      })
+      .catch((e) => {
+        log.error('Error al entrar en pantalla completa', e);
+      });
   }
 
   const enhanceDeleteAccount: SubmitFunction = ({}) => {

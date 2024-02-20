@@ -33,12 +33,14 @@ export const db = tursoClient();
 
 export const {
     decks,
-    deckRelations,
+    decksRelations,
     sentences,
-    sentenceRelations,
+    sentencesRelations,
     options,
-    optionRelations,
+    optionsRelations,
     users,
     rooms,
-    roomRelations,
+    roomsRelations,
+    usersToRooms,
+    usersToRoomsRelations,
 } = schema;

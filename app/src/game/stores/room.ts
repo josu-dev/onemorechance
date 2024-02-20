@@ -1,9 +1,9 @@
-import type { DeckCompact, GameStateStore, Room, RoomClient, SocketStore } from '$game/types.js';
+import type { GameStateStore, RoomClient, RoomStatusClient, SelfStore, SocketStore } from '$game/types.js';
+import type { Readable } from '$lib/stores/types.ts';
 import { uniqueId } from '$lib/utils/index.js';
 import { log } from '$lib/utils/logging.js';
 import { ROOM_STATUS_CLIENT } from '$shared/constants.js';
-import { writable } from 'svelte/store';
-import type { SelfStore } from './self.js';
+import { derived, writable } from 'svelte/store';
 
 
 export type RoomStore = GameStateStore<RoomClient>;
@@ -11,8 +11,8 @@ export type RoomStore = GameStateStore<RoomClient>;
 function defaultRoom(): RoomClient {
     return {
         id: uniqueId(),
-        name: 'Not a room',
-        status: ROOM_STATUS_CLIENT.NO_ROOM,
+        name: 'Not loaded',
+        status: ROOM_STATUS_CLIENT.NO_LOADED,
         hostId: '',
         maxPlayers: 0,
     };
@@ -52,7 +52,8 @@ export function createRoomActions(socket: SocketStore, self: SelfStore, room: Ro
                 return;
             }
 
-            socket.instance.emit('room_create', { roomId: room.value.id, user: self.value.user });
+            log.debug('createRoom', 'roomId', room.value.id, 'userId', self.value.user.id);
+            socket.instance.emit('room_create', { roomId: room.value.id, userId: self.value.user.id });
         },
         joinRoom(roomId: string) {
             if (!self.value.loaded) {
@@ -60,19 +61,16 @@ export function createRoomActions(socket: SocketStore, self: SelfStore, room: Ro
                 return;
             }
 
-            socket.instance.emit('room_join', { roomId: roomId, user: self.value.user });
+            socket.instance.emit('room_join', { roomId: roomId, userId: self.value.user.id });
 
             room.value.status = ROOM_STATUS_CLIENT.CONNECTING;
             room.sync();
-        },
-        updateRoom(room: Room) {
-            socket.instance.emit('room_update', { room: room });
         },
         closeRoom() {
             socket.instance.emit('room_close', { roomId: room.value.id });
         },
         leaveRoom() {
-            if (!self.value.loaded || room.value.status === ROOM_STATUS_CLIENT.NO_ROOM) {
+            if (!self.value.loaded || room.value.status === ROOM_STATUS_CLIENT.NO_LOADED) {
                 log.debug('leaveRoom failed', 'self.value.loaded', self.value.loaded, 'room.value.status', room.value.status);
                 return;
             }
@@ -91,7 +89,7 @@ export function createRoomActions(socket: SocketStore, self: SelfStore, room: Ro
                 { roomId: room.value.id, playerId: playerId }
             );
         },
-        startGame(deck: DeckCompact) {
+        startGame() {
             const hostId = room.value.hostId;
             const playerId = self.value.player.id;
             if (!hostId || hostId !== playerId) {
@@ -99,7 +97,7 @@ export function createRoomActions(socket: SocketStore, self: SelfStore, room: Ro
                 return;
             }
 
-            socket.instance.emit('game_start', { roomId: room.value.id, deck: deck });
+            socket.instance.emit('room_start_game', { roomId: room.value.id });
         },
     };
 }
@@ -115,4 +113,59 @@ export function attachRoomListeners(room: RoomStore, socket: SocketStore) {
         room.value.status = ROOM_STATUS_CLIENT.FULL;
         room.sync();
     });
+}
+
+type RoomStatusState = {
+    value: RoomStatusClient;
+    isClosed: boolean;
+    isConnecting: boolean;
+    isConnectionLost: boolean;
+    isFull: boolean;
+    isGameActive: boolean;
+    isInLobby: boolean;
+    isKicked: boolean;
+    isNotLoaded: boolean;
+    isNotFound: boolean;
+    isRoomLeft: boolean;
+};
+
+export function createRoomStatusStore(room: RoomStore): Readable<RoomStatusState> {
+    const _state: RoomStatusState = {
+        value: ROOM_STATUS_CLIENT.NO_LOADED,
+        isClosed: false,
+        isConnecting: false,
+        isConnectionLost: false,
+        isFull: false,
+        isGameActive: false,
+        isInLobby: false,
+        isKicked: false,
+        isNotFound: false,
+        isNotLoaded: true,
+        isRoomLeft: false,
+    };
+
+    const statusStore = derived(
+        room,
+        ($room, set) => {
+            if (_state.value === $room.status) {
+                return;
+            }
+
+            _state.value = $room.status;
+            _state.isClosed = $room.status === ROOM_STATUS_CLIENT.CLOSED;
+            _state.isConnecting = $room.status === ROOM_STATUS_CLIENT.CONNECTING;
+            _state.isConnectionLost = $room.status === ROOM_STATUS_CLIENT.CONNECTION_LOST;
+            _state.isFull = $room.status === ROOM_STATUS_CLIENT.FULL;
+            _state.isGameActive = $room.status === ROOM_STATUS_CLIENT.GAME_ACTIVE;
+            _state.isInLobby = $room.status === ROOM_STATUS_CLIENT.LOBBY_WAITING;
+            _state.isKicked = $room.status === ROOM_STATUS_CLIENT.KICKED;
+            _state.isNotFound = $room.status === ROOM_STATUS_CLIENT.NOT_FOUND;
+            _state.isNotLoaded = $room.status === ROOM_STATUS_CLIENT.NO_LOADED;
+            _state.isRoomLeft = $room.status === ROOM_STATUS_CLIENT.LEFT;
+            set(_state);
+        },
+        _state
+    );
+
+    return statusStore;
 }

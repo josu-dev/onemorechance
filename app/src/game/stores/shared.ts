@@ -1,25 +1,34 @@
-import type { RoomStore, SocketStore } from '$game/types.js';
+import type { GameStore, PlayersStore, RoomStore, SelfStore, SocketStore } from '$game/types.js';
 import type { UserStore } from '$lib/stores/user.js';
 import { log } from '$lib/utils/logging.ts';
 import { GAME_STATUS, ROOM_STATUS_CLIENT } from '$shared/constants.js';
-import type { GameStore } from './game.ts';
-import type { PlayersStore } from './players.ts';
-import type { SelfStore } from './self.ts';
 
 
 export function attachSharedListeners(socket: SocketStore, user: UserStore, self: SelfStore, room: RoomStore, game: GameStore, players: PlayersStore) {
-    socket.instance.on('disconnect', () => {
+    socket.instance.on('disconnect', (reason) => {
         players.reset();
         game.reset();
-        if (
+        if (reason === 'io client disconnect') {
+            room.value.status = ROOM_STATUS_CLIENT.LEFT;
+        }
+        else if (
             room.value.status === ROOM_STATUS_CLIENT.CONNECTING ||
-            room.value.status === ROOM_STATUS_CLIENT.GAME_ON ||
-            room.value.status === ROOM_STATUS_CLIENT.WAITING
+            room.value.status === ROOM_STATUS_CLIENT.GAME_ACTIVE ||
+            room.value.status === ROOM_STATUS_CLIENT.LOBBY_WAITING
         ) {
             room.value.status = ROOM_STATUS_CLIENT.CONNECTION_LOST;
-            room.sync();
         }
+        room.sync();
         self.reset();
+    });
+
+    socket.instance.on('room_error', ({ ev, err }) => {
+        log.debug(`room_error: ${ev} - ${err}`);
+        if (ev === 'room_join') {
+            room.value.status = ROOM_STATUS_CLIENT.NOT_FOUND;
+        }
+
+        room.sync();
     });
 
     socket.instance.on('room_created', (data) => {
@@ -88,7 +97,7 @@ export function attachSharedListeners(socket: SocketStore, user: UserStore, self
 
     socket.instance.on('game_ended', () => {
         log.debug('game_ended');
-        room.value.status = ROOM_STATUS_CLIENT.WAITING;
+        room.value.status = ROOM_STATUS_CLIENT.LOBBY_WAITING;
         room.sync();
         game.value.status = GAME_STATUS.ENDED;
         game.sync();
@@ -96,7 +105,7 @@ export function attachSharedListeners(socket: SocketStore, user: UserStore, self
 
     socket.instance.on('game_started', (data) => {
         log.debug('game_started', data);
-        room.value.status = ROOM_STATUS_CLIENT.GAME_ON;
+        room.value.status = ROOM_STATUS_CLIENT.GAME_ACTIVE;
         room.sync();
         game.mset(data.game);
         players.mset(data.players);

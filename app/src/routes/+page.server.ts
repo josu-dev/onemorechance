@@ -1,6 +1,6 @@
 import { accountDeleteSchema, accountRegisterSchema } from '$lib/schemas/account.js';
 import { roomCreateSchema, roomJoinSchema } from '$lib/schemas/room.js';
-import { rooms, users } from '$lib/server/db.js';
+import { rooms, users, usersToRooms } from '$lib/server/db.js';
 import { redirectIfParam, uniqueRoomId } from '$lib/utils/index.js';
 import { GAME } from '$shared/defaults.js';
 import { fail } from '@sveltejs/kit';
@@ -92,6 +92,11 @@ export const actions: Actions = {
             playersMax: GAME.MAX_PLAYERS,
         }).returning({ id: rooms.id }).get();
 
+        await locals.db.insert(usersToRooms).values({
+            userId: locals.user.id,
+            roomId: room.id,
+        });
+
         return message(form, { room });
     },
     room_join: async ({ locals, request }) => {
@@ -111,6 +116,11 @@ export const actions: Actions = {
         if (room.playersCount >= room.playersMax) {
             return setError(form, '', 'La sala está llena.');
         }
+
+        await locals.db.insert(usersToRooms).values({
+            userId: locals.user.id,
+            roomId: room.id,
+        });
 
         return message(form, { room });
     }

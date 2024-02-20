@@ -26,7 +26,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 };
 
 
-export const handleError: HandleServerError = async ({ error, event, status, message }) => {
+export const handleError: HandleServerError = async ({ event, error, message, status }) => {
     const errorId = nanoid();
     const isNotFound = status === 404;
 

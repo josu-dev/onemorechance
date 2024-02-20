@@ -1,17 +1,22 @@
+import { and, eq, sql } from 'drizzle-orm';
 import type { Server as HttpServer } from "http";
 import { nanoid } from 'nanoid';
 import { Server } from 'socket.io';
 import { DECK_TYPE, GAME_STATUS, PLAYER_RATING, PLAYER_ROLE, ROOM_STATUS } from '../src/shared/constants.js';
 import { GAME } from '../src/shared/defaults.js';
+import { db, t } from './db.js';
 import type * as T from './types.js';
 import { log } from './utils.js';
 
 
-const DEFAULT_DECK_IDENTIFIER: T.DeckIdentifier = {
+const DEFAULT_DECK_FULL: T.DeckFull = {
     id: '',
     name: 'Unselected deck',
     type: DECK_TYPE.SELECT,
     description: 'This deck is not selected',
+    userId: undefined,
+    s: [],
+    o: [],
 };
 
 const users = new Map<string, T.ServerUser>();
@@ -20,16 +25,7 @@ const rooms = new Map<string, T.ServerRoom>();
 
 
 function removePlayerFromRoom(io: T.WebSocketServer, socket: T.WebSocketServerSocket, user: T.ServerUser, room: T.ServerRoom, playerId: string) {
-    let roomIndex = -1;
-    for (let i = 0; i < user.rooms.length; i++) {
-        if (user.rooms[i] === room.room.id) {
-            roomIndex = i;
-            break;
-        }
-    }
-    if (roomIndex > -1) {
-        user.rooms.splice(roomIndex, 1);
-    }
+    user.rooms.delete(room.room.id);
 
     let playerIndex = -1;
     for (let i = 0; i < room.players.length; i++) {
@@ -110,7 +106,7 @@ function newRound(io: T.WebSocketServer, socket: T.WebSocketServerSocket, room: 
         text: sentence.t,
     };
 
-    if (deck.t === DECK_TYPE.SELECT) {
+    if (deck.type === DECK_TYPE.SELECT) {
         // TODO: Implement select deck
         // for (const player of room.players) {
         //     const missingOptions = room.game.settings.options - player.stock.options.length;
@@ -178,11 +174,11 @@ function newRound(io: T.WebSocketServer, socket: T.WebSocketServerSocket, room: 
             }
 
             setTimeout(() => {
-                room.game.status = GAME_STATUS.END_SCOREBOARD;
+                room.game.status = GAME_STATUS.GAME_WINNER;
                 io.to(room.room.id).emit('game_status_updated', { status: room.game.status });
 
                 setTimeout(() => {
-                    room.room.status = ROOM_STATUS.WAITING;
+                    room.room.status = ROOM_STATUS.LOBBY_WAITING;
                     room.game.status = GAME_STATUS.ENDED;
                     io.to(room.room.id).emit('game_ended');
                 }, GAME.DEFAULT_SCOREBOARD_TIME);
@@ -193,6 +189,18 @@ function newRound(io: T.WebSocketServer, socket: T.WebSocketServerSocket, room: 
     }, room.game.settings.fillTime);
 }
 
+function getPlayerFromRoom(room: T.ServerRoom, playerId: string): [T.Player | undefined, number] {
+    for (let i = 0; i < room.players.length; i++) {
+        if (room.players[i].id === playerId) {
+            return [room.players[i], i];
+        }
+    }
+    return [undefined, -1];
+}
+
+function queryDeck(deckId: string) {
+    return db.select().from(t.decks).where(eq(t.decks.id, deckId)).get();
+}
 
 export function attach_socket_server(
     server: HttpServer
@@ -204,11 +212,42 @@ export function attach_socket_server(
         T.SocketData
     >(server);
 
-    io.on('connection', (socket) => {
-        log.info('Client connected', socket.id);
+    io.on('connection', async (socket) => {
+        // @ts-ignore If you don't need this reference, you can discard it in order to reduce the memory footprint:
+        // delete socket.conn.request;
+        socket.on('', (event, ...args) => {
+            log.debug('Unhandled event', event, ...args);
+        });
+        const handshakeUserId: string | undefined = socket.handshake.auth.userId;
+
+        const dbUser = handshakeUserId && await db.select().from(t.users).where(eq(t.users.id, handshakeUserId)).get();
+        if (!dbUser) {
+            log.error('User not found', socket.handshake.auth.userId);
+            socket.timeout(1000).emit(
+                'unauthorized',
+                { error: 'User not found' },
+                (err, ok) => {
+                    log.debug('Unauthorized disconnect', socket.handshake.auth.userId, err, ok);
+                    if (err) {
+                        log.error('Error disconnecting unauthorized user', socket.handshake.auth.userId);
+                    }
+                    socket.disconnect(true);
+                });
+            return;
+        }
+
+        log.debug('Client connected', socket.id, 'user', dbUser.id);
+
+        socket.data.userId = dbUser.id;
+        users.set(dbUser.id, {
+            id: dbUser.id,
+            client: dbUser,
+            rooms: new Set(),
+            socketId: socket.id,
+        });
 
         socket.on('disconnect', () => {
-            log.info('Client disconnected', socket.id, 'user', socket.data.userId);
+            log.debug('Client disconnected', socket.id, 'user', socket.data.userId);
             if (!socket.data.userId) {
                 return;
             }
@@ -234,27 +273,31 @@ export function attach_socket_server(
             users.delete(user.id);
         });
 
-        socket.on('room_create', ({ roomId, user }) => {
-            log.debug('Room create', roomId, user);
-            const userId = user.id;
-            const _user: T.ServerUser = {
-                id: userId,
-                client: user,
-                rooms: [],
-                socketId: socket.id,
-            };
-            users.set(userId, _user);
-            socket.data.userId = user.id;
+        socket.on('room_create', async ({ roomId }) => {
+            const user = users.get(socket.data.userId);
+            if (!user) {
+                log.error('User not found', dbUser.id);
+                socket.emit('room_error', { ev: 'room_create', err: 'user not found' });
+                return;
+            }
+            const dbRoom = await db.select().from(t.rooms).where(eq(t.rooms.id, roomId)).get();
+            if (!dbRoom) {
+                log.debug(`Room create failed, room ${roomId} not found`);
+                socket.emit('room_error', { ev: 'room_create', err: 'room not found' });
+                return;
+            }
 
+            log.debug('Room create', roomId, dbUser);
+            user.rooms.add(roomId);
             let room = rooms.get(roomId);
             if (!room) {
                 const player: T.ServerPlayer = {
-                    userId: _user.client.id,
+                    userId: user.id,
                     roomId: roomId,
                     client: {
-                        id: _user.client.id,
+                        id: user.id,
                         host: true,
-                        name: _user.client.name,
+                        name: user.client.name,
                         role: PLAYER_ROLE.HOST,
                         score: 0,
                         scoreLast: 0,
@@ -281,7 +324,7 @@ export function attach_socket_server(
                     id: roomId,
                     room: {
                         id: roomId,
-                        status: ROOM_STATUS.WAITING,
+                        status: ROOM_STATUS.LOBBY_WAITING,
                         hostId: player.userId,
                         maxPlayers: GAME.MAX_PLAYERS
                     },
@@ -290,7 +333,7 @@ export function attach_socket_server(
                         roomId: roomId,
                         status: GAME_STATUS.NOT_STARTED,
                         settings: {
-                            deckId: DEFAULT_DECK_IDENTIFIER.id,
+                            deckId: DEFAULT_DECK_FULL.id,
                             fillTime: GAME.DEFAULT_FILL_TIME,
                             rateTime: GAME.DEFAULT_RATE_TIME,
                             players: GAME.DEFAULT_PLAYERS,
@@ -298,7 +341,7 @@ export function attach_socket_server(
                             options: GAME.DEFAULT_OPTIONS,
                         },
                         round: 0,
-                        deck: { ...DEFAULT_DECK_IDENTIFIER },
+                        deck: { ...DEFAULT_DECK_FULL },
                         current: {
                             sentence: {
                                 id: '',
@@ -313,18 +356,12 @@ export function attach_socket_server(
 
                     },
                     players: [player.client],
-                    deck: {
-                        id: DEFAULT_DECK_IDENTIFIER.id,
-                        n: DEFAULT_DECK_IDENTIFIER.name,
-                        t: DEFAULT_DECK_IDENTIFIER.type,
-                        d: DEFAULT_DECK_IDENTIFIER.description,
-                        s: []
-                    }
+                    deck: { ...DEFAULT_DECK_FULL }
                 };
+
+                rooms.set(roomId, room);
             }
 
-            _user.rooms.push(roomId);
-            rooms.set(roomId, room);
             socket.join(roomId);
             socket.emit('room_created', {
                 room: room.room,
@@ -333,40 +370,36 @@ export function attach_socket_server(
             });
         });
 
-        socket.on('room_update', ({ room }) => {
-            const _room = rooms.get(room.id);
-            if (!_room) {
-                log.debug('Room update failed', room.id);
-                return;
-            }
-
-            log.debug('Room update', room.id);
-            _room.room = room;
-            io.to(room.id).emit('room_updated', { room: room });
-        });
-
-        socket.on('room_close', ({ roomId }) => {
+        socket.on('room_close', async ({ roomId }) => {
             const user = users.get(socket.data.userId);
             const room = rooms.get(roomId);
-            if (!user || !room || room.room.hostId !== user.client.id) {
-                log.debug(`Room close failer roomId=${roomId} userId=${user?.client.id} hostId=${room?.room.hostId}`);
+            if (!user || !room) {
+                log.debug(`Room close failed, room ${roomId} or user ${user?.id} not found`);
+                return;
+            }
+            if (user.id !== room.room.hostId) {
+                log.debug(`Room close failed, user ${user.id} is not the host of room ${roomId}`);
+                socket.emit('room_error', { ev: 'room_close', err: 'not the host' });
                 return;
             }
 
-            log.debug('Room close', roomId);
+            user.rooms.delete(roomId);
             rooms.delete(roomId);
             io.to(roomId).emit('room_closed', { roomId });
             io.in(roomId).socketsLeave(roomId);
+            await db.delete(t.rooms).where(eq(t.rooms.id, roomId));
         });
 
-        socket.on('room_join', ({ roomId, user }) => {
+        socket.on('room_join', async ({ roomId }) => {
             const room = rooms.get(roomId);
-            if (!room) {
-                log.debug('Room join failed', roomId);
+            const user = users.get(socket.data.userId);
+            if (!room || !user) {
+                log.debug(`Room join failed, room ${roomId} not found`);
+                socket.emit('room_error', { ev: 'room_join', err: 'room not found' });
                 return;
             }
-
             if (room.players.length >= room.room.maxPlayers) {
+                log.debug(`Room join failed, room ${roomId} is full`);
                 socket.emit('room_full', {
                     roomId: room.id,
                     maxPlayers: room.room.maxPlayers
@@ -374,28 +407,38 @@ export function attach_socket_server(
                 return;
             }
 
+            const dbUserToRoom = await (db
+                .select({ ok: sql<number>`1` })
+                .from(t.usersToRooms)
+                .where(and(
+                    eq(t.usersToRooms.userId, user.id),
+                    eq(t.usersToRooms.roomId, room.id))
+                )
+                .get()
+            );
+            if (!dbUserToRoom) {
+                log.debug(`Room join failed, user ${user.id} not found in room ${roomId}`);
+                socket.emit('room_error', { ev: 'room_join', err: 'user not found in room' });
+                return;
+            }
+
+            log.debug('Room join', roomId, user.id);
             for (const player of room.players) {
                 if (player.id === user.id) {
                     log.debug('User already in room', roomId, user.id);
+                    socket.emit('room_joined', {
+                        room: room.room,
+                        game: room.game,
+                        players: room.players
+                    });
                     return;
                 }
             }
 
-            log.debug('Room join', roomId, user.id);
-            const userId = user.id;
-            const _user: T.ServerUser = {
-                id: userId,
-                client: user,
-                rooms: [],
-                socketId: socket.id,
-            };
-            users.set(userId, _user);
-            socket.data.userId = user.id;
-
             const player: T.Player = {
                 id: user.id,
                 host: false,
-                name: user.name,
+                name: user.client.name,
                 role: PLAYER_ROLE.GUEST,
                 score: 0,
                 scoreLast: 0,
@@ -418,7 +461,7 @@ export function attach_socket_server(
             };
 
             socket.join(roomId);
-            _user.rooms.push(roomId);
+            user.rooms.add(roomId);
             room.players.push(player);
             socket.emit('room_joined', {
                 room: room.room,
@@ -428,11 +471,12 @@ export function attach_socket_server(
             io.to(roomId).emit('player_joined', { player });
         });
 
-        socket.on('room_leave', ({ roomId }) => {
+        socket.on('room_leave', async ({ roomId }) => {
             const user = users.get(socket.data.userId);
             const room = rooms.get(roomId);
             if (!user || !room) {
-                log.debug('Room leave failed', roomId, user?.id);
+                log.debug(`Room leave failed, room ${roomId} or user ${user?.id} not found`);
+                socket.emit('room_error', { ev: 'room_leave', err: 'room not found' });
                 return;
             }
 
@@ -442,136 +486,147 @@ export function attach_socket_server(
             socket.leave(room.room.id);
             socket.emit('room_left', { roomId: room.room.id });
             io.to(room.room.id).emit('player_left', { playerId: user.id });
+            await db.delete(t.usersToRooms).where(and(
+                eq(t.usersToRooms.userId, user.id),
+                eq(t.usersToRooms.roomId, room.id)
+            ));
         });
 
-        socket.on('room_kick_player', ({ roomId, playerId }) => {
+        socket.on('room_kick_player', async ({ roomId, playerId }) => {
             const user = users.get(socket.data.userId);
             const room = rooms.get(roomId);
+            if (!user || !room) {
+                log.debug(`Room kick player failed, room ${roomId} or user ${user?.id} not found`);
+                return;
+            }
             const kickedUser = users.get(playerId);
-            if (!user || !room || !kickedUser) {
-                log.debug('Room kick player failed', roomId, user?.id, playerId);
+            if (!kickedUser) {
                 return;
             }
 
-            const userId = user.id;
-            if (userId !== room.room.hostId || userId === playerId) {
-                log.debug('Room kick player failed (not host)', roomId, userId, playerId);
+            if (user.id !== room.room.hostId) {
+                log.debug(`Room kick player failed, user ${user.id} is not the host of room ${roomId}`);
+                socket.emit('room_error', { ev: 'room_kick_player', err: 'not the host' });
                 return;
             }
 
-            log.debug('Room kick player', roomId, userId, playerId);
+            log.debug(`Room kick player ${playerId} from room ${roomId} by user ${user.id}`);
             removePlayerFromRoom(io, socket, kickedUser, room, playerId);
             io.to(room.room.id).emit('player_kicked', { playerId: playerId });
             io.sockets.sockets.get(kickedUser.socketId)?.leave(roomId);
+            await db.delete(t.usersToRooms).where(and(
+                eq(t.usersToRooms.userId, kickedUser.id),
+                eq(t.usersToRooms.roomId, room.id)
+            ));
         });
 
         socket.on('player_update', ({ roomId, player }) => {
             const user = users.get(socket.data.userId);
             const room = rooms.get(roomId);
-            if (!user || !room || user.id !== player.id) {
-                log.debug('Player update failed', roomId, user?.id, player.id);
-                return;
-            }
-
-            let playerIndex = -1;
-            for (let i = 0; i < room.players.length; i++) {
-                if (room.players[i].id === player.id) {
-                    playerIndex = i;
-                    break;
-                }
-            }
-            if (playerIndex === -1) {
-                log.debug('Player update failed (player not in room)', roomId, user.id, player.id);
-                return;
-            }
-
-            log.debug('Player update', roomId, user.id, player.id);
-            room.players[playerIndex] = player;
-            io.to(roomId).emit('player_updated', { player: player });
-        });
-
-        socket.on('player_set_name', ({ roomId, name }) => {
-            const user = users.get(socket.data.userId);
-            const room = rooms.get(roomId);
             if (!user || !room) {
-                log.debug('Player set name failed', roomId, user?.id);
+                log.debug(`Player update failed room ${roomId} or user ${user?.id} not found`);
+                socket.emit('room_error', { ev: 'player_update', err: 'room or user not found' });
                 return;
             }
 
-            let playerIndex = -1;
-            for (let i = 0; i < room.players.length; i++) {
-                if (room.players[i].id === user.id) {
-                    playerIndex = i;
-                    break;
-                }
-            }
-            if (playerIndex === -1) {
-                log.debug('Player set name failed (player not in room)', roomId, user.id);
+            const [roomPlayer] = getPlayerFromRoom(room, user.id);
+            if (!roomPlayer) {
+                log.debug(`Player update failed room ${roomId} player ${user.id} not found`);
+                socket.emit('room_error', { ev: 'player_update', err: 'player not found' });
                 return;
             }
 
-            log.debug('Player set name', roomId, user.id);
-            const player = room.players[playerIndex];
-            player.name = name;
-            io.to(roomId).emit('player_updated', { player: player });
+            log.debug('Player update', roomId, player.id);
+            Object.assign(roomPlayer, player);
+            io.to(roomId).emit('player_updated', { player: roomPlayer });
         });
 
         socket.on('player_set_ready', ({ roomId, state }) => {
             const user = users.get(socket.data.userId);
             const room = rooms.get(roomId);
             if (!user || !room) {
-                log.debug('Player set ready failed', roomId, user?.id);
+                log.debug(`Player set ready failed room ${roomId} or user ${user?.id} not found`);
+                socket.emit('room_error', { ev: 'player_set_ready', err: 'room or user not found' });
                 return;
             }
 
-            let playerIndex = -1;
-            for (let i = 0; i < room.players.length; i++) {
-                if (room.players[i].id === user.id) {
-                    playerIndex = i;
-                    break;
-                }
-            }
-            if (playerIndex === -1) {
-                log.debug('Player set ready failed (player not in room)', roomId, user.id);
+            const [roomPlayer] = getPlayerFromRoom(room, user.id);
+            if (!roomPlayer) {
+                log.debug(`Player set ready failed room ${roomId} player ${user.id} not found`);
+                socket.emit('room_error', { ev: 'player_set_ready', err: 'player not found' });
                 return;
             }
 
-            log.debug('Player set ready', roomId, user.id);
-            const player = room.players[playerIndex];
-            player.ready = state;
-            io.to(roomId).emit('player_updated', { player: player });
+            roomPlayer.ready = state;
+            io.to(roomId).emit('player_updated', { player: roomPlayer });
         });
 
-        socket.on('game_start', ({ roomId, deck }) => {
+        socket.on('room_start_game', async ({ roomId }) => {
             const room = rooms.get(roomId);
             if (!room || room.room.hostId !== socket.data.userId) {
-                log.debug('Game start failed (not host)', roomId, socket.data.userId);
+                log.debug(`Game start failed (not host) room ${roomId} user ${socket.data.userId}`);
+                socket.emit('room_error', { ev: 'room_start_game', err: 'not the host' });
+                return;
+            }
+
+            const deckId = room.game.settings.deckId;
+            const deckQuery = (db
+                .select()
+                .from(t.decks)
+                .where(eq(t.decks.id, deckId))
+                .get()
+            );
+            const sentencesQuery = (db
+                .select({ id: t.sentences.id, t: t.sentences.text })
+                .from(t.sentences)
+                .where(eq(t.sentences.deckId, deckId))
+                .orderBy(sql`random()`)
+                .limit(room.game.settings.rounds * 2)
+            );
+            const [d, s] = await Promise.all([deckQuery, sentencesQuery]);
+            if (!d) {
+                log.debug(`Game start failed (deck not found) room ${roomId} user ${socket.data.userId}`);
+                socket.emit('room_error', { ev: 'room_start_game', err: 'deck not found' });
                 return;
             }
 
             log.debug('Game start', roomId, socket.data.userId);
-            room.deck = deck;
-            room.game.deck.id = deck.id;
-            room.game.deck.name = deck.n;
-            room.game.deck.type = deck.t;
-            room.game.deck.description = deck.d;
+            room.deck.id = d.id;
+            room.deck.type = d.type;
+            room.deck.s = s;
+
+            room.game.deck.id = d.id;
+            room.game.deck.name = d.name;
+            room.game.deck.type = d.type;
+            room.game.deck.description = d.description;
+            room.game.deck.userId = d.userId ?? undefined;
 
             setupNewGame(room);
             io.to(roomId).emit('game_started', { game: room.game, players: room.players });
             newRound(io, socket, room);
         });
 
-        socket.on('game_set_settings', ({ roomId, settings }) => {
+        socket.on('game_set_settings', async ({ roomId, settings }) => {
             const room = rooms.get(roomId);
             if (!room || room.room.hostId !== socket.data.userId) {
-                log.debug('Game set settings failed (not host)', roomId, socket.data.userId);
+                log.debug(`Game set settings failed (not host) room ${roomId} user ${socket.data.userId}`);
+                socket.emit('game_error', { ev: 'game_set_settings', err: 'not the host' });
                 return;
             }
 
             log.debug('Game set settings', roomId, socket.data.userId, settings);
             if (settings.deckId) {
-                room.game.settings.deckId = settings.deckId;
-                room.game.deck.id = settings.deckId;
+                const deck = await queryDeck(settings.deckId);
+                if (deck) {
+                    room.deck.id = settings.deckId;
+                    room.deck.type = deck.type;
+                    room.game.settings.deckId = settings.deckId;
+                    room.game.deck.id = deck.id;
+                    room.game.deck.name = deck.name;
+                    room.game.deck.type = deck.type;
+                    room.game.deck.description = deck.description;
+                    room.game.deck.userId = deck.userId ?? undefined;
+                }
             }
             if (settings.fillTime) {
                 room.game.settings.fillTime = settings.fillTime;
@@ -593,80 +648,66 @@ export function attach_socket_server(
         });
 
         socket.on('game_set_freestyle', ({ roomId, freestyle }) => {
-            const user = users.get(socket.data.userId);
             const room = rooms.get(roomId);
-            if (!user || !room) {
-                log.debug('Game set freestyle failed', roomId, user?.id);
+            if (!room) {
+                log.debug(`Game set freestyle failed room ${roomId} user ${socket.data.userId}`);
+                socket.emit('game_error', { ev: 'game_set_freestyle', err: 'room not found' });
                 return;
             }
 
-            let playerIndex = -1;
-            for (let i = 0; i < room.players.length; i++) {
-                if (room.players[i].id === user.id) {
-                    playerIndex = i;
-                    break;
-                }
-            }
-            if (playerIndex === -1) {
-                log.debug('Game set freestyle failed (player not in room)', roomId, user.id);
+            const userId = socket.data.userId;
+            const [player] = getPlayerFromRoom(room, userId);
+            if (!player) {
+                log.debug(`Game set freestyle failed user ${userId} not found in room ${roomId}`);
+                socket.emit('game_error', { ev: 'game_set_freestyle', err: 'player not found' });
                 return;
             }
 
-            log.debug('Game set freestyle', roomId, user.id);
-            const player = room.players[playerIndex];
             player.current.freestyle = freestyle;
             socket.emit('player_updated', { player: player });
         });
 
         socket.on('game_set_option', ({ roomId, option }) => {
-            const user = users.get(socket.data.userId);
             const room = rooms.get(roomId);
-            if (!user || !room) {
-                log.debug('Game set option failed', roomId, user?.id);
+            if (!room) {
+                log.debug(`Game set option failed room ${roomId} user ${socket.data.userId}`);
+                socket.emit('game_error', { ev: 'game_set_option', err: 'room not found' });
                 return;
             }
 
-            let playerIndex = -1;
-            for (let i = 0; i < room.players.length; i++) {
-                if (room.players[i].id === user.id) {
-                    playerIndex = i;
-                    break;
-                }
-            }
-            if (playerIndex === -1) {
-                log.debug('Game set option failed (player not in room)', roomId, user.id);
+            const userId = socket.data.userId;
+            const [player] = getPlayerFromRoom(room, userId);
+            if (!player) {
+                log.debug(`Game set option failed user ${userId} not found in room ${roomId}`);
+                socket.emit('game_error', { ev: 'game_set_option', err: 'player not found' });
                 return;
             }
 
-            log.debug('Game set option', roomId, user.id);
-            const player = room.players[playerIndex];
             player.current.option = option;
             socket.emit('player_updated', { player: player });
         });
 
         socket.on('game_rate_player', ({ roomId, playerId, rate }) => {
-            const user = users.get(socket.data.userId);
             const room = rooms.get(roomId);
-            if (!user || !room) {
-                log.debug('Game rate player failed', roomId, user?.id);
+            if (!room) {
+                log.debug(`Game rate player failed room ${roomId} user ${socket.data.userId}`);
+                socket.emit('game_error', { ev: 'game_rate_player', err: 'room not found' });
                 return;
             }
 
-            let playerIndex = -1;
-            for (let i = 0; i < room.players.length; i++) {
-                if (room.players[i].id === playerId) {
-                    playerIndex = i;
-                    break;
-                }
-            }
-            if (playerIndex === -1) {
-                log.debug('Game rate player failed (player not in room)', roomId, user.id);
+            const userId = socket.data.userId;
+            const [player] = getPlayerFromRoom(room, userId);
+            const [targetPlayer] = getPlayerFromRoom(room, playerId);
+            if (!player || !targetPlayer) {
+                log.debug(`Game rate player failed user ${userId} or target ${playerId} not found in room ${roomId}`);
+                socket.emit('game_error', { ev: 'game_rate_player', err: 'player not found' });
                 return;
             }
 
-            log.debug('Game rate player', roomId, user.id);
-            const player = room.players[playerIndex];
-            player.ratesReceived[user.id] = rate;
+            log.debug(`Game rate ${rate} player ${playerId} by user ${userId} in room ${roomId}`);
+            targetPlayer.ratesReceived[player.id] = rate;
         });
+
+        socket.emit('initialized');
     });
 }
