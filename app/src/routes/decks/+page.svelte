@@ -42,7 +42,7 @@
   </h1>
 
   <div
-    class="container flex flex-1 flex-col items-center gap-4 w-full mt-4 md:flex-row-reverse lg:gap-8 md:items-start md:justify-center"
+    class="container flex flex-1 flex-col items-center gap-4 w-full mt-4 mx-auto md:flex-row-reverse lg:gap-8 md:items-start md:justify-center"
   >
     <section class="px-2 md:px-4 w-full max-w-sm">
       <h2 class="h3 text-gray-100 text-center">Nuevo deck</h2>

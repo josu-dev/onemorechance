@@ -68,7 +68,7 @@
   </h1>
 
   <div
-    class="flex flex-1 flex-col items-center gap-4 mt-4 w-full max-w-sm sm:max-w-lg lg:max-w-[min(80rem,90%)]"
+    class="flex flex-1 flex-col items-center gap-4 mt-4 mx-auto w-full max-w-sm sm:max-w-lg lg:max-w-[min(80rem,90%)]"
   >
     <section class="max-w-lg w-full">
       <h2 class="h3 text-gray-100">Informacion</h2>

@@ -61,107 +61,109 @@
   titleOg="Partida en curso - One More Chance"
 />
 
-<main class="main justify-center py-1">
+<main class="main">
   <h1 class="sr-only">A jugar One More Chance!</h1>
-  {#if !$self.loaded || $room.status === ROOM_STATUS_CLIENT.NO_ROOM}
-    <GameMessage>
-      <svelte:fragment slot="title">
-        Room not loaded, you shouldnt be seeing this 😅
-      </svelte:fragment>
-      <svelte:fragment slot="content">
-        <a class="button variant-primary" href="/">Volver al inicio</a>
-      </svelte:fragment>
-    </GameMessage>
-  {:else if $room.status === ROOM_STATUS_CLIENT.CLOSED}
-    <GameMessage>
-      <svelte:fragment slot="title">
-        La sala ha sido cerrada por el anfitrión 😢
-      </svelte:fragment>
-      <svelte:fragment slot="content">
-        <a class="button variant-primary" href="/">Volver al inicio</a>
-      </svelte:fragment>
-    </GameMessage>
-  {:else if $room.status === ROOM_STATUS_CLIENT.CONNECTING}
-    <GameMessage>
-      <svelte:fragment slot="title">Conectando a la sala...</svelte:fragment>
-      <svelte:fragment slot="content">
-        <a class="button variant-primary" href="/">Volver al inicio</a>
-      </svelte:fragment>
-    </GameMessage>
-  {:else if isNotStarted || isEnded}
-    <GameLobby
-      {self}
-      {room}
-      {game}
-      {players}
-      {decks}
-      on:kick_player={(event) => {
-        roomActions.kickPlayer(event.detail.userId);
-      }}
-      on:toggle_ready={(event) => {
-        roomActions.setReady(event.detail);
-      }}
-      on:update_deck={(event) => {
-        gameActions.setSettings(event.detail);
-      }}
-      on:update_settings={(event) => {
-        gameActions.setSettings(event.detail);
-      }}
-      on:close_room={() => {
-        roomActions.closeRoom();
-      }}
-      on:leave_room={() => {
-        roomActions.leaveRoom();
-      }}
-      on:start_game={(e) => {
-        roomActions.startGame(e.detail);
-      }}
-    />
-  {:else if isPreRound || isPostRound}
-    <GameMessage>
-      <svelte:fragment slot="title">Cargando...</svelte:fragment>
-    </GameMessage>
-  {:else if isFillSentence}
-    <GameFillSentence
-      {game}
-      on:freestyle={(event) => {
-        gameActions.setFreestyle(event.detail);
-      }}
-      on:option={(event) => {
-        gameActions.setSelectedOption(event.detail);
-      }}
-    />
-  {:else if isRateSentence}
-    <GameRateSentence
-      {game}
-      {players}
-      on:rate_sentence={(event) => {
-        gameActions.ratePlayer(event.detail.playerId, event.detail.rate);
-      }}
-    />
-  {:else if isRoundWinner || isScoreboard}
-    <GameRoundWinner {game} {players}>
-      <div
-        slot="actions"
-        class="flex justify-center"
-        class:hidden={!isScoreboard}
-      >
-        <button
-          on:click={() => {
-            game.value.status = GAME_STATUS.ENDED;
-            game.sync();
-          }}
-          class="button variant-primary"
+  <div class="my-[var(--header-height)] flex flex-1 flex-col items-center">
+    {#if !$self.loaded || $room.status === ROOM_STATUS_CLIENT.NO_ROOM}
+      <GameMessage>
+        <svelte:fragment slot="title">
+          Room not loaded, you shouldnt be seeing this 😅
+        </svelte:fragment>
+        <svelte:fragment slot="content">
+          <a class="button variant-primary" href="/">Volver al inicio</a>
+        </svelte:fragment>
+      </GameMessage>
+    {:else if $room.status === ROOM_STATUS_CLIENT.CLOSED}
+      <GameMessage>
+        <svelte:fragment slot="title">
+          La sala ha sido cerrada por el anfitrión 😢
+        </svelte:fragment>
+        <svelte:fragment slot="content">
+          <a class="button variant-primary" href="/">Volver al inicio</a>
+        </svelte:fragment>
+      </GameMessage>
+    {:else if $room.status === ROOM_STATUS_CLIENT.CONNECTING}
+      <GameMessage>
+        <svelte:fragment slot="title">Conectando a la sala...</svelte:fragment>
+        <svelte:fragment slot="content">
+          <a class="button variant-primary" href="/">Volver al inicio</a>
+        </svelte:fragment>
+      </GameMessage>
+    {:else if isNotStarted || isEnded}
+      <GameLobby
+        {self}
+        {room}
+        {game}
+        {players}
+        {decks}
+        on:kick_player={(event) => {
+          roomActions.kickPlayer(event.detail.userId);
+        }}
+        on:toggle_ready={(event) => {
+          roomActions.setReady(event.detail);
+        }}
+        on:update_deck={(event) => {
+          gameActions.setSettings(event.detail);
+        }}
+        on:update_settings={(event) => {
+          gameActions.setSettings(event.detail);
+        }}
+        on:close_room={() => {
+          roomActions.closeRoom();
+        }}
+        on:leave_room={() => {
+          roomActions.leaveRoom();
+        }}
+        on:start_game={(e) => {
+          roomActions.startGame(e.detail);
+        }}
+      />
+    {:else if isPreRound || isPostRound}
+      <GameMessage>
+        <svelte:fragment slot="title">Cargando...</svelte:fragment>
+      </GameMessage>
+    {:else if isFillSentence}
+      <GameFillSentence
+        {game}
+        on:freestyle={(event) => {
+          gameActions.setFreestyle(event.detail);
+        }}
+        on:option={(event) => {
+          gameActions.setSelectedOption(event.detail);
+        }}
+      />
+    {:else if isRateSentence}
+      <GameRateSentence
+        {game}
+        {players}
+        on:rate_sentence={(event) => {
+          gameActions.ratePlayer(event.detail.playerId, event.detail.rate);
+        }}
+      />
+    {:else if isRoundWinner || isScoreboard}
+      <GameRoundWinner {game} {players}>
+        <div
+          slot="actions"
+          class="flex justify-center"
+          class:hidden={!isScoreboard}
         >
-          Volver al lobby
-        </button>
-      </div>
-    </GameRoundWinner>
-  {:else}
-    <GameMessage>
-      <svelte:fragment slot="title">
-        Game status '{$gameStatus}' not implemented yet, sorry 😅
-      </svelte:fragment>
-    </GameMessage>
-  {/if}
+          <button
+            on:click={() => {
+              game.value.status = GAME_STATUS.ENDED;
+              game.sync();
+            }}
+            class="button variant-primary"
+          >
+            Volver al lobby
+          </button>
+        </div>
+      </GameRoundWinner>
+    {:else}
+      <GameMessage>
+        <svelte:fragment slot="title">
+          Game status '{$gameStatus}' not implemented yet, sorry 😅
+        </svelte:fragment>
+      </GameMessage>
+    {/if}
+  </div>
 </main>

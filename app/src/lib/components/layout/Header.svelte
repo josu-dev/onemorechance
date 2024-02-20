@@ -32,8 +32,15 @@
     goto('/');
   }
 
+  let pendingClose = false;
   function leaveRoom() {
+    pendingClose = true;
     roomActions.leaveRoom();
+  }
+
+  $: if (pendingClose && $room.status === ROOM_STATUS_CLIENT.LEFT) {
+    pendingClose = false;
+    open = false;
   }
 
   let isFullscreen = browser && document.fullscreenElement !== null;
