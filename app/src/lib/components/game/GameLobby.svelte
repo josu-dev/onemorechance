@@ -1,4 +1,5 @@
 <script lang="ts">
+  import ButtonIcon from '$comps/shared/ButtonIcon.svelte';
   import CopyButton from '$comps/shared/CopyButton.svelte';
   import type {
     DeckCompact,
@@ -10,6 +11,9 @@
     RoomStore,
     SelfStore,
   } from '$game/types.js';
+  import IconUser from '$lib/icons/IconUser.svelte';
+  import IconUserconfig from '$lib/icons/IconUserconfig.svelte';
+  import IconX from '$lib/icons/IconX.svelte';
   import type { DecksStore } from '$lib/stores/decks.ts';
   import { log } from '$lib/utils/logging.ts';
   import { DECK_TYPE } from '$shared/constants.js';
@@ -22,8 +26,9 @@
   export let players: PlayersStore;
   export let decks: DecksStore;
 
-  $: isInvited = !$self.player.host;
+  $: isGuest = !$self.player.host;
   $: playersAreReady = $players.every((player) => player.ready);
+  $: gameCanStart = playersAreReady && $game.deck.id;
 
   let settings = {
     deckId: '',
@@ -37,7 +42,7 @@
   let deck = {
     id: '',
     name: '',
-    type: 'SELECT',
+    type: DECK_TYPE.COMPLETE,
     description: '',
   } as DeckIdentifier;
 
@@ -118,7 +123,7 @@
 
   function resetSettings() {
     settings = {
-      deckId: GAME.DEFAULT_DECK_ID,
+      deckId: '',
       fillTime: GAME.DEFAULT_FILL_TIME,
       rateTime: GAME.DEFAULT_RATE_TIME,
       options: GAME.DEFAULT_OPTIONS,
@@ -177,7 +182,7 @@
   }
 </script>
 
-<section class="flex flex-1 flex-col justify-center items-center">
+<section class="flex flex-col justify-center items-center w-full">
   <header class="flex flex-col text-center mb-4 md:mb-8">
     <h2 class="text-4xl text-white font-bold mb-1 md:mb-3">Sala de espera</h2>
     <p class="flex justify-center gap-2 text-xl text-gray-100 leading-none">
@@ -185,29 +190,50 @@
       <CopyButton
         copy={$room.id}
         a11yLabel="Copiar código de sala"
-        className="w-5 h-5"
+        className="square-5"
       />
     </p>
   </header>
 
-  <div class="flex flex-col md:justify-around">
-    <div class="flex flex-col gap-4 md:flex-row md:gap-16 md:justify-around">
-      <div class="flex flex-col items-center mb-4">
-        <h3 class="text-3xl text-gray-100 mb-4">Jugadores</h3>
-        <ul class="flex flex-col gap-1 text-gray-200">
+  <div
+    class="flex flex-col w-full max-w-[min(24rem,90vw)] md:max-w-[min(48rem,90vw)]"
+  >
+    <div
+      class="flex flex-col gap-4 max-w-full w-full md:grid md:grid-cols-12 md:gap-8 lg:md:gap-12 md:justify-around"
+    >
+      <div class="flex flex-col mb-4 md:col-span-7">
+        <h3 class="text-center text-3xl text-gray-100 mb-4">Jugadores</h3>
+        <ul
+          class="flex flex-col gap-2 text-gray-200 w-full md:h-[40vh] md:overflow-y-auto md:p-1"
+        >
           {#each $players as player}
-            <li class="flex items-center gap-4 w-72">
+            <li
+              class="flex justify-between gap-2 max-w-full {player.me
+                ? 'bg-purple-500/[0.075] shadow-purple-500/[0.075]'
+                : ''}"
+              style={player.me
+                ? 'box-shadow: 0 0 16px 4px var(--tw-shadow-color);'
+                : ''}
+            >
               <div
-                class="grid place-items-center w-8 h-8 text-xl font-mono [&>*]:font-black rounded-md bg-white"
+                class="flex items-center gap-4 text-ellipsis max-w-[calc(100%-4rem)]"
               >
-                {#if player.host}
-                  <span class="text-black">A</span>
-                {:else}
-                  <span class="text-black">I</span>
-                {/if}
+                <div
+                  class="grid place-items-center square-8 rounded-md bg-black ring-1 ring-gray-300"
+                >
+                  {#if player.host}
+                    <IconUserconfig />
+                  {:else}
+                    <IconUser />
+                  {/if}
+                </div>
+                <span
+                  class="flex-1 text-lg leading-none text-ellipsis overflow-hidden"
+                  >{player.name}</span
+                >
               </div>
-              <span class="text-lg">{player.name}</span>
-              <div class="ml-auto">
+
+              <div class="flex items-center gap-2">
                 <label for="ready-{player.id}" class="sr-only">Listo</label>
                 {#if player.me}
                   <input
@@ -216,24 +242,24 @@
                     on:change={(e) => {
                       dispatchToggleReady(e.currentTarget.checked);
                     }}
-                    class="form-checkbox text-success-500 w-6 h-6 rounded-md cursor-pointer"
+                    class="checkbox variant-primary square-6"
                   />
                 {:else}
                   {#if $self.player.host}
-                    <button
-                      type="button"
-                      on:click={() => askForKickPlayer(player)}
-                      class="button variant-primary"
-                    >
-                      Expulsar
-                    </button>
+                    <ButtonIcon
+                      icon={IconX}
+                      type="submit"
+                      label="Expulsar a {player.name}"
+                      size="sm"
+                      className="variant-primary inline-block"
+                    />
                   {/if}
                   <input
                     type="checkbox"
                     id="ready-{player.id}"
                     checked={player.ready}
                     disabled
-                    class="form-checkbox text-success-500 w-6 h-6 rounded-md cursor-not-allowed"
+                    class="checkbox variant-primary square-6"
                   />
                 {/if}
               </div>
@@ -242,14 +268,14 @@
         </ul>
       </div>
 
-      <div class="flex flex-col items-center mb-4">
+      <div class="flex flex-col items-center mb-4 md:col-span-5">
         <h3 class="text-3xl text-gray-100 mb-4">Partida</h3>
         <form
           on:submit={(e) => {
             e.preventDefault();
             dispatchUpdateSettings();
           }}
-          class="flex flex-col items-center gap-4 text-gray-200"
+          class="flex flex-col gap-4 w-full text-gray-200"
         >
           <div class="w-full">
             <label class="flex items-center justify-between">
@@ -257,9 +283,9 @@
               <input
                 type="number"
                 name="rounds"
-                max="10"
-                min="5"
-                disabled={isInvited}
+                max={GAME.MAX_ROUNDS}
+                min={GAME.MIN_ROUNDS}
+                disabled={isGuest}
                 bind:value={settings.rounds}
                 class="input variant-primary w-20 ml-4"
               />
@@ -270,10 +296,10 @@
               <span>Segs. de eleccion</span>
               <input
                 type="number"
-                disabled={isInvited}
                 name="fillTime"
-                max="30"
-                min="1"
+                max={GAME.MAX_FILL_TIME / 1000}
+                min={GAME.MIN_FILL_TIME / 1000}
+                disabled={isGuest}
                 value={settings.fillTime / 1000}
                 on:change={(e) => {
                   settings.fillTime = parseInt(e.currentTarget.value) * 1000;
@@ -288,9 +314,9 @@
                 <span>Opciones</span>
                 <input
                   type="number"
-                  max="8"
-                  min="4"
-                  disabled={isInvited}
+                  max={GAME.MAX_OPTIONS}
+                  min={GAME.MIN_OPTIONS}
+                  disabled={isGuest}
                   bind:value={settings.options}
                   class="input variant-primary w-20 ml-4"
                 />
@@ -301,7 +327,7 @@
             <label class="flex items-center justify-between">
               <span>Baraja</span>
               <select
-                disabled={isInvited}
+                disabled={isGuest}
                 on:change={(e) => {
                   selectDeck(e.currentTarget.value);
                 }}
@@ -346,21 +372,25 @@
     </div>
 
     <div
-      class="flex flex-col gap-2 sm:flex-row-reverse sm:gap-4 mt-4 md:mt-8 justify-around"
+      class="flex flex-col gap-2 justify-around mt-4 md:flex-row-reverse md:justify-center md:gap-8 md:mt-8"
     >
       {#if $self.player.host}
         <button
           type="button"
           on:click={askForStartGame}
           class="button variant-primary"
-          disabled={!playersAreReady}
+          disabled={!gameCanStart}
         >
-          {playersAreReady ? 'Iniciar partida' : 'Esperando listos'}
+          {gameCanStart
+            ? 'Iniciar partida'
+            : playersAreReady
+              ? 'Esperando deck'
+              : 'Esperando listos'}
         </button>
         <button
           type="button"
           on:click={askForLeaveRoom}
-          class="button variant-primary variant-error"
+          class="button variant-primary variant-warn"
         >
           Abandonar sala
         </button>

@@ -5,7 +5,7 @@
 
 <main class="main main-p-header">
   <h1 class="h2 text-white">UI Test</h1>
-  <div class="divide-y space-y-8">
+  <div class="divide-y space-y-8 grid md:grid-cols-2 md:divide-x md:divide-y-0">
     <section>
       <h2 class="h3 text-gray-100">Headings</h2>
       <div>
@@ -25,6 +25,15 @@
         <ButtonIcon icon={IconPlus} size="md" className="variant-primary" />
         <ButtonIcon icon={IconPlus} size="lg" className="variant-primary" />
         <ButtonIcon icon={IconPlus} size="xl" className="variant-primary" />
+      </div>
+    </section>
+    <section>
+      <h2 class="h3 text-gray-200">Inputs</h2>
+      <div class="flex flex-wrap gap-4 text-gray-300">
+        <input type="checkbox" name="" id="" class="checkbox square-4">
+        <input type="checkbox" name="" id="" class="checkbox variant-primary square-6">
+        <input type="checkbox" name="" id="" disabled class="checkbox variant-primary square-8">
+        <input type="checkbox" name="" id="" disabled checked class="checkbox variant-primary square-8">
       </div>
     </section>
   </div>

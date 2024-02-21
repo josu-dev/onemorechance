@@ -109,7 +109,7 @@
         on:leave_room={() => {
           roomActions.leaveRoom();
         }}
-        on:start_game={(e) => {
+        on:start_game={() => {
           roomActions.startGame();
         }}
       />

@@ -44,7 +44,7 @@ const INITIAL_GAME: Game = {
     roomId: INITIAL_ROOM.id,
     status: GAME_STATUS.NOT_STARTED,
     settings: {
-        deckId: GAME.DEFAULT_DECK_ID,
+        deckId: "",
         fillTime: GAME.DEFAULT_FILL_TIME,
         rateTime: GAME.DEFAULT_RATE_TIME,
         players: GAME.DEFAULT_PLAYERS,

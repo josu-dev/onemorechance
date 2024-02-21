@@ -177,11 +177,26 @@ function newRound(io: T.WebSocketServer, socket: T.WebSocketServerSocket, room: 
                 room.game.status = GAME_STATUS.GAME_WINNER;
                 io.to(room.room.id).emit('game_status_updated', { status: room.game.status });
 
-                setTimeout(() => {
+                setTimeout(async () => {
                     room.room.status = ROOM_STATUS.LOBBY_WAITING;
                     room.game.status = GAME_STATUS.ENDED;
+
                     io.to(room.room.id).emit('game_ended');
+
+                    const promises: Promise<any>[] = [];
+                    for (const player of room.players) {
+                        promises.push(db
+                            .update(t.users)
+                            .set({
+                                scoreLastGame: player.scoreTotal,
+                                scoreLifetime: sql<number>`${t.users.scoreLifetime} + ${player.scoreTotal}`,
+                            })
+                            .where(eq(t.users.id, player.id))
+                        );
+                    }
+                    await Promise.all(promises);
                 }, GAME.DEFAULT_SCOREBOARD_TIME);
+
             }, GAME.DEFAULT_RESULTS_TIME);
 
         }, playerCount * room.game.settings.rateTime);
@@ -215,9 +230,6 @@ export function attach_socket_server(
     io.on('connection', async (socket) => {
         // @ts-ignore If you don't need this reference, you can discard it in order to reduce the memory footprint:
         // delete socket.conn.request;
-        socket.on('', (event, ...args) => {
-            log.debug('Unhandled event', event, ...args);
-        });
         const handshakeUserId: string | undefined = socket.handshake.auth.userId;
 
         const dbUser = handshakeUserId && await db.select().from(t.users).where(eq(t.users.id, handshakeUserId)).get();

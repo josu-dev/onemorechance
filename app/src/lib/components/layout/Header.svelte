@@ -231,7 +231,7 @@
                     type="checkbox"
                     name="confirm"
                     required
-                    class="form-checkbox text-purple-700 w-5 h-5 rounded-md cursor-pointer"
+                    class="checkbox variant-primary square-5"
                   />
                 </label>
               </form>

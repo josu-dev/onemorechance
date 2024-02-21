@@ -1,4 +1,5 @@
 <script lang="ts">
+  import IconCopy from '$lib/icons/IconCopy.svelte';
   import { scale } from 'svelte/transition';
 
   export let a11yLabel = 'Copiar';
@@ -35,34 +36,20 @@
   }
 </script>
 
-<button on:click={onClick} class="relative {className}">
+<button on:click={onClick} class="relative [&>svg]:w-full [&>svg]:h-full {className}" title={a11yLabel}>
   {#if tooltip}
     <div transition:scale class="absolute -top-8 left-1/2 -translate-x-1/2">
       <div
-        class="card p-1 pb-0 bg-black shadow-sm shadow-white/25 relative"
+        class="card p-[5px] pb-px bg-black shadow-sm shadow-white/25 relative"
         style="--tw-shadow-colored: 0 0 4px 0 var(--tw-shadow-color);"
       >
         <p class="text-sm">{tooltipText}</p>
         <div
-          class="bg-black shadow-sm shadow-white/25 absolute rotate-45 w-2 h-2 -bottom-1 left-1/2 -translate-x-1/2 -z-10"
+          class="bg-black shadow-sm shadow-white/25 absolute rotate-45 square-2 -bottom-1 left-1/2 -translate-x-1/2 -z-10"
         />
       </div>
     </div>
   {/if}
   <span class="sr-only">{a11yLabel}</span>
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    stroke-width="2"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-    class="lucide lucide-copy h-full w-full"
-    ><rect width="14" height="14" x="8" y="8" rx="2" ry="2" /><path
-      d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"
-    /></svg
-  >
+  <IconCopy />
 </button>

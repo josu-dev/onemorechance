@@ -5,7 +5,7 @@ export const GAME = {
 
     DEFAULT_ROUNDS: 6,
     MAX_ROUNDS: 12,
-    MIN_ROUNDS: 4,
+    MIN_ROUNDS: 3,
 
     DEFAULT_OPTIONS: 8,
     MAX_OPTIONS: 12,
@@ -26,7 +26,4 @@ export const GAME = {
     DEFAULT_SCOREBOARD_TIME: 30 * 1000,
     MAX_SCOREBOARD_TIME: 60 * 1000,
     MIN_SCOREBOARD_TIME: 15 * 1000,
-
-    /** TEMPORAL: to be removed when room configuration is properly handled */
-    DEFAULT_DECK_ID: '2',
 } as const;

@@ -68,13 +68,43 @@
         @apply text-gray-100 ring-2 ring-gray-100;
     }
 
-    .variant-error {
+    :is(.button, .input, .select, .textarea).variant-warn {
+        @apply bg-yellow-800 text-gray-300 ring-1 ring-gray-300;
+    }
+
+    :is(.button, .input, .select, .textarea).variant-error {
         @apply bg-red-800 text-gray-300 ring-1 ring-gray-300;
     }
 
-    .variant-success {
+    :is(.button, .input, .select, .textarea).variant-success {
         @apply bg-purple-800 text-gray-300 ring-1 ring-gray-300;
     }
+
+    .checkbox, .radio {
+        @apply form-checkbox rounded-md cursor-pointer ring-1 border-0;
+    }
+    .checkbox:disabled, .radio:disabled {
+        @apply cursor-not-allowed opacity-75;
+    }
+    :is(.checkbox, .radio):focus {
+        @apply ring-0;
+    }
+    :is(.checkbox, .radio):hover:not(:focus,:disabled) {
+        @apply ring-2;
+    }
+    :is(.checkbox, .radio).variant-primary {
+        @apply bg-black text-purple-800 ring-gray-300;
+    }
+    :is(.checkbox, .radio):checked.variant-primary {
+        @apply bg-purple-800 ring-gray-300;
+    }
+    :is(.checkbox, .radio).variant-primary:focus {
+        @apply text-purple-600 ring-gray-100;
+    }
+    :is(.checkbox, .radio):checked.variant-primary:focus {
+        @apply bg-purple-600 ring-gray-100;
+    }
+
 
     .button-icon {
         @apply block rounded-md;
@@ -137,6 +167,10 @@
     .badge-accent {
         @apply bg-black text-purple-500
     }
+
+    .shadow-around {
+        box-shadow: 0 0 0 1px var(--tw-shadow-color);
+    }
 }
 
 @font-face {
@@ -178,6 +212,10 @@ body {
     body {
         --header-height: 3.5rem;
     }
+}
+
+body * {
+    @apply scrollbar-2 sb-transparent sb-hover-gray-500/10 sb-thumb-purple-800/25 sb-thumb-hover-purple-800/50;
 }
 
 .main-container {
