@@ -60,7 +60,7 @@ const INITIAL_GAME: Game = {
     current: {
         sentence: {
             id: '1',
-            text: 'Nunca saldría con alguien que le guste {{}}',
+            text: 'Nunca saldría con {{1}} porque no da que le guste {{2}}',
         },
         winner: INITIAL_USER.id,
     },
@@ -161,6 +161,7 @@ _self.attachSelfListeners(socket, self);
 self.value.player.id = INITIAL_USER.id;
 self.value.loaded = true;
 self.value.player.role = PLAYER_ROLE.HOST;
+self.sync();
 
 export const players = _player.createPlayersStore(self);
 

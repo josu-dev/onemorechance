@@ -50,7 +50,7 @@
   onMount(() => {
     // debugData.set(audioPlayer);
     // emulateRateSentence();
-    // setGameStatus(GAME_STATUS.ROUND_WINNER);
+    setGameStatus(GAME_STATUS.FILL_SENTENCE);
 
     const cmdCleanup = helpers.registerCommand([
       {

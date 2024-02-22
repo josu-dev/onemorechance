@@ -2,29 +2,23 @@
   import CountDown from '$comps/game/CountDown.svelte';
   import type { GameStore, Option } from '$game/types.js';
   import { audioPlayer } from '$lib/stores/audio.js';
-  import { debounced } from '$lib/utils/client/functions.js';
-  import { DECK_TYPE } from '$shared/constants.js';
   import { createEventDispatcher } from 'svelte';
+  import SentenceCard from './sentence/SentenceCard.svelte';
+  import SentenceComplete from './sentence/SentenceComplete.svelte';
 
   const DEBOUNCE_TIME = 500;
 
   export let game: GameStore;
 
   let countDownDuration = $game.settings.fillTime;
+  let currentFill: number = 0;
 
+  let thisSentenceCard: SentenceCard;
+
+  $: totalFills = $game.current.sentence.text.match(/{{.*?}}/g)?.length ?? 0;
   let baseSentence = $game.current.sentence;
-  let emptySentence = baseSentence.text.replace(/{{}}/g, '...');
 
-  let options: Option[] = [];
-  let option: string | undefined = undefined;
-  $: filledOptions =
-    (option && baseSentence.text.replace(/{{}}/g, option)) ?? undefined;
-
-  let freestyle: string | undefined = undefined;
-  $: filledFreestyle =
-    (freestyle && baseSentence.text.replace(/{{}}/g, freestyle)) ?? undefined;
-
-  $: filledPhrase = filledOptions || filledFreestyle || emptySentence;
+  let fills = Array(totalFills).fill('');
 
   const dispatch = createEventDispatcher<{
     freestyle: string[];
@@ -39,13 +33,9 @@
     // TODO: correctly handled multiple freestyle completions
     dispatch('freestyle', [freestyle]);
   }
-
-  function dispatchOptions() {
-    dispatch('option', options);
-  }
 </script>
 
-<section class="flex flex-1 flex-col justify-center items-center">
+<section class="flex flex-1 flex-col justify-center w-full px-4">
   <header class="flex flex-col text-center mb-4 md:mb-8">
     <h2 class="text-4xl text-white font-bold mb-1 md:mb-3">
       Completa la frase
@@ -60,47 +50,40 @@
     />
   </header>
 
-  <div class="flex flex-col gap-4 md:flex-row md:gap-16 md:justify-around">
-    <div class="flex flex-col items-center">
-      <div class="card variant-primary w-[18rem] h-[24rem]">
-        <p class="text-center text-pretty text-2xl line-clamp-[10] break-words">
-          “{filledPhrase}“
-        </p>
-      </div>
+  <div
+    class="grid gap-4 mx-auto grid-rows-3 md:grid-cols-2 md:gap-16 md:justify-around"
+  >
+    <div
+      class="row-span-2 flex flex-col items-center w-full max-w-sm md:row-span-3"
+    >
+      <SentenceCard
+        current={currentFill}
+        sentence={baseSentence.text}
+        onSelected={(event) => {
+          currentFill = event.idx;
+        }}
+        bind:this={thisSentenceCard}
+      />
     </div>
 
-    <div class="flex flex-col items-center justify-center w-[18rem]">
-      {#if $game.deck.type === DECK_TYPE.SELECT}
-        {#each options as option (option.id)}
-          <button
-            class="bg-black text-white p-2 rounded-lg mb-2"
-            on:click={debounced(
-              (event, option) => {
-                dispatchOptions();
-              },
-              DEBOUNCE_TIME,
-              option,
-            )}
-            style="cursor: pointer;"
-          >
-            {option.text}
-          </button>
-        {/each}
-      {:else}
-        <label for="freestyleFill" class="sr-only">Completar con</label>
-        <textarea
-          id="freestyleFill"
-          autocomplete="off"
-          placeholder="Completar con..."
-          rows="3"
-          spellcheck="false"
-          bind:value={freestyle}
-          on:input={debounced((event) => {
-            dispatchFreestyle();
-          }, DEBOUNCE_TIME)}
-          class="input variant-primary resize-none text-xl text-center w-11/12"
-        ></textarea>
-      {/if}
+    <div class="flex flex-col items-center w-full max-w-sm md:row-span-3">
+      <SentenceComplete
+        current={currentFill}
+        totalInputs={totalFills}
+        onFill={(event) => {
+          currentFill = event.idx;
+          thisSentenceCard?.setFill(event.idx, event.text);
+        }}
+        onSelected={(event) => {
+          currentFill = event.idx;
+        }}
+        onUnselected={() => {
+          currentFill = -1;
+        }}
+        onEnter={(event) => {
+          currentFill = (event.idx + 1) % totalFills;
+        }}
+      />
     </div>
   </div>
 </section>
