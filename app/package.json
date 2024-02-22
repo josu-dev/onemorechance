@@ -1,27 +1,28 @@
 {
   "name": "onemorechance",
   "version": "0.0.1",
-  "private": true,
+  "private": false,
+  "license": "MIT",
   "main": "server/index.js",
   "type": "module",
   "scripts": {
-    "dev": "vite dev",
-    "dev:host": "vite dev --host --force",
+    "dev": "vite dev --config vite.dev.config.ts",
+    "dev:host": "vite dev --config vite.dev.config.ts --host --force",
+    "build": "vite build && npm run build:wss",
+    "build:wss": "vite build --config vite.wss.config.ts",
     "start": "node .",
     "start:dev": "node -r dotenv/config .",
-    "build": "vite build && npm run build:wss",
-    "build:wss": "tsc ./server/sockets.ts --outDir ./build/server_ws --module nodenext --skipLibCheck --allowImportingTsExtensions",
     "preview": "vite preview",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:all": "npm run check && npm run check:wss",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
-    "check:wss": "tsc ./server/sockets.ts --noEmit --module nodenext --skipLibCheck --allowImportingTsExtensions && echo wss check passed ✅ && exit 0",
+    "check:wss": "tsc -p tsconfig.wss.json && echo wss check passed ✅ && exit 0",
     "lint": "eslint .",
-    "db:drop": "tsx drizzle/drop",
-    "db:generate": "npx drizzle-kit generate:sqlite --out ./drizzle/migrations --breakpoints --schema=./drizzle/schema.ts",
-    "db:migrate": "tsx drizzle/migrate",
-    "db:seed": "tsx drizzle/seed",
-    "db:studio": "npx drizzle-kit studio --config ./drizzle/config.ts"
+    "db:drop": "tsx drizzle/drop.ts",
+    "db:generate": "drizzle-kit generate:sqlite --out drizzle/migrations --breakpoints --schema=drizzle/schema.ts",
+    "db:migrate": "tsx drizzle/migrate.ts",
+    "db:seed": "tsx drizzle/seed.ts",
+    "db:studio": "drizzle-kit studio --config drizzle/config.ts"
   },
   "devDependencies": {
     "@sveltejs/adapter-auto": "^3.0.0",
@@ -54,7 +55,6 @@
     "zod": "^3.22.4"
   },
   "dependencies": {
-    "@floating-ui/dom": "^1.6.1",
     "@libsql/client": "^0.4.3",
     "drizzle-orm": "^0.29.3",
     "express": "^4.18.2",

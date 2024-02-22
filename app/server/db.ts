@@ -11,12 +11,12 @@ export type Database = LibSQLDatabase<TablesSchema>;
 
 function tursoClient(): Database {
     if (!process.env.TURSO_DB_URL || !process.env.TURSO_DB_AUTH_TOKEN) {
-        throw new Error('Missing TURSO_DB_URL or TURSO_DB_AUTH_TOKEN environment variables');
+        throw new Error('WSS Missing TURSO_DB_URL or TURSO_DB_AUTH_TOKEN environment variables');
     }
 
     const turso = createClient({
-        url: process.env.TURSO_DB_URL,
-        authToken: process.env.TURSO_DB_AUTH_TOKEN
+        url: process.env.TURSO_DB_URL!,
+        authToken: process.env.TURSO_DB_AUTH_TOKEN!
     });
 
     return drizzle(turso, { schema });

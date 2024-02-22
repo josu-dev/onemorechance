@@ -15,7 +15,7 @@ function tursoClient(): Database {
         return {} as any;
     }
     if (!env.TURSO_DB_URL || !env.TURSO_DB_AUTH_TOKEN) {
-        throw new Error('Missing TURSO_DB_URL or TURSO_DB_AUTH_TOKEN environment variables');
+        throw new Error('SK Missing TURSO_DB_URL or TURSO_DB_AUTH_TOKEN environment variables');
     }
 
     const turso = createClient({

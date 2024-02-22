@@ -1,5 +1,6 @@
 import { and, eq, sql } from 'drizzle-orm';
 import type { Server as HttpServer } from "http";
+import type { Http2SecureServer } from "http2";
 import { nanoid } from 'nanoid';
 import { Server } from 'socket.io';
 import { DECK_TYPE, GAME_STATUS, PLAYER_RATING, PLAYER_ROLE, ROOM_STATUS } from '../src/shared/constants.js';
@@ -8,6 +9,8 @@ import { db, t } from './db.js';
 import type * as T from './types.js';
 import { log } from './utils.js';
 
+
+export { log };
 
 const DEFAULT_DECK_FULL: T.DeckFull = {
     id: '',
@@ -217,9 +220,7 @@ function queryDeck(deckId: string) {
     return db.select().from(t.decks).where(eq(t.decks.id, deckId)).get();
 }
 
-export function attach_socket_server(
-    server: HttpServer
-) {
+export function attach_socket_server(server: HttpServer | Http2SecureServer) {
     const io = new Server<
         T.ClientToServerEvents,
         T.ServerToClientEvents,

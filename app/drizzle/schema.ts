@@ -1,6 +1,7 @@
 import { relations, sql } from 'drizzle-orm';
 import { index, integer, primaryKey, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core';
-import { DECK_TYPE, ROOM_STATUS } from '../src/shared/constants.ts'; // no change extension breaks drizzle-kit 🙃
+// extension must be .ts, .js breaks drizzle-kit 🙃
+import { DECK_TYPE, ROOM_STATUS } from '../src/shared/constants.ts';
 
 
 /**
