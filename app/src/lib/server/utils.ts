@@ -1,8 +1,8 @@
-import { redirect } from '@sveltejs/kit';
 import { dev } from '$app/environment';
 import { env } from '$env/dynamic/private';
-import { LOG_LEVEL } from '$lib/defaults.ts';
-import { createLogger, numberFromEnv } from '$shared/utils.ts';
+import { LOG_LEVEL } from '$lib/defaults.js';
+import { createLogger, numberFromEnv } from '$shared/utils.js';
+import { redirect } from '@sveltejs/kit';
 
 
 export function redirectIfParam(
@@ -32,9 +32,6 @@ export function json(data: any, init?: ResponseInit, space?: number) {
     const body = JSON.stringify(data, undefined, space);
 
     const headers = new Headers(init?.headers);
-    if (!headers.has('status')) {
-        headers.set('status', '200');
-    }
     if (!headers.has('content-type')) {
         headers.set('content-type', 'application/json');
     }
@@ -44,7 +41,8 @@ export function json(data: any, init?: ResponseInit, space?: number) {
 
     return new Response(body, {
         ...init,
-        headers
+        headers,
+        status: 200
     });
 }
 

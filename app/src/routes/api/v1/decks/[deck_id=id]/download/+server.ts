@@ -39,7 +39,7 @@ export const GET: RequestHandler = async ({ locals, params, url }) => {
     };
 
     return json(
-        { data },
+        data,
         {
             headers: {
                 'Content-Disposition': `attachment; filename="${slugify(d.name, '_')}.json"`

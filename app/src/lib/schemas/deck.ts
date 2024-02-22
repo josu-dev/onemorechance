@@ -10,13 +10,15 @@ export const DECK_TYPE_CREATE = { ...DECK_TYPE, UNSET: 'UNSET' as const };
 export const deckType = z.nativeEnum(DECK_TYPE_CREATE);
 
 const deckBaseSchema = z.object({
-    type: z.nativeEnum(DECK_TYPE_CREATE).default(DECK_TYPE_CREATE.UNSET),
+    type: z.nativeEnum(DECK_TYPE).default(DECK_TYPE.COMPLETE),
     name: z.string(),
     description: z.string(),
     userId: z.string().nullish(),
 });
 
-export const deckInsertSchema = deckBaseSchema;
+export const deckInsertSchema = deckBaseSchema.extend({
+    type: z.nativeEnum(DECK_TYPE_CREATE).default(DECK_TYPE_CREATE.UNSET),
+})
 
 export const deckUpdateSchema = deckBaseSchema.extend({
     id: z.string(),
@@ -62,3 +64,12 @@ export const optionBaseSchema = itemBaseSchema;
 export const optionsInsertSchema = itemsInsertSchema;
 
 export const optionsDeleteSchema = deleteItemsSchema;
+
+/*
+    Deck full
+*/
+
+export const deckUploadSchema = deckBaseSchema.extend({
+    sentences : z.array(sentenceBaseSchema).optional(),
+    options: z.array(optionBaseSchema).optional(),
+});
