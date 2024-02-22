@@ -100,6 +100,11 @@
       url: '/ui',
       description: 'Test the UI components',
     },
+    {
+      name: 'Dashboard',
+      url: '/dashboard',
+      description: 'Dashboard for app decks',
+    },
   ]);
 </script>
 
@@ -119,3 +124,9 @@
 <div class="main-container">
   <slot />
 </div>
+
+<style lang="postcss">
+  :global(.omc-toast-container div.omc-toast) {
+    @apply bg-black text-gray-200 font-light border-none ring-1 ring-gray-200 text-base;
+  }
+</style>

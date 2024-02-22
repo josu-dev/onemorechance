@@ -1,24 +1,13 @@
-import { redirect } from '@sveltejs/kit';
 import { customRandom, nanoid, random } from 'nanoid';
 
+
+export function slugify(text: string, space: '' | '-' | '_' = '-'): string {
+    return text
+        .toLowerCase()
+        .replace(/ /g, space)
+        .replace(/[^\w-]+/g, '');
+}
 
 export const uniqueId = nanoid;
 
 export const uniqueRoomId = customRandom('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz', 6, random);
-
-export function redirectToRegister(
-    url: URL,
-    message = ''
-): never {
-    const redirectTo = url.pathname + url.search;
-    redirect(302, `/?redirect_to=${redirectTo}&message=${encodeURIComponent(message)}`);
-}
-
-export function redirectIfParam(
-    url: URL,
-) {
-    const redirectTo = url.searchParams.get('redirect_to');
-    if (redirectTo) {
-        redirect(302, `/${redirectTo.trim().slice(1)}`);
-    }
-}

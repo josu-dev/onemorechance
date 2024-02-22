@@ -1,6 +1,6 @@
 import { dev } from '$app/environment';
 import { db, users } from '$lib/server/db.js';
-import { log } from '$lib/server/logging';
+import { log } from '$lib/server/utils.js';
 import type { Handle, HandleServerError } from '@sveltejs/kit';
 import { redirect, } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';

@@ -27,7 +27,7 @@ export const GET: RequestHandler = async ({ locals, params, url }) => {
             { id: decks.id, type: decks.type, name: decks.name, description: decks.description, userId: decks.userId, createdAt: decks.createdAt }
         )
         .from(decks)
-        .where(eq(decks.id, params.id))
+        .where(eq(decks.id, params.deck_id))
         .get()
     );
     const sentencesQuery = (locals.db
@@ -36,7 +36,7 @@ export const GET: RequestHandler = async ({ locals, params, url }) => {
             { id: sentences.id, text: sentences.text, createdAt: sentences.createdAt }
         )
         .from(sentences)
-        .where(eq(sentences.deckId, params.id))
+        .where(eq(sentences.deckId, params.deck_id))
         .orderBy(qp.random ? sql`random()` : asc(sentences.createdAt))
         .limit(qp.limit)
         .offset((qp.page - 1) * qp.limit)

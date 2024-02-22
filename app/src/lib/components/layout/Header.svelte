@@ -73,6 +73,7 @@
       if (result.type === 'success') {
         open = false;
         user.mset(undefined);
+        toast.success('Cuenta borrada', { duration: 2500 });
         goto('/');
         return;
       }

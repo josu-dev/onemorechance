@@ -64,7 +64,7 @@
   </h1>
 
   <div
-    class="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8"
+    class="flex flex-col items-center justify-center gap-4 md:flex-row md:gap-8 lg:gap-16"
   >
     <div class="flex my-2">
       <img

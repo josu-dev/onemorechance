@@ -1,6 +1,6 @@
 import type { DeckIdentifier } from '$game/types.js';
 import { rooms } from '$lib/server/db.js';
-import { redirectToRegister } from '$lib/utils/index.js';
+import { redirectToRegister } from '$lib/server/utils.js';
 import { log } from '$lib/utils/logging.js';
 import { error } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
@@ -19,12 +19,6 @@ export const load: PageServerLoad = async ({ locals, params, url, fetch }) => {
     if (room.status === 'CLOSED') {
         error(400, 'La sala esta cerrada');
     }
-    // if (room.playersCount >= room.playersMax) {
-    //     error(400, 'La sala esta llena');
-    // }
-
-    // await locals.db.update(rooms).set({ playersCount: room.playersCount + 1 }).where(eq(rooms.id, params.id));
-    // room.playersCount += 1;
 
     const decks: (DeckIdentifier & { sentencesCount: number; })[] = await (
         fetch('/api/v1/decks?page=1&limit=100')
