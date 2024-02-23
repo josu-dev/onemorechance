@@ -23,4 +23,5 @@
     "exclude": [
         "../node_modules/**"
     ]
+    // MODIFY WITH CAUTION. Custom WebSockets Server config for type checking
 }

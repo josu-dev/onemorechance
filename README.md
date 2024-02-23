@@ -1,45 +1,24 @@
-# One More Chance 🤚
+![One More Chance logo](./app/static/logo/logo-256x256.png)
 
-Base idea
+# One More Chance 🎲
 
-![One More Chance](docs/design.jpeg)
+You dont know what to do with your friends? Play One More Chance where any sentence can be the joke of the day.
 
-Logo
+Based on the 'H.D.P' (Hasta donde puedas) game and similars, One More Chance is a boardgame about making funny jokes made for the browser. Developed for mobile and desktop, the game is a simple, fast and fun way to spend time with friends.
 
-![logo](docs/LogoProv.png)
+For more information about the app, check the [app README](./app/README.md).
 
-## Description 📝
-
-Based on the H.D.P game (Hasta donde puedas) omc is a boardgame made in the browser, with multiplayer support and mobile first.
-
-## Stack 🛠
+## Technologies 🧰
 
 - Sveltekit
-- Typescript
-- Daisyui
-- Tailwindcss
 - Websockets
-- Render
+- Typescript
+- Tailwindcss
+- Turso
 - Docker
 - Github Actions
+- Render
 
-## Folder Structure 📁
-
-```text
-🌳 onemorechance/
-┣ 📁 .github/ -- Actions
-┣ 📁 app/ -- The app itself
-┃ ┣ 📁 src/
-┃ ┃ ┣ 📁 lib/
-┃ ┃ ┣ 📁 params/
-┃ ┃ ┣ 📁 routes/
-┣ 📁 docs/
-┣ 📔 LICENSE
-┣ 📔 README.md
-┣ 📔 Makefile - Shortcut linux commands
-
-```
-
-## License 📜
+## License 📄
 
 Check the [LICENSE](LICENSE) file for license rights and limitations (MIT).
