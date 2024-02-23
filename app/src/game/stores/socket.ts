@@ -76,28 +76,30 @@ export function createSocketActions(socket: SocketStore) {
 
 export function attachSocketListeners(socket: SocketStore) {
     socket.instance.on('connect', () => {
+        log.debug(`Connected to websocket server`);
+
         socket.mset({
             initialized: true,
             connected: true,
             connecting: false,
             error: undefined,
         });
-
-        log.debug(`Connected to websocket server`);
     });
 
     socket.instance.on('disconnect', (reason) => {
+        log.debug(`Disconnected from websocket server: ${reason}`);
+
         socket.mset({
             connected: false,
             connecting: false,
         });
-
-        log.debug(`Disconnected from websocket server: ${reason}`);
     });
 
     socket.instance.on('unauthorized', (data, cb) => {
         log.error(`Unauthorized: ${data.error}`);
+
         socket.value.error = data.error;
+        socket.sync();
         cb(true);
     });
 }

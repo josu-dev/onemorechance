@@ -33,12 +33,6 @@ export type ServerUser = {
     socketId: string,
 };
 
-export type ServerPlayer = {
-    userId: string,
-    roomId: string,
-    client: Shared.Player,
-};
-
 export type ServerRoom = {
     id: string,
     room: Shared.Room,

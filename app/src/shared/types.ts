@@ -166,7 +166,7 @@ export type ServerToClientEvents = {
     unauthorized: (
         data: { error?: string; }, cb: (ok: true) => void
     ) => void;
-    initialized: () => void;
+    connect_ready: () => void;
 
     room_error: (data: { ev: keyof ClientToServerEvents, err?: string; }) => void;
     room_created: (data: {

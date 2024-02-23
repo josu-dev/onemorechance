@@ -26,8 +26,7 @@ const users = new Map<string, T.ServerUser>();
 
 const rooms = new Map<string, T.ServerRoom>();
 
-
-function removePlayerFromRoom(io: T.WebSocketServer, socket: T.WebSocketServerSocket, user: T.ServerUser, room: T.ServerRoom, playerId: string) {
+function removePlayerFromRoom(io: T.WebSocketServer, user: T.ServerUser, room: T.ServerRoom, playerId: string) {
     user.rooms.delete(room.room.id);
 
     let playerIndex = -1;
@@ -259,7 +258,7 @@ export function attach_socket_server(server: HttpServer | Http2SecureServer) {
             socketId: socket.id,
         });
 
-        socket.on('disconnect', () => {
+        socket.on('disconnect', async () => {
             log.debug('Client disconnected', socket.id, 'user', socket.data.userId);
             if (!socket.data.userId) {
                 return;
@@ -270,6 +269,9 @@ export function attach_socket_server(server: HttpServer | Http2SecureServer) {
                 return;
             }
 
+            socket.data.userId = '';
+            users.delete(user.id);
+
             for (const roomId of user.rooms) {
                 const room = rooms.get(roomId);
                 if (!room) {
@@ -277,13 +279,19 @@ export function attach_socket_server(server: HttpServer | Http2SecureServer) {
                 }
 
                 log.debug('User removed from room', roomId, user.id);
-                removePlayerFromRoom(io, socket, user, room, user.id);
-                io.sockets.sockets.get(user.socketId)?.leave(roomId);
+                removePlayerFromRoom(io, user, room, user.id);
+                socket.leave(roomId);
                 io.to(roomId).emit('player_disconnected', { playerId: user.id });
+                if (room.players.length === 0) {
+                    await db.delete(t.rooms).where(eq(t.rooms.id, roomId));
+                }
+                else {
+                    await db.delete(t.usersToRooms).where(and(
+                        eq(t.usersToRooms.userId, user.id),
+                        eq(t.usersToRooms.roomId, roomId)
+                    ));
+                }
             }
-
-            socket.data.userId = '';
-            users.delete(user.id);
         });
 
         socket.on('room_create', async ({ roomId }) => {
@@ -304,33 +312,29 @@ export function attach_socket_server(server: HttpServer | Http2SecureServer) {
             user.rooms.add(roomId);
             let room = rooms.get(roomId);
             if (!room) {
-                const player: T.ServerPlayer = {
-                    userId: user.id,
-                    roomId: roomId,
-                    client: {
-                        id: user.id,
-                        host: true,
-                        name: user.client.name,
-                        role: PLAYER_ROLE.HOST,
-                        score: 0,
-                        scoreLast: 0,
-                        scoreTotal: 0,
-                        ready: false,
-                        current: {
-                            option: undefined,
-                            freestyle: undefined,
-                        },
-                        stock: {
-                            options: [],
-                            modifiers: [],
-                        },
-                        used: {
-                            freestyle: [],
-                            options: [],
-                            modifiers: [],
-                        },
-                        ratesReceived: {}
+                const player: T.Player = {
+                    id: user.id,
+                    host: true,
+                    name: user.client.name,
+                    role: PLAYER_ROLE.HOST,
+                    score: 0,
+                    scoreLast: 0,
+                    scoreTotal: 0,
+                    ready: false,
+                    current: {
+                        option: undefined,
+                        freestyle: undefined,
                     },
+                    stock: {
+                        options: [],
+                        modifiers: [],
+                    },
+                    used: {
+                        freestyle: [],
+                        options: [],
+                        modifiers: [],
+                    },
+                    ratesReceived: {}
                 };
 
                 room = {
@@ -338,7 +342,7 @@ export function attach_socket_server(server: HttpServer | Http2SecureServer) {
                     room: {
                         id: roomId,
                         status: ROOM_STATUS.LOBBY_WAITING,
-                        hostId: player.userId,
+                        hostId: player.id,
                         maxPlayers: GAME.MAX_PLAYERS
                     },
                     game: {
@@ -368,7 +372,7 @@ export function attach_socket_server(server: HttpServer | Http2SecureServer) {
                         }
 
                     },
-                    players: [player.client],
+                    players: [player],
                     deck: { ...DEFAULT_DECK_FULL }
                 };
 
@@ -494,15 +498,20 @@ export function attach_socket_server(server: HttpServer | Http2SecureServer) {
             }
 
             log.debug('Room leave', roomId, user.id);
-            removePlayerFromRoom(io, socket, user, room, user.id);
+            removePlayerFromRoom(io, user, room, user.id);
 
             socket.leave(room.room.id);
             socket.emit('room_left', { roomId: room.room.id });
             io.to(room.room.id).emit('player_left', { playerId: user.id });
-            await db.delete(t.usersToRooms).where(and(
-                eq(t.usersToRooms.userId, user.id),
-                eq(t.usersToRooms.roomId, room.id)
-            ));
+            if (room.players.length === 0) {
+                await db.delete(t.rooms).where(eq(t.rooms.id, roomId));
+            }
+            else {
+                await db.delete(t.usersToRooms).where(and(
+                    eq(t.usersToRooms.userId, user.id),
+                    eq(t.usersToRooms.roomId, room.id)
+                ));
+            }
         });
 
         socket.on('room_kick_player', async ({ roomId, playerId }) => {
@@ -524,7 +533,7 @@ export function attach_socket_server(server: HttpServer | Http2SecureServer) {
             }
 
             log.debug(`Room kick player ${playerId} from room ${roomId} by user ${user.id}`);
-            removePlayerFromRoom(io, socket, kickedUser, room, playerId);
+            removePlayerFromRoom(io, kickedUser, room, playerId);
             io.to(room.room.id).emit('player_kicked', { playerId: playerId });
             io.sockets.sockets.get(kickedUser.socketId)?.leave(roomId);
             await db.delete(t.usersToRooms).where(and(
@@ -721,6 +730,6 @@ export function attach_socket_server(server: HttpServer | Http2SecureServer) {
             targetPlayer.ratesReceived[player.id] = rate;
         });
 
-        socket.emit('initialized');
+        socket.emit('connect_ready');
     });
 }

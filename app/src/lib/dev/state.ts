@@ -60,8 +60,8 @@ const INITIAL_GAME: Game = {
     current: {
         sentence: {
             id: '1',
-            text: 'Nunca saldría con {{1}}',
-            // text: 'Nunca saldría con {{1}} porque no da que le guste {{2}} deah',
+            // text: 'Nunca saldría con {{1}}',
+            text: 'Nunca saldría con {{1}} porque no da que le guste {{2}} deah',
         },
         winner: INITIAL_USER.id
     },

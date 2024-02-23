@@ -50,7 +50,7 @@ _game.attachGameListeners(socket, game);
 
 _shared.attachSharedListeners(socket, user, self, room, game, players);
 
-socket.instance.on('initialized', () => {
+socket.instance.on('connect_ready', () => {
     self.value.connected = true;
     self.sync();
     if (!self.value.loaded) {
