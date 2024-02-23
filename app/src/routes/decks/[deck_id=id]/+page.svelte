@@ -88,7 +88,7 @@
         <FieldTextarea
           form={deckUpdateSForm}
           field="description"
-          label="Descripción"
+          label="Descripcion"
           required
           disabled={!isOwner}
         />

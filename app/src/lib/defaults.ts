@@ -21,3 +21,5 @@ export const OPEN_GRAPH = {
     imageWidth: '1200',
     imageHeight: '630',
 };
+
+export const PROJECT_REPOSITORY = 'https://github.com/J-Josu/onemorechance';

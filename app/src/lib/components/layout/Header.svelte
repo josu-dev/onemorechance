@@ -4,6 +4,8 @@
   import { goto } from '$app/navigation';
   import { roomActions, roomStatus } from '$game/game.js';
   import { useClickOutside } from '$lib/actions/index.js';
+  import { PROJECT_REPOSITORY } from '$lib/defaults.ts';
+  import IconGithub from '$lib/icons/IconGithub.svelte';
   import IconMaximize from '$lib/icons/IconMaximize.svelte';
   import IconMenu from '$lib/icons/IconMenu.svelte';
   import IconMinimize from '$lib/icons/IconMinimize.svelte';
@@ -107,10 +109,10 @@
     <button
       bind:this={menuButton}
       on:click={toggleOpen}
-      title="Menu"
+      title={open ? 'Cerrar menu' : 'Abrir menu'}
       class="h-full [&>svg]:h-full [&>svg]:w-full"
     >
-      <span class="sr-only">Menu</span>
+      <span class="sr-only">{open ? 'Cerrar menu' : 'Abrir menu'}</span>
       <IconMenu />
     </button>
 
@@ -119,12 +121,12 @@
         use:useClickOutside={{ exclude: menuButton, handler: toggleOpen }}
         class="absolute right-0 top-[125%] min-w-[clamp(8rem,90vw,16rem)] sm:min-w-64 p-1 bg-black text-gray-300 ring-1 ring-gray-300 rounded-md overflow-hidden"
       >
-        <div class="py-0.5 font-bold text-lg text-center">Menu</div>
+        <div class="pt-0.5 pb-x font-bold text-lg text-center">Menu</div>
         <div class="category-divider" />
 
         <div class="p-1">
           <div class="flex justify-between">
-            <span class="font-semibold text-lg">Audio</span>
+            <span class="category-title">Audio</span>
             <button
               on:click={audioPlayer.toggleMute}
               title={$audioPlayer.isMuted ? 'Activar sonido' : 'Silenciar'}
@@ -189,7 +191,7 @@
 
         <div class="p-1">
           <div class="flex justify-between">
-            <span class="font-semibold text-lg">Video</span>
+            <span class="category-title">Video</span>
             <button
               on:click={toggleFullscreen}
               title={isFullscreen
@@ -214,7 +216,7 @@
           <div class="category-divider" />
           <div class="p-1">
             <div class="flex justify-between">
-              <span class="font-semibold text-lg">Cuenta</span>
+              <span class="category-title">Cuenta</span>
             </div>
             <div class="flex flex-col">
               <form
@@ -252,14 +254,39 @@
             </div>
           </div>
         {/if}
+
+        <div class="category-divider" />
+        <div class="p-1">
+          <div class="flex justify-between">
+            <a href="/credits" class="category-title menu-button"> Creditos </a>
+            <a
+              href={PROJECT_REPOSITORY}
+              rel="noopener noreferrer"
+              target="_blank"
+              title="Ver el codigo fuente en GitHub"
+              class="menu-button"
+            >
+              <span class="sr-only">Ver el codigo fuente en GitHub</span>
+              <IconGithub />
+            </a>
+          </div>
+        </div>
       </div>
     {/if}
   </div>
 </header>
 
 <style lang="postcss">
+  .category-title {
+    @apply font-bold text-lg leading-6;
+  }
+
   .menu-button {
     @apply underline underline-offset-2 transition-all;
+  }
+
+  .menu-button:hover {
+    @apply text-gray-100 decoration-2 underline-offset-4;
   }
 
   .group:hover .menu-button {

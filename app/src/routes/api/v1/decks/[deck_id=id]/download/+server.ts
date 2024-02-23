@@ -30,7 +30,7 @@ export const GET: RequestHandler = async ({ locals, params, url }) => {
 
     const [d, s] = await Promise.all([deckQuery, sentencesQuery]);
     if (!d) {
-        error(404, 'No se encontró el mazo a descargar');
+        error(404, 'No se encontro el mazo a descargar');
     }
 
     const data = {

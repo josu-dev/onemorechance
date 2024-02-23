@@ -154,7 +154,7 @@
       {$room.id}
       <CopyButton
         copy={$room.id}
-        a11yLabel="Copiar código de sala"
+        a11yLabel="Copiar codigo de sala"
         className="square-5"
       />
     </p>

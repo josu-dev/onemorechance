@@ -70,7 +70,7 @@
           {#if $roomStatus.isNotFound}
             La sala no existe, puede que haya sido cerrada 😢
           {:else}
-            La sala ha sido cerrada por el anfitrión 😢
+            La sala ha sido cerrada por el anfitrion 😢
           {/if}
         </svelte:fragment>
         <svelte:fragment slot="content">

@@ -43,7 +43,7 @@ export const handleError: HandleServerError = async ({ event, error, message, st
     const errorMessage = status === 500 ?
         `Error interno del servidor. Id: ${errorId}` :
         isNotFound ?
-            `No se encontró el recurso solicitado. Id: ${errorId}` :
+            `No se encontro el recurso solicitado. Id: ${errorId}` :
             message;
 
     return {

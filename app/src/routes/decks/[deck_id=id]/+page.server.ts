@@ -14,7 +14,7 @@ import type { Actions, PageServerLoad } from './$types.js';
 export const load: PageServerLoad = async ({ locals, params }) => {
     const deck = await locals.db.select().from(decks).where(eq(decks.id, params.deck_id)).get();
     if (!deck) {
-        error(404, 'No se encontró el deck que buscas');
+        error(404, 'No se encontro el deck que buscas');
     }
 
     const deckSentences = await locals.db.select().from(sentences).where(eq(sentences.deckId, deck.id));
@@ -67,7 +67,7 @@ export const actions: Actions = {
             return fail(400, { form });
         }
         if (!form.data.confirm) {
-            return setError(form, 'confirm', 'Debes confirmar la eliminación');
+            return setError(form, 'confirm', 'Debes confirmar la eliminacion');
         }
 
         await (locals.db
@@ -102,7 +102,7 @@ export const actions: Actions = {
         );
 
         if (!updatedDeck) {
-            return setError(form, '', 'No se encontró el deck que buscas o no tienes permisos para editarlo');
+            return setError(form, '', 'No se encontro el deck que buscas o no tienes permisos para editarlo');
         }
 
         return message(form, { deck: updatedDeck });
@@ -126,7 +126,7 @@ export const actions: Actions = {
             .get()
         );
         if (!deck) {
-            return setError(form, '', 'No se encontró el deck que buscas o no tienes permisos para editarlo');
+            return setError(form, '', 'No se encontro el deck que buscas o no tienes permisos para editarlo');
         }
 
         const deletedIds = await locals.db.delete(sentences).where(
@@ -157,7 +157,7 @@ export const actions: Actions = {
             .get()
         );
         if (!deck) {
-            return setError(form, '', 'No se encontró el deck que buscas o no tienes permisos para editarlo');
+            return setError(form, '', 'No se encontro el deck que buscas o no tienes permisos para editarlo');
         }
 
         const values: typeof sentences.$inferInsert[] = [];
