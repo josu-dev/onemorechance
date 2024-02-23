@@ -60,9 +60,10 @@ const INITIAL_GAME: Game = {
     current: {
         sentence: {
             id: '1',
-            text: 'Nunca saldría con {{1}} porque no da que le guste {{2}}',
+            text: 'Nunca saldría con {{1}}',
+            // text: 'Nunca saldría con {{1}} porque no da que le guste {{2}} deah',
         },
-        winner: INITIAL_USER.id,
+        winner: INITIAL_USER.id
     },
     used: {
         sentences: [],
@@ -83,7 +84,7 @@ const INITIAL_PLAYERS: Player[] = [
         current: {
             option: undefined,
             modifier: undefined,
-            freestyle: undefined,
+            freestyle: ['juana', 'chupar pies de vagabundos'],
         },
         stock: {
             options: [],
@@ -108,7 +109,7 @@ const INITIAL_PLAYERS: Player[] = [
         current: {
             option: undefined,
             modifier: undefined,
-            freestyle: undefined,
+            freestyle: ['un perro']
         },
         stock: {
             options: [],
@@ -133,7 +134,7 @@ const INITIAL_PLAYERS: Player[] = [
         current: {
             option: undefined,
             modifier: undefined,
-            freestyle: undefined,
+            freestyle: ['la mascota de la vecina', 'comerme las uñas de los pies']
         },
         stock: {
             options: [],

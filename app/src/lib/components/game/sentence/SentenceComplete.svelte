@@ -1,16 +1,15 @@
 <script lang="ts">
-  import { FILL_SENTENCE_MAX_LENGTH } from '../defaults.ts';
+  import { FILL_SENTENCE_MAX_LENGTH } from '$comps/game/defaults.js';
+  import type { FillFragment } from './shared.ts';
 
   export let current: number;
   export let totalInputs: number = 0;
-  export let onEnter: (data: { idx: number; text: string }) => void;
-  export let onFill: (data: { idx: number; text: string }) => void;
-  export let onSelected: (data: { idx: number; text: string }) => void;
+  export let onEnter: (data: FillFragment) => void;
+  export let onFill: (data: FillFragment) => void;
+  export let onSelected: (data: FillFragment) => void;
   export let onUnselected: () => void;
 
-  type Input = {
-    idx: number;
-    text: string;
+  type Input = FillFragment & {
     el?: HTMLDivElement;
   };
 
@@ -64,6 +63,14 @@
             e.preventDefault();
             input.el?.blur();
             return;
+          }
+          if (e.key !== 'Backspace') {
+            if (input.text.length === FILL_SENTENCE_MAX_LENGTH) {
+              const selection = window.getSelection();
+              if (selection?.isCollapsed) {
+                e.preventDefault();
+              }
+            }
           }
         }}
         class="input variant-primary w-full resize-none break-words text-center text-pretty text-lg line-clamp-2 max-w-full text-ellipsis overflow-y-auto whitespace-pre"

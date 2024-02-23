@@ -1,12 +1,13 @@
 <script lang="ts">
   import CountDown from '$comps/game/CountDown.svelte';
+  import { FILL_SENTENCE_DEBOUNCE } from '$comps/game/defaults.js';
+  import SentenceComplete from '$comps/game/sentence/SentenceComplete.svelte';
+  import SentenceFillCard from '$comps/game/sentence/SentenceFillCard.svelte';
+  import { countFillSlots } from '$comps/game/sentence/shared.js';
   import type { GameStore, Option } from '$game/types.js';
   import { audioPlayer } from '$lib/stores/audio.js';
-  import { debounced } from '$lib/utils/client/functions.ts';
+  import { debounced } from '$lib/utils/client/functions.js';
   import { createEventDispatcher, onMount } from 'svelte';
-  import { FILL_SENTENCE_DEBOUNCE } from './defaults.ts';
-  import SentenceCard from './sentence/SentenceCard.svelte';
-  import SentenceComplete from './sentence/SentenceComplete.svelte';
 
   export let game: GameStore;
 
@@ -14,12 +15,12 @@
 
   let countDownDuration = $game.settings.fillTime;
 
-  let currentFill: number = -1;
-  $: totalFills = $game.current.sentence.text.match(/{{.*?}}/g)?.length ?? 0;
+  let currentFill = -1;
+  $: totalFills = countFillSlots($game.current.sentence.text);
 
   let fills: string[] = Array(totalFills).fill('');
 
-  let thisSentenceCard: SentenceCard;
+  let thisSentenceCard: SentenceFillCard;
 
   const dispatch = createEventDispatcher<{
     freestyle: string[];
@@ -38,7 +39,7 @@
   });
 </script>
 
-<section class="flex flex-1 flex-col justify-center w-full px-4">
+<section class="flex flex-1 flex-col justify-center items-center w-full px-4">
   <header class="flex flex-col text-center mb-6 md:mb-8">
     <h2 class="text-4xl text-white font-bold mb-1 md:mb-3">
       Completa la frase
@@ -54,12 +55,10 @@
   </header>
 
   <div
-    class="grid gap-4 mx-auto grid-rows-3 md:grid-cols-2 md:gap-16 md:justify-around"
+    class="grid grid-rows-3 gap-4 grid-cols-[min(calc(90vw_-1rem),24rem)] mx-auto md:w-[min(calc(90vw_-1rem),calc(24rem*2+4rem))] md:grid-cols-2 md:gap-16 md:justify-around"
   >
-    <div
-      class="row-span-2 flex flex-col items-center w-full max-w-sm md:row-span-3"
-    >
-      <SentenceCard
+    <div class="row-span-2 md:row-span-3">
+      <SentenceFillCard
         current={currentFill}
         sentence={baseSentence.text}
         onSelected={(event) => {
@@ -69,7 +68,7 @@
       />
     </div>
 
-    <div class="flex flex-col items-center w-full max-w-sm md:row-span-3">
+    <div class="md:row-span-3 md:my-auto">
       <SentenceComplete
         current={currentFill}
         totalInputs={totalFills}
