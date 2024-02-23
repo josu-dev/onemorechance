@@ -67,16 +67,13 @@
     if (position === playersCount - 1) {
       return '🥶';
     }
-    if (playersCount < 4 || position > 1 || position < playersCount - 2) {
-      return '😐';
-    }
     if (position === 1) {
       return '🤤';
     }
     if (position === playersCount - 2) {
       return '😴';
     }
-    return '🤮';
+    return '😐';
   }
 </script>
 
@@ -100,11 +97,7 @@
             class="flex items-center gap-2 px-1 text-xl text-gray-200 md:py-1 [&:not(:last-child)]:border-b border-fuchsia-100/50"
           >
             <span class=""
-              >{posLast > pos
-                ? '🔼'
-                : posLast === pos
-                  ? '➖'
-                  : '🔽'}</span
+              >{posLast > pos ? '🔼' : posLast === pos ? '➖' : '🔽'}</span
             >
             <span class="text-base font-normal whitespace-pre w-10"
               >{(player.score >= 0 ? '+' : '') + player.score.toString()}</span

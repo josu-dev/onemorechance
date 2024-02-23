@@ -1,5 +1,5 @@
 <script lang="ts">
-  const EMPTY_FILL = '...';
+  import { FILL_SENTENCE_EMPTY_TEXT } from '$comps/game/defaults.js';
 
   export let current: number | undefined = undefined;
   export let onSelected: (data: { idx: number; text: string }) => void;
@@ -10,7 +10,7 @@
       if (text) {
         slots[idx].text = text;
       } else {
-        slots[idx].text = EMPTY_FILL;
+        slots[idx].text = FILL_SENTENCE_EMPTY_TEXT;
       }
       fragments = fragments;
     }
@@ -50,7 +50,7 @@
         type: 'fill',
         id,
         idx,
-        text: EMPTY_FILL,
+        text: FILL_SENTENCE_EMPTY_TEXT,
       } as const;
       elements.push(slot);
       fillElements.push(slot);
@@ -79,8 +79,8 @@
         <!-- svelte-ignore a11y-click-events-have-key-events -->
         <!-- svelte-ignore a11y-no-static-element-interactions -->
         <span
-          class="bg-black-500 text-gray-300 rounded-md px-2 pt-0.5 min-w-8 break-words ring-1 ring-gray-300 font-normal whitespace-pre data-[selected]:text-gray-100 data-[selected]:ring-purple-600"
           data-selected={current === element.idx ? '' : undefined}
+          title="Espacio {element.idx + 1}"
           on:pointerdown={(e) => {
             e.preventDefault();
             // @ts-ignore
@@ -90,7 +90,9 @@
             e.preventDefault();
             // @ts-ignore
             onSelected(element);
-          }}>{element.text}</span
+          }}
+          class="bg-black-500 text-gray-300 rounded-md px-2 pt-0.5 min-w-8 break-words ring-1 ring-gray-300 font-normal whitespace-pre data-[selected]:text-gray-100 data-[selected]:ring-purple-600"
+          >{element.text}</span
         >{/if}
     {/each}"
   </p>

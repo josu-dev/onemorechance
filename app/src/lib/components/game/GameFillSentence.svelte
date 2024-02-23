@@ -2,41 +2,44 @@
   import CountDown from '$comps/game/CountDown.svelte';
   import type { GameStore, Option } from '$game/types.js';
   import { audioPlayer } from '$lib/stores/audio.js';
-  import { createEventDispatcher } from 'svelte';
+  import { debounced } from '$lib/utils/client/functions.ts';
+  import { createEventDispatcher, onMount } from 'svelte';
+  import { FILL_SENTENCE_DEBOUNCE } from './defaults.ts';
   import SentenceCard from './sentence/SentenceCard.svelte';
   import SentenceComplete from './sentence/SentenceComplete.svelte';
 
-  const DEBOUNCE_TIME = 500;
-
   export let game: GameStore;
 
+  const baseSentence = { ...$game.current.sentence };
+
   let countDownDuration = $game.settings.fillTime;
-  let currentFill: number = 0;
+
+  let currentFill: number = -1;
+  $: totalFills = $game.current.sentence.text.match(/{{.*?}}/g)?.length ?? 0;
+
+  let fills: string[] = Array(totalFills).fill('');
 
   let thisSentenceCard: SentenceCard;
-
-  $: totalFills = $game.current.sentence.text.match(/{{.*?}}/g)?.length ?? 0;
-  let baseSentence = $game.current.sentence;
-
-  let fills = Array(totalFills).fill('');
 
   const dispatch = createEventDispatcher<{
     freestyle: string[];
     option: Option[];
   }>();
 
-  function dispatchFreestyle() {
-    if (freestyle === undefined) {
-      return;
-    }
+  const dispatchFreestyle = debounced(() => {
+    dispatch('freestyle', fills);
+  }, FILL_SENTENCE_DEBOUNCE);
 
-    // TODO: correctly handled multiple freestyle completions
-    dispatch('freestyle', [freestyle]);
-  }
+  onMount(() => {
+    return () => {
+      dispatchFreestyle.cancel();
+      dispatch('freestyle', fills);
+    };
+  });
 </script>
 
 <section class="flex flex-1 flex-col justify-center w-full px-4">
-  <header class="flex flex-col text-center mb-4 md:mb-8">
+  <header class="flex flex-col text-center mb-6 md:mb-8">
     <h2 class="text-4xl text-white font-bold mb-1 md:mb-3">
       Completa la frase
     </h2>
@@ -73,6 +76,8 @@
         onFill={(event) => {
           currentFill = event.idx;
           thisSentenceCard?.setFill(event.idx, event.text);
+          fills[event.idx] = event.text;
+          dispatchFreestyle();
         }}
         onSelected={(event) => {
           currentFill = event.idx;

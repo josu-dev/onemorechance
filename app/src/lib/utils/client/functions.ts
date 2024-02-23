@@ -12,8 +12,12 @@ export function debounced<A extends AnyTuple, EA extends AnyTuple>(
 ) {
     let timeoutId: ReturnType<typeof setTimeout> | undefined = undefined;
 
-    return function (...args: A) {
+    function _debounced(...args: A) {
         clearTimeout(timeoutId);
         timeoutId = setTimeout(() => fn(...args, ...extraArgs), delay);
-    };
+    }
+
+    _debounced.cancel = () => clearTimeout(timeoutId);
+
+    return _debounced;
 }

@@ -2,7 +2,6 @@
   import ButtonIcon from '$comps/shared/ButtonIcon.svelte';
   import CopyButton from '$comps/shared/CopyButton.svelte';
   import type {
-    DeckCompact,
     DeckIdentifier,
     GameSettings,
     GameStore,
@@ -15,7 +14,6 @@
   import IconUserconfig from '$lib/icons/IconUserconfig.svelte';
   import IconX from '$lib/icons/IconX.svelte';
   import type { DecksStore } from '$lib/stores/decks.ts';
-  import { log } from '$lib/utils/logging.ts';
   import { DECK_TYPE } from '$shared/constants.js';
   import { GAME } from '$shared/defaults.js';
   import { createEventDispatcher } from 'svelte';
@@ -46,38 +44,6 @@
     description: '',
   } as DeckIdentifier;
 
-  let deckData: DeckCompact = {
-    id: deck.id,
-    n: deck.name,
-    t: deck.type,
-    d: deck.description,
-    s: [],
-  };
-
-  function fetchDeckData(id: string) {
-    fetch(
-      `/api/v1/decks/${id}?compact=true&random=true&limit=${
-        settings.rounds * 2
-      }`,
-    )
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error('Error fetching deck data', { cause: res });
-        }
-        return res.json();
-      })
-      .then((data) => {
-        deckData.id = data.d.id;
-        deckData.n = data.d.n;
-        deckData.t = data.d.t;
-        deckData.d = data.d.d;
-        deckData.s = data.s;
-      })
-      .catch((err) => {
-        log.error('Error fetching deck data', err);
-      });
-  }
-
   $: if ($game.settings.deckId !== deck.id) {
     const newDeck = $decks.find((deck) => deck.id === $game.settings.deckId);
     if (newDeck) {
@@ -92,7 +58,7 @@
     update_settings: GameSettings;
     close_room: true;
     leave_room: true;
-    start_game: DeckCompact;
+    start_game: true;
   }>();
 
   function dispatchCloseRoom() {
@@ -105,7 +71,7 @@
     dispatch('leave_room', true);
   }
   function dispatchStartGame() {
-    dispatch('start_game', deckData);
+    dispatch('start_game', true);
   }
   function dispatchToggleReady(state: boolean) {
     dispatch('toggle_ready', state);
@@ -142,7 +108,6 @@
 
     deck = newDeck;
     settings.deckId = newDeck.id;
-    fetchDeckData(newDeck.id);
   }
 
   function askForKickPlayer(player: Player) {
@@ -171,7 +136,7 @@
       // TODO: Show info message
       return;
     }
-    if (!deckData.id) {
+    if (!$game.settings.deckId) {
       alert('Selecciona una baraja');
       return;
     }

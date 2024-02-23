@@ -1,5 +1,5 @@
 <script lang="ts">
-  const FILL_MAX_LENGTH = 64;
+  import { FILL_SENTENCE_MAX_LENGTH } from '../defaults.ts';
 
   export let current: number;
   export let totalInputs: number = 0;
@@ -48,15 +48,22 @@
         }}
         on:input={(e) => {
           input.text = e.currentTarget.textContent ?? '';
-          if (input.text.length > FILL_MAX_LENGTH) {
-            input.text = input.text.slice(0, FILL_MAX_LENGTH);
+          if (input.text.length > FILL_SENTENCE_MAX_LENGTH) {
+            input.text = input.text.slice(0, FILL_SENTENCE_MAX_LENGTH);
             e.currentTarget.textContent = input.text;
           }
           onFill(input);
         }}
         on:keydown={(e) => {
           if (e.key === 'Enter') {
+            e.preventDefault();
             onEnter(input);
+            return;
+          }
+          if (e.key === 'Escape') {
+            e.preventDefault();
+            input.el?.blur();
+            return;
           }
         }}
         class="input variant-primary w-full resize-none break-words text-center text-pretty text-lg line-clamp-2 max-w-full text-ellipsis overflow-y-auto whitespace-pre"
