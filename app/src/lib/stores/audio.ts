@@ -184,7 +184,7 @@ function createAudioStore(): AudioPlayerStore {
 
         $.isPlaying = false;
         $.isPaused = false;
-        // @ts-ignore
+        // @ts-expect-error
         $.audio = undefined; $.track = undefined; $.type = 'none';
         set($);
     }

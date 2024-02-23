@@ -1,23 +1,26 @@
+import { browser } from '$app/environment';
 import type { DeckIdentifier } from '$game/types.js';
-import { log } from '$lib/utils/logging.ts';
+import { log } from '$lib/utils/logging.js';
 import { writable } from 'svelte/store';
-import type { ExposedReadable } from './types.ts';
+import type { ExposedReadable } from './types.js';
 
 
-export type Deck = DeckIdentifier & {
-    sentencesCount: number;
-};
+export type DeckState = (
+    DeckIdentifier & {
+        sentencesCount: number;
+    }
+)[];
 
-export type DecksStore = ExposedReadable<Deck[]> & {
+export type DecksStore = ExposedReadable<DeckState> & {
     refresh: () => void;
 };
 
-function defaultDecks(): Deck[] {
+function defaultDecks(): DeckState {
     return [];
 }
 
 export function createDecksStore(): DecksStore {
-    let _decks: Deck[] = defaultDecks();
+    let _decks: DeckState = defaultDecks();
 
     const { subscribe, set } = writable(_decks);
 
@@ -37,6 +40,7 @@ export function createDecksStore(): DecksStore {
             fetch('/api/v1/decks?page=1&limit=100')
                 .then((res) => {
                     if (!res.ok) {
+                        log.debug('Failed to refresh decks', res);
                         return [];
                     }
                     return res.json();
@@ -46,10 +50,14 @@ export function createDecksStore(): DecksStore {
                     set(_decks);
                 })
                 .catch((e) => {
-                    log.error('Failed to fetch decks', e);
+                    log.error(`An error occurred while refreshing decks:`, e);
                 });
         }
     };
 }
 
 export const decks = createDecksStore();
+
+if (browser) {
+    decks.refresh();
+}

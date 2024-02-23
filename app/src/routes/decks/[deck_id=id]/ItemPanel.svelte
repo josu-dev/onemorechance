@@ -230,9 +230,9 @@
             icon={IconPlus}
             on:click={(e) => {
               addEntry();
-              // @ts-ignore
+              // @ts-expect-error
               const rect = e.target?.getBoundingClientRect();
-              const offset = 16; // 16px
+              const offset = 16;
               tick().then(() => {
                 const main = document.querySelector('main');
                 if (main) {

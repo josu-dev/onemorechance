@@ -117,30 +117,16 @@ export type DeckComplete = {
     sentences: Sentence[],
 };
 
-export type Deck = DeckIdentifier & (DeckSelect | DeckComplete);
+export type DeckFull = DeckIdentifier & (DeckSelect | DeckComplete);
 
-export type DeckCard = {
+export type DeckItem = {
     id: string,
     t: string,
 };
 
-export type DeckFull = DeckIdentifier & {
-    s: DeckCard[],
-    o: DeckCard[],
-};
-
-export type DeckIdentifierCompact = {
-    id: string,
-    n: string,
-    t: DeckType,
-    d?: string,
-};
-
-export type DeckCompact = DeckIdentifierCompact & {
-    s: {
-        id: string,
-        t: string,
-    }[],
+export type DeckFullCompact = DeckIdentifier & {
+    s: DeckItem[],
+    o: DeckItem[],
 };
 
 

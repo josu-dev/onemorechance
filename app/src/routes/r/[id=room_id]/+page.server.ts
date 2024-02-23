@@ -1,13 +1,11 @@
-import type { DeckIdentifier } from '$game/types.js';
 import { rooms } from '$lib/server/db.js';
 import { redirectToRegister } from '$lib/server/utils.js';
-import { log } from '$lib/utils/logging.js';
 import { error } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
 import type { PageServerLoad } from './$types.js';
 
 
-export const load: PageServerLoad = async ({ locals, params, url, fetch }) => {
+export const load: PageServerLoad = async ({ locals, params, url }) => {
     if (!locals.user) {
         redirectToRegister(url, 'Debes estar registrado para unirte a una sala');
     }
@@ -20,23 +18,8 @@ export const load: PageServerLoad = async ({ locals, params, url, fetch }) => {
         error(400, 'La sala esta cerrada');
     }
 
-    const decks: (DeckIdentifier & { sentencesCount: number; })[] = await (
-        fetch('/api/v1/decks?page=1&limit=100')
-            .then((res) => {
-                if (!res.ok) {
-                    return [];
-                }
-                return res.json();
-            })
-            .catch((e) => {
-                log.debug('Failed to fetch decks', e);
-                return [];
-            })
-    );
-
     return {
         user: locals.user,
         room: room,
-        decks: decks,
     };
 };

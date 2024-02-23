@@ -49,7 +49,7 @@
 
   onMount(() => {
     // debugData.set(audioPlayer);
-    emulateRateSentence();
+    // emulateRateSentence();
     // setGameStatus(GAME_STATUS.RATE_SENTENCE);
 
     const cmdCleanup = helpers.registerCommand([
@@ -174,11 +174,9 @@
       }}
       on:update_deck={(event) => {
         // TODO: update deck
-        // roomActions.se(event.detail.deckId);
       }}
       on:update_settings={(event) => {
         // TODO: update settings
-        // roomActions.updateSettings(event.detail);
       }}
     />
   {:else if $gameStatus.isPreRound || $gameStatus.isPostRound}

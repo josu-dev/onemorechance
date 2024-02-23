@@ -38,5 +38,5 @@ export type ServerRoom = {
     room: Shared.Room,
     game: Shared.Game,
     players: Shared.Player[],
-    deck: Pick<Shared.DeckFull, 'id' | 'type' | 's' | 'o'>,
+    deck: Pick<Shared.DeckFullCompact, 'id' | 'type' | 's' | 'o'>,
 };

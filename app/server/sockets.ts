@@ -12,7 +12,7 @@ import { log } from './utils.js';
 
 export { log };
 
-const DEFAULT_DECK_FULL: T.DeckFull = {
+const DEFAULT_DECK: T.DeckFullCompact = {
     id: '',
     name: 'Unselected deck',
     type: DECK_TYPE.SELECT,
@@ -110,19 +110,6 @@ function newRound(io: T.WebSocketServer, socket: T.WebSocketServerSocket, room: 
 
     if (deck.type === DECK_TYPE.SELECT) {
         // TODO: Implement select deck
-        // for (const player of room.players) {
-        //     const missingOptions = room.game.settings.options - player.stock.options.length;
-        //     for (let i = 0; i < missingOptions; i++) {
-        //         // @ts-ignore - We know that deck is a DeckChoose
-        //         let option = deck.options[Math.floor(Math.random() * deck.options.length)];
-        //         while (room.game.used.options.includes(option.id)) {
-        //             // @ts-ignore - We know that deck is a DeckChoose
-        //             option = deck.options[Math.floor(Math.random() * deck.options.length)];
-        //         }
-        //         player.stock.options.push(option);
-        //         room.game.used.options.push(option.id);
-        //     }
-        // }
     }
 
     room.game.status = GAME_STATUS.FILL_SENTENCE;
@@ -228,8 +215,8 @@ export function attach_socket_server(server: HttpServer | Http2SecureServer) {
     >(server);
 
     io.on('connection', async (socket) => {
-        // @ts-ignore If you don't need this reference, you can discard it in order to reduce the memory footprint:
-        // delete socket.conn.request;
+        // @ts-ignore - If you don't need this reference, you can discard it in order to reduce the memory footprint:
+        delete socket.conn.request;
         const handshakeUserId: string | undefined = socket.handshake.auth.userId;
 
         const dbUser = handshakeUserId && await db.select().from(t.users).where(eq(t.users.id, handshakeUserId)).get();
@@ -350,7 +337,7 @@ export function attach_socket_server(server: HttpServer | Http2SecureServer) {
                         roomId: roomId,
                         status: GAME_STATUS.NOT_STARTED,
                         settings: {
-                            deckId: DEFAULT_DECK_FULL.id,
+                            deckId: DEFAULT_DECK.id,
                             fillTime: GAME.DEFAULT_FILL_TIME,
                             rateTime: GAME.DEFAULT_RATE_TIME,
                             players: GAME.DEFAULT_PLAYERS,
@@ -358,7 +345,7 @@ export function attach_socket_server(server: HttpServer | Http2SecureServer) {
                             options: GAME.DEFAULT_OPTIONS,
                         },
                         round: 0,
-                        deck: { ...DEFAULT_DECK_FULL },
+                        deck: structuredClone(DEFAULT_DECK),
                         current: {
                             sentence: {
                                 id: '',
@@ -373,7 +360,7 @@ export function attach_socket_server(server: HttpServer | Http2SecureServer) {
 
                     },
                     players: [player],
-                    deck: { ...DEFAULT_DECK_FULL }
+                    deck: structuredClone(DEFAULT_DECK)
                 };
 
                 rooms.set(roomId, room);

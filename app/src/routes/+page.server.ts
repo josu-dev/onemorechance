@@ -83,7 +83,7 @@ export const actions: Actions = {
     room_create: async ({ locals, request }) => {
         const form = await superValidate(request, zod(roomCreateSchema));
         if (!locals.user) {
-            return setError(form, '', 'Debes iniciar sesión para crear una sala.');
+            return setError(form, '', 'Debes iniciar sesion para crear una sala.');
         }
 
         const room = await locals.db.insert(rooms).values({
@@ -103,7 +103,7 @@ export const actions: Actions = {
     room_join: async ({ locals, request }) => {
         const form = await superValidate(request, zod(roomJoinSchema));
         if (!locals.user) {
-            return setError(form, '', 'Debes iniciar sesión para unirte a una sala.');
+            return setError(form, '', 'Debes iniciar sesion para unirte a una sala.');
         }
 
         const room = await locals.db.select().from(rooms).where(eq(rooms.id, form.data.id)).get();

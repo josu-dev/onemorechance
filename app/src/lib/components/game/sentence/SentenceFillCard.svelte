@@ -72,12 +72,12 @@
         title="Espacio {element.idx + 1}"
         on:pointerdown={(e) => {
           e.preventDefault();
-          // @ts-ignore
+          // @ts-expect-error
           onSelected(element);
         }}
         on:click={(e) => {
           e.preventDefault();
-          // @ts-ignore
+          // @ts-expect-error
           onSelected(element);
         }}
         class="text-gray-300 rounded-md px-2 pt-0.5 ring-1 ring-gray-300 break-words cursor-pointer font-normal whitespace-pre-wrap hover:ring-2 data-[selected]:ring-2 data-[selected]:text-gray-100 data-[selected]:ring-purple-600"
