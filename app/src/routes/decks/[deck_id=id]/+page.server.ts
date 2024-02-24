@@ -14,7 +14,7 @@ import type { Actions, PageServerLoad } from './$types.js';
 export const load: PageServerLoad = async ({ locals, params }) => {
     const deck = await locals.db.select().from(decks).where(eq(decks.id, params.deck_id)).get();
     if (!deck) {
-        error(404, 'No se encontro el deck que buscas');
+        error(404, { friendly: 'No se encontro el deck que buscas' });
     }
 
     const deckSentences = await locals.db.select().from(sentences).where(eq(sentences.deckId, deck.id));

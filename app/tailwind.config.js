@@ -9,13 +9,13 @@ export default {
         extend: {
             screens: {
                 'xs': '360px',
-            },
-        },
+            }
+        }
     },
     plugins: [
         require('@tailwindcss/forms'),
         require('@tailwindcss/typography'),
-        plugin(({ matchUtilities, theme }) => {
+        plugin(({ addComponents, matchUtilities, theme }) => {
             const utilities = {
                 'square': (value) => {
                     return {
@@ -81,6 +81,16 @@ export default {
             matchUtilities(scrollbarColors, {
                 type: ['color'],
                 values: flattenColorPalette(theme('colors'))
+            })
+
+            addComponents({
+                '.ring-dev': {
+                    '--tw-ring-opacity': '1',
+                    '--tw-ring-color': 'rgb(217 70 239 / var(--tw-ring-opacity))',
+                    '--tw-ring-offset-shadow': 'var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color)',
+                    '--tw-ring-shadow': 'var(--tw-ring-inset) 0 0 0 calc(1px + var(--tw-ring-offset-width)) var(--tw-ring-color)',
+                    'boxShadow': 'var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000)',
+                }
             })
         })
     ],

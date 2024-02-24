@@ -2,7 +2,8 @@ declare global {
     namespace App {
         interface Error {
             id?: string;
-            message: string;
+            message?: string;
+            friendly?: string;
         }
 
         interface Locals {

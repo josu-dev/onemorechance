@@ -57,7 +57,7 @@
 <Seo
   title={pageTitle}
   description="Te vas a reir con y de tus amigos jugando unas partiditas de One More Chance"
-  titleOg="Partida en curso - One More Chance"
+  titleOG="Partida en curso - One More Chance"
 />
 
 <main class="main">

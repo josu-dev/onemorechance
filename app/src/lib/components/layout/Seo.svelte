@@ -31,7 +31,7 @@
    * The title of the page for Open Graph
    * @type {string | undefined}
    */
-  export let titleOg = undefined;
+  export let titleOG = undefined;
   /**
    * The type of the page
    * @type {'article' | 'website'}
@@ -66,7 +66,7 @@
   />
   <meta property="og:locale" content={locale} />
   <meta property="og:site_name" content={siteName} />
-  <meta property="og:title" content={titleOg ?? title} />
+  <meta property="og:title" content={titleOG ?? title} />
   <meta property="og:type" content={type} />
   <meta property="og:url" content={url === 'current' ? currentUrl : url} />
   <meta property="og:description" content={description} />

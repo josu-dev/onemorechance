@@ -68,7 +68,7 @@
     return () => {
       musicCleanup();
       audioPlayer.stop('music_lobby.mp3');
-    }
+    };
   });
 </script>
 
@@ -98,7 +98,9 @@
         <section class="flex flex-col gap-4 md:gap-5 w-48 max-w-[90vw]">
           <h2 class="sr-only">Menu cuenta</h2>
           <p class="text-center text-gray-50 text-2xl font-semibold">
-            Crea tu cuenta 😉
+            Crea tu cuenta <span class="animate-bounce inline-block mt-2"
+              >😉</span
+            >
           </p>
           <form
             action={registerFormAction}
