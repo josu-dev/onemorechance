@@ -44,20 +44,12 @@
     <h2 class="text-4xl text-white font-bold mb-1 md:mb-3">
       Completa la frase
     </h2>
-    <CountDown
-      start
-      duration={countDownDuration}
-      className="text-gray-100"
-      on:end={() => {
-        audioPlayer.play('sfx_round.mp3');
-      }}
-    />
   </header>
 
   <div
     class="grid grid-rows-3 gap-4 grid-cols-[min(calc(90vw_-1rem),24rem)] mx-auto md:w-[min(calc(90vw_-1rem),calc(24rem*2+4rem))] md:grid-cols-2 md:gap-16 md:justify-around"
   >
-    <div class="row-span-2 md:row-span-3">
+    <div class="relative row-span-2 md:row-span-3 min-h-[min(16rem,50vh)]">
       <SentenceFillCard
         current={currentFill}
         sentence={baseSentence.text}
@@ -66,6 +58,16 @@
         }}
         bind:this={thisSentenceCard}
       />
+      <div class="absolute right-2 bottom-1.5">
+        <CountDown
+          start
+          duration={countDownDuration}
+          className="text-gray-300 text-3xl"
+          on:end={() => {
+            audioPlayer.play('sfx_round.mp3');
+          }}
+        />
+      </div>
     </div>
 
     <div class="md:row-span-3 md:my-auto">

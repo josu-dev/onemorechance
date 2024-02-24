@@ -14,5 +14,6 @@ export default defineConfig({
                 }
                 attach_socket_server(server.httpServer);
             },
-        }],
+        }
+    ]
 });

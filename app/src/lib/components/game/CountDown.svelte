@@ -50,9 +50,9 @@
 </script>
 
 <div
-  class="flex justify-center items-end tracking-wider font-semibold font-mono {className}"
+  class="flex items-baseline tracking-wider font-semibold font-mono {className}"
 >
-  <span class="text-2xl whitespace-pre">{remainingSeconds}</span>
-  <span class="tetx-2xl">.</span>
-  <span class="text-xl">{remainingMillis}</span>
+  <span class="text-[1em]">{remainingSeconds}</span>
+  <span class="text-[0.75em]">.</span>
+  <span class="text-[0.75em]">{remainingMillis}</span>
 </div>

@@ -59,20 +59,12 @@
 <section class="flex flex-1 flex-col justify-center px-4">
   <header class="flex flex-col text-center mb-6 md:mb-8">
     <h2 class="text-4xl text-white font-bold mb-1 md:mb-3">Puntua la frase</h2>
-    {#key ratingPlayer}
-      <CountDown
-        start
-        duration={countDownDuration}
-        className="text-gray-100"
-        on:end={() => {
-          audioPlayer.play('sfx_round.mp3');
-        }}
-      />
-    {/key}
   </header>
 
   <div class="flex flex-col gap-6 md:gap-8 md:justify-around">
-    <div class="grid items-center w-full max-w-sm min-h-[min(28rem,50vh)]">
+    <div
+      class="relative grid items-center xs:w-[min(80vw,24rem)] min-h-[min(16rem,50vh)]"
+    >
       {#each $players as player (player.id)}
         {#if player.id === ratingPlayer}
           <SentenceCard>
@@ -88,6 +80,18 @@
           >
         {/if}
       {/each}
+      <div class="absolute right-2 bottom-1.5">
+        {#key ratingPlayer}
+          <CountDown
+            start
+            duration={countDownDuration}
+            className="text-gray-300 text-3xl"
+            on:end={() => {
+              audioPlayer.play('sfx_round.mp3');
+            }}
+          />
+        {/key}
+      </div>
     </div>
 
     <div class="flex items-center justify-center gap-6 text-3xl md:gap-10">
