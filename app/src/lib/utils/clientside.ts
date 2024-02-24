@@ -1,4 +1,4 @@
-import { browser, dev } from '$app/environment';
+import { dev } from '$app/environment';
 import { env } from '$env/dynamic/public';
 import { LOG_LEVEL_CLIENT, TOAST } from '$lib/defaults.ts';
 import { createLogger, numberFromEnv } from '$shared/utils.ts';
@@ -61,12 +61,6 @@ export const toast = {
  * Safe to call in server side code, it does nothing and returns a noop.
  */
 export const onFirstUserInteraction = (() => {
-    function noop() { }
-    if (!browser) {
-        // eslint-disable-next-line
-        return (cb: () => void) => noop;
-    }
-
     let interacted = false;
 
     const userInteractionCallbacks = new Set<() => void>();
@@ -90,6 +84,8 @@ export const onFirstUserInteraction = (() => {
     for (const event of userInteractionEvents) {
         document.addEventListener(event, handler);
     }
+
+    function noop() { }
 
     function addListener(cb: () => void) {
         if (interacted) {
