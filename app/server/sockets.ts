@@ -120,13 +120,19 @@ function newRound(io: T.WebSocketServer, socket: T.WebSocketServerSocket, room: 
         io.to(room.room.id).emit('game_updated_all', { game: room.game, players: room.players });
 
         const playerCount = room.players.length;
+        const randomizedIds: string[] = [];
+        for (let i = 0; i < playerCount; i++) {
+            randomizedIds.push(room.players[i].id);
+            const j = Math.floor(Math.random() * (i + 1));
+            [randomizedIds[i], randomizedIds[j]] = [randomizedIds[j], randomizedIds[i]];
+        }
         for (let i = 0; i < playerCount; i++) {
             setTimeout(
                 (playerId) => {
                     io.to(room.room.id).emit('game_player_rated', { playerId: playerId });
                 },
                 i * room.game.settings.rateTime,
-                room.players[i].id
+                randomizedIds[i]
             );
         }
 
@@ -168,7 +174,7 @@ function newRound(io: T.WebSocketServer, socket: T.WebSocketServerSocket, room: 
 
                 setTimeout(async () => {
                     room.room.status = ROOM_STATUS.LOBBY_WAITING;
-                    room.game.status = GAME_STATUS.ENDED;
+                    room.game.status = GAME_STATUS.NOT_STARTED;
 
                     io.to(room.room.id).emit('game_ended');
 

@@ -78,7 +78,7 @@
 </script>
 
 <section class="flex flex-1 flex-col justify-center items-center">
-  <header class="flex flex-col text-center mb-4 md:mb-8">
+  <header class="flex flex-col text-center mb-6 md:mb-8">
     <h2 class="text-4xl text-white font-bold mb-1 md:mb-3">Puntajes</h2>
     <p class="flex justify-center gap-4 text-xl leading-none text-gray-100">
       Ronda
