@@ -1,6 +1,6 @@
 import { browser } from '$app/environment';
 import type { DeckIdentifier } from '$game/types.js';
-import { log } from '$lib/utils/logging.js';
+import { log } from '$lib/utils/clientside.js';
 import { writable } from 'svelte/store';
 import type { ExposedReadable } from './types.js';
 

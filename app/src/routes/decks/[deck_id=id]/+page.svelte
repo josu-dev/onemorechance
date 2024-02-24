@@ -8,8 +8,8 @@
   import FieldTextarea from '$lib/elements/form/FieldTextarea.svelte';
   import IconDelete from '$lib/icons/IconDelete.svelte';
   import IconSave from '$lib/icons/IconSave.svelte';
+  import { toast, toastFormLevelErrors } from '$lib/utils/clientside.js';
   import { DECK_TYPE } from '$shared/constants.js';
-  import toast from 'svelte-french-toast';
   import { superForm } from 'sveltekit-superforms';
   import ItemPanel from './ItemPanel.svelte';
 
@@ -19,6 +19,7 @@
   const isOwner = !!data.user && data.deck.data.userId === data.user.id;
 
   const deckDeleteSForm = superForm(data.deck.deleteForm, {
+    invalidateAll: false,
     onSubmit(event) {
       if (!isOwner) {
         event.cancel();
@@ -26,30 +27,25 @@
     },
     onUpdated(event) {
       if (!event.form.valid) {
-        toast.error(String(event.form.errors.confirm), { duration: 5000 });
+        toastFormLevelErrors(event.form.errors);
         return;
       }
 
-      toast.success('Deck eliminado', { duration: 5000 });
+      toast.success('Deck eliminado');
       goto('/decks');
     },
   });
 
   const deckUpdateSForm = superForm(data.deck.updateForm, {
     resetForm: false,
-    onSubmit(event) {
-      if (!isOwner) {
-        event.cancel();
-      }
-    },
     onUpdated(event) {
       if (!event.form.valid) {
-        toast.error(String(event.form.errors._errors), { duration: 5000 });
+        toastFormLevelErrors(event.form.errors);
         return;
       }
 
       data.deck.data = event.form.message.deck;
-      toast.success('Deck actualizado', { duration: 5000 });
+      toast.info('Deck actualizado');
     },
   });
 </script>
@@ -57,7 +53,7 @@
 <Seo
   title="Deck '{data.deck.data.name}' - One More Chance"
   description={isOwner
-    ? `Administra tu deck '${data.deck.data.name}' para dejarlo fino como un violín`
+    ? `Administra tu deck '${data.deck.data.name}' para dejarlo fino como un violin`
     : `Dale un vistazo rapido al deck '${data.deck.data.name}' para ver si vale la pena probarlo`}
 />
 
@@ -68,7 +64,7 @@
   </h1>
 
   <div
-    class="flex flex-1 flex-col items-center gap-4 mt-4 mx-auto w-full max-w-sm sm:max-w-lg lg:max-w-[min(80rem,90%)]"
+    class="flex flex-1 flex-col items-center gap-4 mx-auto w-full max-w-sm sm:max-w-lg lg:max-w-[min(80rem,90%)]"
   >
     <section class="max-w-lg w-full">
       <h2 class="h3 text-gray-100">Informacion</h2>
@@ -94,13 +90,20 @@
         />
 
         {#if isOwner}
-          <div class="flex justify-end gap-4">
+          <div class="flex justify-end gap-3">
             <form
               action="?/deck_delete"
               method="post"
               use:deckDeleteSForm.enhance
+              class="flex items-center gap-2 border-r border-gray-500 pr-3"
             >
               <FieldHidden form={deckDeleteSForm} field="id" />
+              <input
+                type="checkbox"
+                name="confirm"
+                required
+                class="checkbox variant-primary square-6"
+              />
               <ButtonIcon
                 icon={IconDelete}
                 type="submit"

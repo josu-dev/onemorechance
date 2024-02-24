@@ -1,6 +1,6 @@
 import type { GameStore, PlayersStore, RoomStore, SelfStore, SocketStore } from '$game/types.js';
 import type { UserStore } from '$lib/stores/user.js';
-import { log } from '$lib/utils/logging.ts';
+import { log } from '$lib/utils/clientside.ts';
 import { GAME_STATUS, ROOM_STATUS_CLIENT } from '$shared/constants.js';
 
 

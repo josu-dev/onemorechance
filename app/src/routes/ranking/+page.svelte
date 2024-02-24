@@ -39,7 +39,7 @@
   </h1>
 
   <div
-    class="container flex flex-1 flex-col items-center gap-4 w-full mt-4 mx-auto lg:flex-row-reverse lg:gap-8 lg:items-start lg:justify-center"
+    class="container flex flex-1 flex-col items-center gap-4 w-full mx-auto lg:flex-row-reverse lg:gap-8 lg:items-start lg:justify-center"
   >
     {#if user}
       <section class="px-2 md:px-4 w-full max-w-sm">

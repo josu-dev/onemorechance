@@ -1,7 +1,7 @@
 import { deckUpdateSchema, optionsDeleteSchema, optionsInsertSchema, sentencesDeleteSchema, sentencesInsertSchema } from '$lib/schemas/deck.js';
 import { deleteSchema } from '$lib/schemas/shared.js';
 import { decks, options, sentences } from '$lib/server/db.js';
-import { uniqueId } from '$lib/utils/index.js';
+import { countFillSlots, uniqueId } from '$lib/utils/index.js';
 import { DECK_TYPE } from '$shared/constants.js';
 import { LibsqlError } from '@libsql/client';
 import { error, fail } from '@sveltejs/kit';
@@ -77,6 +77,8 @@ export const actions: Actions = {
                 eq(decks.userId, locals.user.id)
             ))
         );
+
+        return { form };
     },
     deck_update: async ({ locals, params, request }) => {
         if (!locals.user) {
@@ -161,12 +163,21 @@ export const actions: Actions = {
         }
 
         const values: typeof sentences.$inferInsert[] = [];
-        for (const sentence of form.data.items) {
+        for (let i = 0; i < form.data.items.length; i++) {
+            const sentenceText = form.data.items[i].text;
+            if (!countFillSlots(sentenceText)) {
+                setError(form, `items[${i}].text`, 'La sentencia no tiene espacios para llenar');
+                continue;
+            }
+
             values.push({
                 id: uniqueId(),
                 deckId: deck.id,
-                text: sentence.text
+                text: sentenceText
             });
+        }
+        if (!form.valid) {
+            return fail(400, { form });
         }
 
         let inserted: typeof sentences.$inferSelect[];

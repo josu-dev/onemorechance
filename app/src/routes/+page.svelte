@@ -1,9 +1,11 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
+  import { page } from '$app/stores';
   import Seo from '$comps/layout/Seo.svelte';
   import FieldText from '$lib/elements/form/FieldText.svelte';
   import { audioPlayer } from '$lib/stores/audio.js';
   import { user } from '$lib/stores/user.js';
+  import { toast } from '$lib/utils/clientside.js';
   import { onMount } from 'svelte';
   import { superForm } from 'sveltekit-superforms';
 
@@ -12,6 +14,11 @@
   const registerSForm = superForm(data.account.registerForm, {
     invalidateAll: false,
     onUpdated({ form }) {
+      if (!form.valid) {
+        toast.formLevelErrors(form.errors);
+        return;
+      }
+
       const _user = form.message.user;
       user.mset(_user);
     },
@@ -26,6 +33,12 @@
   const roomCreateSForm = superForm(data.room.createForm, {
     invalidateAll: false,
     onUpdated({ form }) {
+      if (!form.valid) {
+        toast.formLevelErrors(form.errors);
+        return;
+      }
+
+      toast.success('Sala creada, cargando...');
       const room = form.message.room;
       goto(`/r/${room.id}`);
     },
@@ -34,10 +47,18 @@
   const roomJoinSForm = superForm(data.room.joinForm, {
     invalidateAll: false,
     onUpdated({ form }) {
+      if (!form.valid) {
+        toast.formLevelErrors(form.errors);
+        return;
+      }
+
+      toast.success('Uniendo a sala, cargando...');
       const room = form.message.room;
       goto(`/r/${room.id}`);
     },
   });
+
+  $: registerFormAction = `?/account_register&${$page.url.searchParams.toString()}`;
 
   onMount(() => {
     function startLobbyMusic() {
@@ -82,8 +103,8 @@
             Crea tu cuenta 😉
           </p>
           <form
+            action={registerFormAction}
             method="post"
-            action="?/account_register"
             use:registerSForm.enhance
             class="flex flex-col items-center gap-3"
           >

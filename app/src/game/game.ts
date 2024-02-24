@@ -5,7 +5,7 @@ import * as _self from '$game/stores/self.js';
 import * as _shared from '$game/stores/shared.js';
 import * as _socket from '$game/stores/socket.js';
 import { user } from '$lib/stores/user.js';
-import { log } from '$lib/utils/logging.js';
+import { log } from '$lib/utils/clientside.js';
 import { ROOM_STATUS_CLIENT } from '$shared/constants.js';
 
 

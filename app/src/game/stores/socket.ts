@@ -1,5 +1,5 @@
 import type { ExposedReadablePartial } from '$lib/stores/types.ts';
-import { log } from '$lib/utils/logging.ts';
+import { log } from '$lib/utils/clientside.ts';
 import type { ClientToServerEvents, ServerToClientEvents } from '$shared/types.js';
 import type { Socket } from 'socket.io-client';
 import { io } from 'socket.io-client';

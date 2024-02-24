@@ -1,6 +1,6 @@
 import type { Game, GameSettings, GameStateStore, GameStatus, Option, PlayerRating, SocketStore } from '$game/types.js';
 import { uniqueId, uniqueRoomId } from '$lib/utils/index.js';
-import { log } from '$lib/utils/logging.ts';
+import { log } from '$lib/utils/clientside.ts';
 import { GAME_STATUS } from "$shared/constants.js";
 import { GAME } from '$shared/defaults.js';
 import type { Readable } from 'svelte/store';

@@ -6,6 +6,7 @@
   import IconSave from '$lib/icons/IconSave.svelte';
   import IconSpace from '$lib/icons/IconSpace.svelte';
   import IconX from '$lib/icons/IconX.svelte';
+  import { toast } from '$lib/utils/clientside.ts';
   import { nanoid } from 'nanoid';
   import { tick } from 'svelte';
   import { superForm, type SuperValidated } from 'sveltekit-superforms';
@@ -58,12 +59,12 @@
 
   const deleteSForm = superForm(deleteSV, {
     dataType: 'json',
-    onSubmit(event) {
-      if (!isOwner) {
-        event.cancel();
-      }
-    },
     onUpdated(event) {
+      if (!event.form.valid) {
+        toast.formLevelErrors(event.form.errors);
+        return;
+      }
+
       toDeleteCount = 0;
       for (let i = 0; i < _items.length; i++) {
         for (const deleted of event.form.message.deleted) {
@@ -75,6 +76,12 @@
         }
       }
       _items = _items;
+
+      toast.success(
+        `Se han eliminado ${event.form.message.deleted.length} ${
+          isSentence ? 'sentencias' : 'opciones'
+        }`,
+      );
     },
   });
 
@@ -90,12 +97,12 @@
 
   const insertSForm = superForm(insertSV, {
     dataType: 'json',
-    onSubmit(event) {
-      if (!isOwner) {
-        event.cancel();
-      }
-    },
     onUpdated(event) {
+      if (!event.form.valid) {
+        toast.formLevelErrors(event.form.errors);
+        return;
+      }
+
       for (const item of event.form.message.inserted) {
         _items.push({
           id: item.id,
@@ -105,6 +112,12 @@
         });
       }
       _items = _items;
+
+      toast.success(
+        `Se han agregado ${event.form.message.inserted.length} ${
+          isSentence ? 'sentencias' : 'opciones'
+        }`,
+      );
     },
   });
   const { form: seInsertForm } = insertSForm;

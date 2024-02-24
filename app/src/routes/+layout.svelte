@@ -3,9 +3,8 @@
   import Header from '$comps/layout/Header.svelte';
   import HyperDebug, { debugEnabled } from '$lib/components/HyperDebug.svelte';
   import { user } from '$lib/stores/user.js';
-  import { log } from '$lib/utils/logging.js';
-  import toast, { Toaster } from 'svelte-french-toast';
-  import { defineCommand, definePage } from 'svelte-hypercommands';
+  import { Toaster } from 'svelte-french-toast';
+  import { appRoutesAsPages, defineCommand } from 'svelte-hypercommands';
   import CommandPalette from 'svelte-hypercommands/CommandPalette.svelte';
   import '../app.pcss';
 
@@ -51,61 +50,9 @@
         document.head.appendChild(style);
       },
     },
-    {
-      id: 'dev:test_decks_api',
-      category: 'Dev',
-      name: 'Test Decks API',
-      description: 'Test the decks API',
-      onAction: () => {
-        fetch(
-          '/api/v1/decks/s32MfRhVvT-nyzIahFawu?compact=true&limit=10&page=1&random=true',
-        ).then((res) => {
-          if (res.ok) {
-            toast.success('Decks API is working');
-          } else {
-            toast.error(
-              `Decks API is not working, ${res.status} ${res.statusText}`,
-            );
-          }
-          log.dev('Decks API', res);
-        });
-      },
-      shortcut: '$mod+Shift+D',
-    },
   ]);
 
-  const globalPages = definePage([
-    {
-      name: 'Decks',
-      url: '/decks',
-      description: 'List of all decks',
-    },
-    {
-      name: 'Ranking',
-      url: '/ranking',
-      description: 'List of all decks',
-    },
-    {
-      name: 'Stages',
-      url: '/game/stages',
-      description: 'Debug the game stages',
-    },
-    {
-      name: 'Home',
-      url: '/',
-      description: 'Root of the app',
-    },
-    {
-      name: 'UI Test',
-      url: '/ui',
-      description: 'Test the UI components',
-    },
-    {
-      name: 'Dashboard',
-      url: '/dashboard',
-      description: 'Dashboard for app decks',
-    },
-  ]);
+  const globalPages = appRoutesAsPages();
 </script>
 
 {#if dev}

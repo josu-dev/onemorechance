@@ -5,6 +5,13 @@ import { createLogger, numberFromEnv } from '$shared/utils.js';
 import { redirect } from '@sveltejs/kit';
 
 
+export function getRedirectTo(
+    url: URL
+) {
+    const redirectTo = url.searchParams.get('redirect_to');
+    return redirectTo ? `/${redirectTo.trim().slice(1)}` : undefined;
+}
+
 export function redirectIfParam(
     url: URL,
 ) {

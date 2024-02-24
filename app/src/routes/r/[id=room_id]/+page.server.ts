@@ -3,6 +3,7 @@ import { redirectToRegister } from '$lib/server/utils.js';
 import { error } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
 import type { PageServerLoad } from './$types.js';
+import { ROOM_STATUS } from '$shared/constants.js';
 
 
 export const load: PageServerLoad = async ({ locals, params, url }) => {
@@ -14,7 +15,7 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
     if (!room) {
         error(404, 'La sala no existe');
     }
-    if (room.status === 'CLOSED') {
+    if (room.status === ROOM_STATUS.CLOSED) {
         error(400, 'La sala esta cerrada');
     }
 

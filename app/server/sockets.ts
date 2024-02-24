@@ -419,19 +419,32 @@ export function attach_socket_server(server: HttpServer | Http2SecureServer) {
                 return;
             }
 
-            const dbUserToRoom = await (db
-                .select({ ok: sql<number>`1` })
+            const usersInRoom = await (db
+                .select({ id: t.usersToRooms.userId })
                 .from(t.usersToRooms)
-                .where(and(
-                    eq(t.usersToRooms.userId, user.id),
-                    eq(t.usersToRooms.roomId, room.id))
-                )
-                .get()
+                .where(eq(t.usersToRooms.roomId, room.id))
             );
-            if (!dbUserToRoom) {
-                log.debug(`Room join failed, user ${user.id} not found in room ${roomId}`);
-                socket.emit('room_error', { ev: 'room_join', err: 'user not found in room' });
-                return;
+            let userInRoom = false;
+            for (const u of usersInRoom) {
+                if (u.id === user.id) {
+                    userInRoom = true;
+                    break;
+                }
+            }
+            if (!userInRoom) {
+                if (usersInRoom.length >= room.room.maxPlayers) {
+                    log.debug(`Room join failed, room ${roomId} is full`);
+                    socket.emit('room_full', {
+                        roomId: room.id,
+                        maxPlayers: room.room.maxPlayers
+                    });
+                    return;
+                }
+
+                await db.insert(t.usersToRooms).values({
+                    userId: user.id,
+                    roomId: room.id,
+                });
             }
 
             log.debug('Room join', roomId, user.id);

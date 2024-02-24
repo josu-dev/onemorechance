@@ -52,11 +52,13 @@
   </h1>
 
   <div
-    class="flex flex-1 flex-col items-center gap-4 w-full mt-4 mx-auto lg:gap-8"
+    class="flex flex-1 flex-col items-center gap-4 mt-4 mx-auto w-full lg:gap-8"
   >
     <section class="flex flex-col max-w-5xl mx-auto space-y-1 text-center">
       <h2 class="h3 text-gray-100 mb-2">Acerca de One More Chance</h2>
-      <p class="text-gray-200 text-xl text-pretty max-w-prose">
+      <p
+        class="text-gray-200 text-xl text-pretty max-w-[min(65ch,90vw)] mx-auto"
+      >
         El juego es de codigo abierto y esta disponible en <a
           href={PROJECT_REPOSITORY}
           rel="noopener noreferrer"
@@ -66,7 +68,9 @@
           GitHub.
         </a>
       </p>
-      <p class="text-gray-200 text-xl text-pretty max-w-prose">
+      <p
+        class="text-gray-200 text-xl text-pretty max-w-[min(65ch,90vw)] mx-auto"
+      >
         En el repositorio se encuentra la Licencia asi como tambien las
         librerias, herramientas y servcios utilizados.
       </p>
@@ -74,7 +78,9 @@
 
     <section class="flex flex-col max-w-5xl mx-auto text-center">
       <h2 class="h3 text-gray-100 mb-2">Contribuidores</h2>
-      <p class="text-gray-200 text-xl text-pretty max-w-prose mx-auto">
+      <p
+        class="text-gray-200 text-xl text-pretty max-w-[min(65ch,90vw)] mx-auto"
+      >
         El juego fue posible gracias a la colaboracion de:
       </p>
       <ul

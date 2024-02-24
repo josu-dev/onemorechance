@@ -6,17 +6,17 @@
   import { countFillSlots } from '$comps/game/sentence/shared.js';
   import type { GameStore, Option } from '$game/types.js';
   import { audioPlayer } from '$lib/stores/audio.js';
-  import { debounced } from '$lib/utils/client/functions.js';
+  import { debounced } from '$lib/utils/clientside.js';
   import { createEventDispatcher, onMount } from 'svelte';
 
   export let game: GameStore;
 
   const baseSentence = { ...$game.current.sentence };
 
-
   let currentFill = -1;
   $: totalFills = countFillSlots($game.current.sentence.text);
-  $: countDownDuration = $game.settings.fillTime + totalFills * $game.settings.fillTimeSlot;
+  $: countDownDuration =
+    $game.settings.fillTime + totalFills * $game.settings.fillTimeSlot;
 
   let fills: string[] = Array(totalFills).fill('');
 

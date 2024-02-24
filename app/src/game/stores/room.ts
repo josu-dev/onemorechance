@@ -1,7 +1,7 @@
 import type { GameStateStore, RoomClient, RoomStatusClient, SelfStore, SocketStore } from '$game/types.js';
 import type { Readable } from '$lib/stores/types.ts';
 import { uniqueId } from '$lib/utils/index.js';
-import { log } from '$lib/utils/logging.js';
+import { log } from '$lib/utils/clientside.js';
 import { ROOM_STATUS_CLIENT } from '$shared/constants.js';
 import { derived, writable } from 'svelte/store';
 

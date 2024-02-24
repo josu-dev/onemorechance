@@ -115,21 +115,21 @@
 
   function askForKickPlayer(player: Player) {
     // TODO: Show modal
-    if (confirm(`¿Estás seguro de expulsar a ${player.name}?`)) {
+    if (confirm(`¿Estas seguro de expulsar a ${player.name}?`)) {
       dispatchKickPlayer({ userId: player.id });
     }
   }
 
   function askForCloseRoom() {
     // TODO: Show modal
-    if (confirm('¿Estás seguro de cerrar la sala?')) {
+    if (confirm('¿Estas seguro de cerrar la sala?')) {
       dispatchCloseRoom();
     }
   }
 
   function askForLeaveRoom() {
     // TODO: Show modal
-    if (confirm('¿Estás seguro de salir de la sala?')) {
+    if (confirm('¿Estas seguro de salir de la sala?')) {
       dispatchLeaveRoom();
     }
   }
@@ -144,7 +144,7 @@
       return;
     }
     // TODO: Show modal
-    if (confirm('¿Estás seguro de iniciar la partida?')) {
+    if (confirm('¿Estas seguro de iniciar la partida?')) {
       dispatchStartGame();
     }
   }

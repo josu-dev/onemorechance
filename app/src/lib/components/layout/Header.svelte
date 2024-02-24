@@ -13,9 +13,8 @@
   import IconVolumex from '$lib/icons/IconVolumex.svelte';
   import { audioPlayer } from '$lib/stores/audio.js';
   import { user } from '$lib/stores/user.js';
-  import { log } from '$lib/utils/logging.ts';
+  import { log, toast } from '$lib/utils/clientside.ts';
   import type { SubmitFunction } from '@sveltejs/kit';
-  import toast from 'svelte-french-toast';
 
   let menuButton: HTMLButtonElement;
 
@@ -55,7 +54,7 @@
           isFullscreen = false;
         })
         .catch((e) => {
-          log.error('Error al salir de pantalla completa', e);
+          log.debug('Error al salir de pantalla completa', e);
         });
       return;
     }
@@ -66,22 +65,22 @@
         isFullscreen = true;
       })
       .catch((e) => {
-        log.error('Error al entrar en pantalla completa', e);
+        log.debug('Error al entrar en pantalla completa', e);
       });
   }
 
-  const enhanceDeleteAccount: SubmitFunction = ({}) => {
+  const enhanceDeleteAccount: SubmitFunction = () => {
     return ({ result }) => {
       if (result.type === 'success') {
         open = false;
         user.mset(undefined);
-        toast.success('Cuenta borrada', { duration: 2500 });
+        toast.success('Cuenta borrada');
         goto('/');
         return;
       }
 
       log.error('Error al borrar la cuenta', result);
-      toast.error('Error al borrar la cuenta', { duration: 5000 });
+      toast.error('Error al borrar la cuenta');
     };
   };
 </script>

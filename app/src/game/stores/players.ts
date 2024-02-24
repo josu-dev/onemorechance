@@ -1,5 +1,5 @@
 import type { GameStateStore, Player, SelfStore, SocketStore } from '$game/types.js';
-import { log } from '$lib/utils/logging.ts';
+import { log } from '$lib/utils/clientside.ts';
 import { writable } from 'svelte/store';
 
 
