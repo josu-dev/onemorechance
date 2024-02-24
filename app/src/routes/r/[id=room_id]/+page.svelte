@@ -19,7 +19,9 @@
     self,
     socketActions,
   } from '$game/game.js';
+  import { audioPlayer } from '$lib/stores/audio.ts';
   import { decks } from '$lib/stores/decks.js';
+  import { onFirstUserInteraction } from '$lib/utils/clientside.js';
   import { GAME_STATUS } from '$shared/constants.js';
   import { onMount } from 'svelte';
 
@@ -40,8 +42,14 @@
   }
 
   onMount(() => {
+    const musicCleanup = onFirstUserInteraction(() => {
+      audioPlayer.play('music_game.mp3', { loop: true });
+    });
+
     return () => {
       socketActions.disconnect();
+      musicCleanup();
+      audioPlayer.stop('music_game.mp3');
     };
   });
 </script>

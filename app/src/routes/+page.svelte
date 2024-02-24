@@ -5,7 +5,7 @@
   import FieldText from '$lib/elements/form/FieldText.svelte';
   import { audioPlayer } from '$lib/stores/audio.js';
   import { user } from '$lib/stores/user.js';
-  import { toast } from '$lib/utils/clientside.js';
+  import { onFirstUserInteraction, toast } from '$lib/utils/clientside.js';
   import { onMount } from 'svelte';
   import { superForm } from 'sveltekit-superforms';
 
@@ -61,16 +61,14 @@
   $: registerFormAction = `?/account_register&${$page.url.searchParams.toString()}`;
 
   onMount(() => {
-    function startLobbyMusic() {
+    const musicCleanup = onFirstUserInteraction(() => {
       audioPlayer.play('music_lobby.mp3', { loop: true });
-      document.removeEventListener('click', startLobbyMusic);
-    }
-
-    document.addEventListener('click', startLobbyMusic);
+    });
 
     return () => {
-      document.removeEventListener('click', startLobbyMusic);
-    };
+      musicCleanup();
+      audioPlayer.stop('music_lobby.mp3');
+    }
   });
 </script>
 

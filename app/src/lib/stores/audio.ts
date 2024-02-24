@@ -159,7 +159,7 @@ function createAudioStore(): AudioPlayerStore {
 
         t.loading = false;
         if (!cache.has(t.track)) {
-            console.error('Audio track not found in cache after loading', t);
+            console['info']('Audio track not found in cache after loading', t);
             cache.set(t.track, t);
         }
         if (!playing.has(t) || !$.isPlaying) {
@@ -198,6 +198,18 @@ function createAudioStore(): AudioPlayerStore {
         return t;
     }
 
+    function catchAudioError(this: AudioTrack | undefined, e: unknown) {
+        if (!(e instanceof Error)) {
+            console['error'](`Unknown error with ${this ? `track '${this.track}'` : 'audio'}`, e);
+            return;
+        }
+        if (e.name === 'NotAllowedError') {
+            console['warn'](`Trying to play ${this ? `track '${this.track}'` : 'audio'} without user interaction`);
+            return;
+        }
+        console['error'](`Error with ${this ? `track '${this.track}'` : 'audio'}`, e);
+    }
+
     function playAudio(t: AudioTrack, options: PlayOptions) {
         if (!playing.has(t)) {
             playing.add(t);
@@ -211,9 +223,7 @@ function createAudioStore(): AudioPlayerStore {
         t.el.volume = volume * ($.type === 'music' ? musicVolume : sfxVolume);
         t.el.loop = options.loop ?? false;
         t.el.muted = $.isMuted;
-        t.el.play().catch((e) => {
-            console.error(`Error playing audio: ${t.track}`, e);
-        });
+        t.el.play().catch(catchAudioError.bind(t));
     }
 
     function pauseAll(except?: AudioTrack) {
@@ -229,9 +239,7 @@ function createAudioStore(): AudioPlayerStore {
             if (t === except || t.loading || !t.el.paused) {
                 continue;
             }
-            t.el.play().catch((e) => {
-                console.error(`Error resuming audio: ${t.track}`, e);
-            });
+            t.el.play().catch(catchAudioError.bind(t));
         }
     }
 
@@ -329,9 +337,7 @@ function createAudioStore(): AudioPlayerStore {
             if (track) {
                 const t = cache.get(track);
                 if (t) {
-                    t.el.play().catch((e) => {
-                        console.error(`Error resuming audio: ${t.track}`, e);
-                    });
+                    t.el.play().catch(catchAudioError.bind(t));
                 }
             }
             else {
