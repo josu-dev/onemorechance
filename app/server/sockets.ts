@@ -101,6 +101,7 @@ function newRound(io: T.WebSocketServer, socket: T.WebSocketServerSocket, room: 
         room.game.used.sentences.length = 0;
         log.warn('Deck ran out of sentences', room.game, room.deck);
     }
+    const sentenceSlotsCount = sentence.t.match(/{{.*?}}/g)?.length ?? 0;
 
     room.game.used.sentences.push(sentence.id);
     room.game.current.sentence = {
@@ -160,7 +161,7 @@ function newRound(io: T.WebSocketServer, socket: T.WebSocketServerSocket, room: 
             if (room.game.round < room.game.settings.rounds) {
                 setTimeout(
                     newRound,
-                    GAME.DEFAULT_RESULTS_TIME,
+                    GAME.DEFAULT_ROUND_WINNER_TIME,
                     io,
                     socket,
                     room
@@ -190,13 +191,13 @@ function newRound(io: T.WebSocketServer, socket: T.WebSocketServerSocket, room: 
                         );
                     }
                     await Promise.all(promises);
-                }, GAME.DEFAULT_SCOREBOARD_TIME);
+                }, GAME.DEFAULT_GAME_WINNER_TIME);
 
-            }, GAME.DEFAULT_RESULTS_TIME);
+            }, GAME.DEFAULT_ROUND_WINNER_TIME);
 
         }, playerCount * room.game.settings.rateTime);
 
-    }, room.game.settings.fillTime);
+    }, room.game.settings.fillTime + sentenceSlotsCount * room.game.settings.fillTimeSlot);
 }
 
 function getPlayerFromRoom(room: T.ServerRoom, playerId: string): [T.Player | undefined, number] {
@@ -344,7 +345,8 @@ export function attach_socket_server(server: HttpServer | Http2SecureServer) {
                         status: GAME_STATUS.NOT_STARTED,
                         settings: {
                             deckId: DEFAULT_DECK.id,
-                            fillTime: GAME.DEFAULT_FILL_TIME,
+                            fillTime: GAME.DEFAULT_FILL_TIME_BASE,
+                            fillTimeSlot: GAME.DEFAULT_FILL_TIME_SLOT,
                             rateTime: GAME.DEFAULT_RATE_TIME,
                             players: GAME.DEFAULT_PLAYERS,
                             rounds: GAME.DEFAULT_ROUNDS,

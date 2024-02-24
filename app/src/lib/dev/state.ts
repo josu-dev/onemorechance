@@ -45,7 +45,8 @@ const INITIAL_GAME: Game = {
     status: GAME_STATUS.NOT_STARTED,
     settings: {
         deckId: "",
-        fillTime: GAME.DEFAULT_FILL_TIME,
+        fillTime: GAME.DEFAULT_FILL_TIME_BASE,
+        fillTimeSlot: GAME.DEFAULT_FILL_TIME_SLOT,
         rateTime: GAME.DEFAULT_RATE_TIME,
         players: GAME.DEFAULT_PLAYERS,
         rounds: GAME.DEFAULT_ROUNDS,

@@ -21,6 +21,7 @@ export type RoomClient = {
 export type GameSettings = {
     deckId: string,
     fillTime: number,
+    fillTimeSlot: number,
     options: number,
     players: number,
     rateTime: number,

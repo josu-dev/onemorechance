@@ -30,7 +30,8 @@
 
   let settings = {
     deckId: '',
-    fillTime: GAME.DEFAULT_FILL_TIME,
+    fillTime: GAME.DEFAULT_FILL_TIME_BASE,
+    fillTimeSlot: GAME.DEFAULT_FILL_TIME_SLOT,
     rateTime: GAME.DEFAULT_RATE_TIME,
     options: GAME.DEFAULT_OPTIONS,
     players: GAME.DEFAULT_PLAYERS,
@@ -80,6 +81,7 @@
     dispatch('update_settings', {
       deckId: settings.deckId,
       fillTime: settings.fillTime,
+      fillTimeSlot: settings.fillTimeSlot,
       rateTime: settings.rateTime,
       options: settings.options,
       players: settings.players,
@@ -90,7 +92,8 @@
   function resetSettings() {
     settings = {
       deckId: '',
-      fillTime: GAME.DEFAULT_FILL_TIME,
+      fillTime: GAME.DEFAULT_FILL_TIME_BASE,
+      fillTimeSlot: GAME.DEFAULT_FILL_TIME_SLOT,
       rateTime: GAME.DEFAULT_RATE_TIME,
       options: GAME.DEFAULT_OPTIONS,
       players: GAME.DEFAULT_PLAYERS,
@@ -240,7 +243,7 @@
             e.preventDefault();
             dispatchUpdateSettings();
           }}
-          class="flex flex-col gap-4 w-full text-gray-200"
+          class="flex flex-col gap-2 w-full text-gray-200"
         >
           <div class="w-full">
             <label class="flex items-center justify-between">
@@ -250,6 +253,7 @@
                 name="rounds"
                 max={GAME.MAX_ROUNDS}
                 min={GAME.MIN_ROUNDS}
+                step="1"
                 disabled={isGuest}
                 bind:value={settings.rounds}
                 class="input variant-primary w-20 ml-4"
@@ -258,12 +262,13 @@
           </div>
           <div class="w-full">
             <label class="flex items-center justify-between">
-              <span>Segs. de eleccion</span>
+              <span>T. por ronda</span>
               <input
                 type="number"
                 name="fillTime"
-                max={GAME.MAX_FILL_TIME / 1000}
-                min={GAME.MIN_FILL_TIME / 1000}
+                max={GAME.MAX_FILL_TIME_BASE / 1000}
+                min={GAME.MIN_FILL_TIME_BASE / 1000}
+                step="1"
                 disabled={isGuest}
                 value={settings.fillTime / 1000}
                 on:change={(e) => {
@@ -273,21 +278,25 @@
               />
             </label>
           </div>
-          {#if deck.type === DECK_TYPE.SELECT}
-            <div class="w-full">
-              <label class="flex items-center justify-between">
-                <span>Opciones</span>
-                <input
-                  type="number"
-                  max={GAME.MAX_OPTIONS}
-                  min={GAME.MIN_OPTIONS}
-                  disabled={isGuest}
-                  bind:value={settings.options}
-                  class="input variant-primary w-20 ml-4"
-                />
-              </label>
-            </div>
-          {/if}
+          <div class="w-full">
+            <label class="flex items-center justify-between">
+              <span>T. por espacio</span>
+              <input
+                type="number"
+                name="fillTimeSlot"
+                max={GAME.MAX_FILL_TIME_SLOT / 1000}
+                min={GAME.MIN_FILL_TIME_SLOT / 1000}
+                step="1"
+                disabled={isGuest}
+                value={settings.fillTimeSlot / 1000}
+                on:change={(e) => {
+                  settings.fillTimeSlot =
+                    parseInt(e.currentTarget.value) * 1000;
+                }}
+                class="input variant-primary w-20 ml-4"
+              />
+            </label>
+          </div>
           <div class="w-full">
             <label class="flex items-center justify-between">
               <span>Baraja</span>
@@ -315,6 +324,23 @@
               </select>
             </label>
           </div>
+          {#if deck.type === DECK_TYPE.SELECT}
+            <div class="w-full">
+              <label class="flex items-center justify-between">
+                <span>Opciones</span>
+                <input
+                  type="number"
+                  name="options"
+                  max={GAME.MAX_OPTIONS}
+                  min={GAME.MIN_OPTIONS}
+                  step="1"
+                  disabled={isGuest}
+                  bind:value={settings.options}
+                  class="input variant-primary w-20 ml-4"
+                />
+              </label>
+            </div>
+          {/if}
 
           {#if $self.player.host}
             <div

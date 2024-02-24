@@ -13,10 +13,10 @@
 
   const baseSentence = { ...$game.current.sentence };
 
-  let countDownDuration = $game.settings.fillTime;
 
   let currentFill = -1;
   $: totalFills = countFillSlots($game.current.sentence.text);
+  $: countDownDuration = $game.settings.fillTime + totalFills * $game.settings.fillTimeSlot;
 
   let fills: string[] = Array(totalFills).fill('');
 
