@@ -1,13 +1,10 @@
 <script lang="ts">
   import { createEventDispatcher, onMount } from 'svelte';
-
-  const TIMER_UPDATE_RATE = 33;
+  import { COUNTDOWN_UPDATE_RATE } from './defaults.ts';
 
   export let start = false;
   export let duration: number;
   export let className = '';
-
-  let started = false;
 
   let last_time = window.performance.now();
   let elapsed = 0;
@@ -21,19 +18,9 @@
     end: void;
   }>();
 
-  $: if (start) {
-    started = true;
-    dispatch('start');
-    update();
-  }
-
-  // $: if (!start && started) {
-  //   started = false;
-  // }
-
   function update() {
     if (elapsed < duration) {
-      timeoutId = setTimeout(update, TIMER_UPDATE_RATE);
+      timeoutId = setTimeout(update, COUNTDOWN_UPDATE_RATE);
     } else {
       dispatch('end');
     }
@@ -50,6 +37,11 @@
       .padStart(2, '0');
   }
 
+  $: if (start) {
+    dispatch('start');
+    update();
+  }
+
   onMount(() => {
     return () => {
       clearTimeout(timeoutId);
@@ -58,9 +50,9 @@
 </script>
 
 <div
-  class="flex justify-center items-end tracking-wider font-semibold font-mono {className}"
+  class="flex items-baseline tracking-wider font-semibold font-mono {className}"
 >
-  <span class="text-2xl whitespace-pre">{remainingSeconds}</span>
-  <span class="tetx-2xl">.</span>
-  <span class="text-xl">{remainingMillis}</span>
+  <span class="text-[1em]">{remainingSeconds}</span>
+  <span class="text-[0.75em]">.</span>
+  <span class="text-[0.75em]">{remainingMillis}</span>
 </div>

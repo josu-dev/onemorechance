@@ -1,10 +1,11 @@
 import { relations, sql } from 'drizzle-orm';
-import { index, integer, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core';
+import { index, integer, primaryKey, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core';
+// extension must be .ts, .js breaks drizzle-kit 🙃
 import { DECK_TYPE, ROOM_STATUS } from '../src/shared/constants.ts';
 
 
 /**
- * Remember to update related types in the shared folder 
+ * Remember to update related types in the shared folder
  * See: ../src/shared/types.ts
  */
 export const decks = sqliteTable(
@@ -26,7 +27,7 @@ export const decks = sqliteTable(
     })
 );
 
-export const deckRelations = relations(decks, ({ one, many }) => ({
+export const decksRelations = relations(decks, ({ one, many }) => ({
     sentences: many(sentences),
     options: many(options),
     user: one(users, {
@@ -50,7 +51,7 @@ export const sentences = sqliteTable(
     })
 );
 
-export const sentenceRelations = relations(sentences, ({ one }) => ({
+export const sentencesRelations = relations(sentences, ({ one }) => ({
     deck: one(decks, {
         fields: [sentences.deckId],
         references: [decks.id],
@@ -72,7 +73,7 @@ export const options = sqliteTable(
     })
 );
 
-export const optionRelations = relations(options, ({ one }) => ({
+export const optionsRelations = relations(options, ({ one }) => ({
     deck: one(decks, {
         fields: [options.deckId],
         references: [decks.id],
@@ -81,7 +82,7 @@ export const optionRelations = relations(options, ({ one }) => ({
 
 
 /**
- * Remember to update related types in the shared folder 
+ * Remember to update related types in the shared folder
  * See: ../src/shared/types.ts
  */
 export const users = sqliteTable(
@@ -102,7 +103,7 @@ export const users = sqliteTable(
     })
 );
 
-export const userRelations = relations(users, ({ many }) => ({
+export const usersRelations = relations(users, ({ many }) => ({
     rooms: many(rooms),
     decks: many(decks),
 }));
@@ -115,10 +116,10 @@ export const rooms = sqliteTable(
         status: text('status', {
             enum: [
                 ROOM_STATUS.CLOSED,
-                ROOM_STATUS.GAME_ON,
-                ROOM_STATUS.WAITING
+                ROOM_STATUS.GAME_ACTIVE,
+                ROOM_STATUS.LOBBY_WAITING
             ]
-        }).notNull().default(ROOM_STATUS.WAITING),
+        }).notNull().default(ROOM_STATUS.LOBBY_WAITING),
         hostId: text('host_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
         playersCount: integer('players_count').notNull().default(0),
         playersMax: integer('players_max').notNull(),
@@ -132,9 +133,34 @@ export const rooms = sqliteTable(
     })
 );
 
-export const roomRelations = relations(rooms, ({ one }) => ({
+export const roomsRelations = relations(rooms, ({ one }) => ({
     host: one(users, {
         fields: [rooms.hostId],
         references: [users.id],
+    }),
+}));
+
+export const usersToRooms = sqliteTable(
+    'users_to_rooms',
+    {
+        userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+        roomId: text('room_id').notNull().references(() => rooms.id, { onDelete: 'cascade' }),
+        createdAt: integer('created_at').notNull().default(sql`(strftime('%s', 'now'))`),
+    },
+    (usersToRooms) => ({
+        id: primaryKey({ columns: [usersToRooms.roomId, usersToRooms.userId] }),
+        userIdIdx: index('users_to_rooms_user_id_idx').on(usersToRooms.userId),
+        roomIdIdx: index('users_to_rooms_room_id_idx').on(usersToRooms.roomId),
+    })
+);
+
+export const usersToRoomsRelations = relations(usersToRooms, ({ one }) => ({
+    user: one(users, {
+        fields: [usersToRooms.userId],
+        references: [users.id],
+    }),
+    room: one(rooms, {
+        fields: [usersToRooms.roomId],
+        references: [rooms.id],
     }),
 }));

@@ -6,7 +6,7 @@
     .button {
         @apply px-4 py-2 rounded-md text-base text-center font-normal;
     }
-    .button:focus { 
+    .button:focus {
         @apply outline-none;
     }
     .button:disabled {
@@ -38,7 +38,7 @@
     .input, .select, .textarea {
         @apply flex px-2.5 py-1.5 rounded-md text-base font-normal border-none;
     }
-    .input:focus, .select:focus, .textarea:focus { 
+    .input:focus, .select:focus, .textarea:focus {
         @apply outline-none
     }
     .input:disabled, .select:disabled, .textarea:disabled {
@@ -67,15 +67,45 @@
     :is(.button, .input, .select, .textarea).variant-primary:not(:disabled):hover {
         @apply text-gray-100 ring-2 ring-gray-100;
     }
-    
-    .variant-error {
+
+    :is(.button, .input, .select, .textarea).variant-warn {
+        @apply bg-yellow-800 text-gray-300 ring-1 ring-gray-300;
+    }
+
+    :is(.button, .input, .select, .textarea).variant-error {
         @apply bg-red-800 text-gray-300 ring-1 ring-gray-300;
     }
 
-    .variant-success {
+    :is(.button, .input, .select, .textarea).variant-success {
         @apply bg-purple-800 text-gray-300 ring-1 ring-gray-300;
     }
-    
+
+    .checkbox, .radio {
+        @apply form-checkbox rounded-md cursor-pointer ring-1 border-0;
+    }
+    .checkbox:disabled, .radio:disabled {
+        @apply cursor-not-allowed opacity-75;
+    }
+    :is(.checkbox, .radio):focus {
+        @apply ring-0;
+    }
+    :is(.checkbox, .radio):hover:not(:focus,:disabled) {
+        @apply ring-2;
+    }
+    :is(.checkbox, .radio).variant-primary {
+        @apply bg-black text-purple-800 ring-gray-300;
+    }
+    :is(.checkbox, .radio):checked.variant-primary {
+        @apply bg-purple-800 ring-gray-300;
+    }
+    :is(.checkbox, .radio).variant-primary:focus {
+        @apply text-purple-600 ring-gray-100;
+    }
+    :is(.checkbox, .radio):checked.variant-primary:focus {
+        @apply bg-purple-600 ring-gray-100;
+    }
+
+
     .button-icon {
         @apply block rounded-md;
     }
@@ -97,7 +127,7 @@
     .icon-xl  {
         @apply w-16 h-16 p-[5px];
     }
-    
+
     .icon-primary  {
         @apply text-gray-100 stroke-gray-100;
     }
@@ -116,10 +146,7 @@
     }
 
     .main {
-        @apply h-full flex flex-col items-center overflow-y-auto px-1;
-    }
-    .main-p-header {
-        @apply pb-8;
+        @apply h-full flex flex-col overflow-y-auto px-1;
     }
 
     .badge {
@@ -139,6 +166,10 @@
     }
     .badge-accent {
         @apply bg-black text-purple-500
+    }
+
+    .shadow-around {
+        box-shadow: 0 0 0 1px var(--tw-shadow-color);
     }
 }
 
@@ -173,8 +204,28 @@ body {
 
 body {
     @apply text-gray-300;
+    --header-height: 3rem;
+    --main-bottom-padding: 3rem;
 }
 
-.omc-toast-container div.omc-toast {
-    @apply bg-black text-gray-200 font-light border-none ring-1 ring-gray-200 text-base;
+@media (min-width: 768px) {
+    body {
+        --header-height: 3.5rem;
+    }
+}
+
+body * {
+    @apply scrollbar-2 sb-transparent sb-hover-gray-500/10 sb-thumb-purple-800/25 sb-thumb-hover-purple-800/50;
+}
+
+.main-container {
+    @apply h-full overflow-hidden lg:overflow-auto;
+}
+
+.main-container:has(> .main-below-header) {
+    padding-top: var(--header-height);
+}
+
+.main-container > .main-with-pb {
+    padding-bottom: var(--main-bottom-padding);
 }

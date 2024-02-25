@@ -1,0 +1,27 @@
+{
+    "compilerOptions": {
+        "verbatimModuleSyntax": true,
+        "isolatedModules": true,
+        "lib": [
+            "esnext"
+        ],
+        "moduleResolution": "bundler",
+        "module": "esnext",
+        "noEmit": true,
+        "target": "esnext",
+		"esModuleInterop": true,
+		"forceConsistentCasingInFileNames": true,
+		"resolveJsonModule": true,
+		"skipLibCheck": true,
+		"sourceMap": true,
+		"strict": true,
+        "allowImportingTsExtensions": true
+    },
+    "include": [
+        "./server/**/*.ts"
+    ],
+    "exclude": [
+        "../node_modules/**"
+    ]
+    // MODIFY WITH CAUTION. Custom WebSockets Server config for type checking
+}

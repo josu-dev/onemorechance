@@ -21,6 +21,7 @@ export type RoomClient = {
 export type GameSettings = {
     deckId: string,
     fillTime: number,
+    fillTimeSlot: number,
     options: number,
     players: number,
     rateTime: number,
@@ -117,35 +118,30 @@ export type DeckComplete = {
     sentences: Sentence[],
 };
 
-export type Deck = DeckIdentifier & (DeckSelect | DeckComplete);
+export type DeckFull = DeckIdentifier & (DeckSelect | DeckComplete);
 
-export type DeckIdentifierCompact = {
+export type DeckItem = {
     id: string,
-    n: string,
-    t: DeckType,
-    d?: string,
+    t: string,
 };
 
-export type DeckCompact = DeckIdentifierCompact & {
-    s: {
-        id: string,
-        t: string,
-    }[],
+export type DeckFullCompact = DeckIdentifier & {
+    s: DeckItem[],
+    o: DeckItem[],
 };
+
 
 export type ClientToServerEvents = {
-    room_create: (data: { roomId: string; user: User; }) => void;
-    room_join: (data: { roomId: string; user: User; }) => void;
-    room_update: (data: { room: Room; }) => void;
+    room_create: (data: { roomId: string; userId?: string; }) => void;
     room_close: (data: { roomId: string; }) => void;
+    room_join: (data: { roomId: string; userId?: string; }) => void;
     room_leave: (data: { roomId: string; }) => void;
     room_kick_player: (data: { roomId: string; playerId: string; }) => void;
+    room_start_game: (data: { roomId: string; }) => void;
 
-    player_update: (data: { roomId: string; player: Player; }) => void;
-    player_set_name: (data: { roomId: string; name: string; }) => void;
+    player_update: (data: { roomId: string; player: Partial<Player>; }) => void;
     player_set_ready: (data: { roomId: string; state: boolean; }) => void;
 
-    game_start: (data: { roomId: string; deck: DeckCompact; }) => void;
     game_set_settings: (data: { roomId: string; settings: Partial<GameSettings>; }) => void;
     game_set_freestyle: (data: { roomId: string; freestyle: string[]; }) => void;
     game_set_option: (data: { roomId: string; option: Option[]; }) => void;
@@ -154,6 +150,12 @@ export type ClientToServerEvents = {
 
 
 export type ServerToClientEvents = {
+    unauthorized: (
+        data: { error?: string; }, cb: (ok: true) => void
+    ) => void;
+    connect_ready: () => void;
+
+    room_error: (data: { ev: keyof ClientToServerEvents, err?: string; }) => void;
     room_created: (data: {
         room: Room,
         game: Game,
@@ -177,6 +179,7 @@ export type ServerToClientEvents = {
 
     decks_update: (data: { decks: DeckIdentifier[]; }) => void;
 
+    game_error: (data: { ev: keyof ClientToServerEvents, err?: string; }) => void;
     game_ended: () => void;
     game_player_rated: (data: { playerId: string; }) => void;
     game_started: (data: {

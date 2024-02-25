@@ -5,7 +5,7 @@ export type * from '$shared/types.js';
 
 export interface GameStateStore<T> extends ExposedReadablePartial<T> {
     /**
-     * Reset the game state to its default value.
+     * Reset the state to its default value.
      */
     reset(): void;
 }

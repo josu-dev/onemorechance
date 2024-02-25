@@ -2,15 +2,16 @@ type Values<T> = T[keyof T];
 
 export const ROOM_STATUS = {
     CLOSED: 'CLOSED',
-    GAME_ON: 'GAME_ON',
-    WAITING: 'WAITING',
+    GAME_ACTIVE: 'GAME_ACTIVE',
+    LOBBY_WAITING: 'LOBBY_WAITING',
+    NOT_FOUND: 'NOT_FOUND',
 } as const;
 
 export type RoomStatus = Values<typeof ROOM_STATUS>;
 
 export const ROOM_STATUS_CLIENT = {
     ...ROOM_STATUS,
-    NO_ROOM: 'NO_ROOM',
+    NO_LOADED: 'NO_LOADED',
     CONNECTING: 'CONNECTING',
     CONNECTION_LOST: 'CONNECTION_LOST',
     KICKED: 'KICKED',
@@ -27,7 +28,7 @@ export const GAME_STATUS = {
     RATE_SENTENCE: 'RATE_SENTENCE',
     ROUND_WINNER: 'ROUND_WINNER',
     POST_ROUND: 'POST_ROUND',
-    END_SCOREBOARD: 'END_SCOREBOARD',
+    GAME_WINNER: 'GAME_WINNER',
     ENDED: 'ENDED',
 } as const;
 

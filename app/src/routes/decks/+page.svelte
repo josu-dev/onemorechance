@@ -6,6 +6,7 @@
   import FieldText from '$lib/elements/form/FieldText.svelte';
   import FieldTextarea from '$lib/elements/form/FieldTextarea.svelte';
   import { DECK_TYPE_CREATE } from '$lib/schemas/deck.js';
+  import { toastFormLevelErrors } from '$lib/utils/clientside.js';
   import { t } from '$lib/utils/translate_constants.js';
   import { DECK_TYPE } from '$shared/constants.js';
   import { superForm } from 'sveltekit-superforms';
@@ -15,14 +16,31 @@
   const createSForm = superForm(data.createForm, {
     invalidateAll: false,
     resetForm: false,
+    onChange({ target }) {
+      if (
+        target instanceof HTMLSelectElement &&
+        target.value === DECK_TYPE_CREATE.SELECT
+      ) {
+        $errors.type = [
+          `El tipo de deck ${t.deckType(
+            DECK_TYPE_CREATE.SELECT,
+          )} no esta disponible en este momento`,
+        ];
+      } else {
+        $errors.type = undefined;
+      }
+    },
     onUpdated({ form }) {
       if (!form.valid) {
+        toastFormLevelErrors(form.errors);
         return;
       }
 
       goto(`/decks/${form.message.deck.id}`);
     },
   });
+
+  const { errors } = createSForm;
 
   const deckTypeClass = {
     [DECK_TYPE.SELECT]: 'badge-secondary',
@@ -32,17 +50,17 @@
 
 <Seo
   title="Decks - One More Chance"
-  description="Crea un nuevo deck o elige uno ya creado para cagarte de risa con tus amigos"
+  description="Crea un nuevo deck o dale un vistazo a uno ya creado para ver el potencial de reirte con tus amigos o bueno, solo"
 />
 
-<main class="main main-p-header">
+<main class="main main-below-header main-with-pb">
   <h1 class="h2 text-white text-center">
     Decks de la comunidad
     <LinkBack href="/" className="icon-md" />
   </h1>
 
   <div
-    class="container flex flex-1 flex-col items-center gap-4 w-full mt-4 md:flex-row-reverse lg:gap-8 md:items-start md:justify-center"
+    class="container flex flex-1 flex-col items-center gap-4 w-full mx-auto md:flex-row-reverse lg:gap-8 md:items-start md:justify-center"
   >
     <section class="px-2 md:px-4 w-full max-w-sm">
       <h2 class="h3 text-gray-100 text-center">Nuevo deck</h2>
@@ -62,6 +80,7 @@
               { text: 'Eleccion', value: DECK_TYPE_CREATE.SELECT },
               { text: 'Completar', value: DECK_TYPE_CREATE.COMPLETE },
             ]}
+            required
           />
           <FieldText form={createSForm} field="name" label="Nombre" />
           <FieldTextarea

@@ -5,7 +5,7 @@ import * as _self from '$game/stores/self.js';
 import * as _shared from '$game/stores/shared.js';
 import * as _socket from '$game/stores/socket.js';
 import { user } from '$lib/stores/user.js';
-import { logClient } from '$lib/utils/logging.js';
+import { log } from '$lib/utils/clientside.js';
 import { ROOM_STATUS_CLIENT } from '$shared/constants.js';
 
 
@@ -30,12 +30,13 @@ export const playersActions = _player.createPlayersActions(socket, players);
 _player.attachPlayersListeners(socket, players);
 
 
-
 export const room = _room.createRoomStore();
 
 export const roomActions = _room.createRoomActions(socket, self, room);
 
 _room.attachRoomListeners(room, socket);
+
+export const roomStatus = _room.createRoomStatusStore(room);
 
 
 export const game = _game.createGameStore();
@@ -49,15 +50,16 @@ _game.attachGameListeners(socket, game);
 
 _shared.attachSharedListeners(socket, user, self, room, game, players);
 
-socket.instance.on('connect', () => {
+socket.instance.on('connect_ready', () => {
     self.value.connected = true;
     self.sync();
     if (!self.value.loaded) {
-        logClient.warn('User not loaded cannot auto connect');
+        log.warn('User not loaded cannot auto connect');
         return;
     }
 
-    if (room.value.status !== ROOM_STATUS_CLIENT.CONNECTING) {
+    if (room.value.status !== ROOM_STATUS_CLIENT.CONNECTING && room.value.status !== ROOM_STATUS_CLIENT.CONNECTION_LOST) {
+        log.debug('Auto connecting to room cant connect to', room.value.status);
         return;
     }
 

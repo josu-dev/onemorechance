@@ -1,24 +1,25 @@
-import { redirect } from '@sveltejs/kit';
 import { customRandom, nanoid, random } from 'nanoid';
 
+
+export function slugify(text: string, space: '' | '-' | '_' = '-'): string {
+    return text
+        .toLowerCase()
+        .replace(/ /g, space)
+        .replace(/[^\w-]+/g, '');
+}
 
 export const uniqueId = nanoid;
 
 export const uniqueRoomId = customRandom('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz', 6, random);
 
-export function redirectToRegister(
-    url: URL,
-    message = ''
-): never {
-    const redirectTo = url.pathname + url.search;
-    redirect(302, `/?redirect_to=${redirectTo}&message=${encodeURIComponent(message)}`);
+const ROOM_ID_REGEX = /^[0-9A-Za-z]{6}$/;
+
+export function isRoomId(id: string): boolean {
+    return id.match(ROOM_ID_REGEX) !== null;
 }
 
-export function redirectIfParam(
-    url: URL,
-) {
-    const redirectTo = url.searchParams.get('redirect_to');
-    if (redirectTo) {
-        redirect(302, `/${redirectTo.trim().slice(1)}`);
-    }
+const SENTENCE_FILL_SLOT_REGEX_GLOBAL = /{{.*?}}/g;
+
+export function countFillSlots(sentence: string): number {
+    return sentence.match(SENTENCE_FILL_SLOT_REGEX_GLOBAL)?.length ?? 0;
 }

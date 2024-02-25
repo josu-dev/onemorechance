@@ -1,5 +1,5 @@
+import { makeSearchParamsSchema } from '$lib/schemas/shared.ts';
 import { decks, sentences } from '$lib/server/db.ts';
-import { makeSearchParamsSchema } from '$lib/utils/searchParams.ts';
 import { json } from '@sveltejs/kit';
 import { asc, count, eq } from 'drizzle-orm';
 import { z } from 'zod';

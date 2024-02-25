@@ -2,7 +2,6 @@ import { createClient } from '@libsql/client';
 import * as dotenv from "dotenv";
 import { sql } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/libsql';
-import * as schema from './schema';
 
 dotenv.config({ path: ".env.local" });
 
@@ -11,34 +10,36 @@ export const client = createClient({
     authToken: process.env.TURSO_DB_AUTH_TOKEN!
 });
 
-export const db = drizzle(client, { schema });
+export const db = drizzle(client);
 
-async function main() {
-    const tableSchema = db._.schema;
-    if (!tableSchema) {
-        throw new Error("No table schema found");
+export async function main() {
+    try {
+        const tables = await db.select({ name: sql`name` }).from(sql`sqlite_master`);
+        if (tables.length === 0) {
+            console['log']("🚫 Database is already empty");
+            process.exit(0);
+        }
+
+        console['log']("🗑️  Emptying the entire database");
+
+        await db.transaction(async (tx) => {
+            const queries: Promise<any>[] = [];
+            for (const { name } of tables) {
+                console['log'](`🧨 Preparing delete query for table: \`${name}\``);
+                queries.push(tx.run(sql.raw(`DROP TABLE IF EXISTS ${name};`)).catch(console['error']));
+            }
+
+            console['log']("📨 Sending delete queries...");
+            await Promise.all(queries);
+        });
+
+        console['log']("✅ Database emptied");
+        process.exit(0);
     }
-
-    console['log']("🗑️  Emptying the entire database");
-    const queries = Object.values(tableSchema).map((table) => {
-        console['log'](`🧨 Preparing delete query for table: ${table.dbName}`);
-        return sql.raw(`DROP TABLE ${table.dbName};`);
-    });
-
-    console['log']("📨 Sending delete queries...");
-
-    await db.transaction(async (tx) => {
-        await Promise.all(
-            queries.map(async (query) => {
-                if (query) await tx.run(query);
-            })
-        );
-    });
-
-    console['log']("✅ Database emptied");
+    catch (error) {
+        console['error']("❌ Error while emptying the database", error);
+        process.exit(1);
+    }
 }
 
-main().catch((e) => {
-
-    console.error(e);
-});
+main();

@@ -108,31 +108,9 @@ export function createSelfStore(user: UserStore): SelfStore {
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function createSelfActions(socket: SocketStore, self: SelfStore) {
-    return {
-        // register(user: User) {
-        //     if (self.value.loaded) {
-        //         return;
-        //     }
-        //     socket.instance.emit('user_register', { user });
-        // },
-        // unregister() {
-        //     if (!self.value.loaded) {
-        //         return;
-        //     }
-        //     socket.instance.emit('user_unregister', { id: self.value.player.id });
-        // },
-    };
+    return {};
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function attachSelfListeners(socket: SocketStore, self: SelfStore) {
-    // socket.instance.on('user_registered', (data) => {
-    //     self.value.loaded = true;
-    //     self.value.player = data.user;
-    //     self.sync();
-    // });
-
-    // socket.instance.on('user_unregistered', () => {
-    //     self.mset(defaultSelf());
-    // });
 }

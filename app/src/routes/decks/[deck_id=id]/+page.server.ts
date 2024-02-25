@@ -1,7 +1,7 @@
 import { deckUpdateSchema, optionsDeleteSchema, optionsInsertSchema, sentencesDeleteSchema, sentencesInsertSchema } from '$lib/schemas/deck.js';
 import { deleteSchema } from '$lib/schemas/shared.js';
 import { decks, options, sentences } from '$lib/server/db.js';
-import { uniqueId } from '$lib/utils/index.js';
+import { countFillSlots, uniqueId } from '$lib/utils/index.js';
 import { DECK_TYPE } from '$shared/constants.js';
 import { LibsqlError } from '@libsql/client';
 import { error, fail } from '@sveltejs/kit';
@@ -14,7 +14,7 @@ import type { Actions, PageServerLoad } from './$types.js';
 export const load: PageServerLoad = async ({ locals, params }) => {
     const deck = await locals.db.select().from(decks).where(eq(decks.id, params.deck_id)).get();
     if (!deck) {
-        error(404, 'No se encontró el deck que buscas');
+        error(404, { friendly: 'No se encontro el deck que buscas' });
     }
 
     const deckSentences = await locals.db.select().from(sentences).where(eq(sentences.deckId, deck.id));
@@ -67,7 +67,7 @@ export const actions: Actions = {
             return fail(400, { form });
         }
         if (!form.data.confirm) {
-            return setError(form, 'confirm', 'Debes confirmar la eliminación');
+            return setError(form, 'confirm', 'Debes confirmar la eliminacion');
         }
 
         await (locals.db
@@ -77,6 +77,8 @@ export const actions: Actions = {
                 eq(decks.userId, locals.user.id)
             ))
         );
+
+        return { form };
     },
     deck_update: async ({ locals, params, request }) => {
         if (!locals.user) {
@@ -102,7 +104,7 @@ export const actions: Actions = {
         );
 
         if (!updatedDeck) {
-            return setError(form, '', 'No se encontró el deck que buscas o no tienes permisos para editarlo');
+            return setError(form, '', 'No se encontro el deck que buscas o no tienes permisos para editarlo');
         }
 
         return message(form, { deck: updatedDeck });
@@ -126,7 +128,7 @@ export const actions: Actions = {
             .get()
         );
         if (!deck) {
-            return setError(form, '', 'No se encontró el deck que buscas o no tienes permisos para editarlo');
+            return setError(form, '', 'No se encontro el deck que buscas o no tienes permisos para editarlo');
         }
 
         const deletedIds = await locals.db.delete(sentences).where(
@@ -157,16 +159,25 @@ export const actions: Actions = {
             .get()
         );
         if (!deck) {
-            return setError(form, '', 'No se encontró el deck que buscas o no tienes permisos para editarlo');
+            return setError(form, '', 'No se encontro el deck que buscas o no tienes permisos para editarlo');
         }
 
         const values: typeof sentences.$inferInsert[] = [];
-        for (const sentence of form.data.items) {
+        for (let i = 0; i < form.data.items.length; i++) {
+            const sentenceText = form.data.items[i].text;
+            if (!countFillSlots(sentenceText)) {
+                setError(form, `items[${i}].text`, 'La sentencia no tiene espacios para llenar');
+                continue;
+            }
+
             values.push({
                 id: uniqueId(),
                 deckId: deck.id,
-                text: sentence.text
+                text: sentenceText
             });
+        }
+        if (!form.valid) {
+            return fail(400, { form });
         }
 
         let inserted: typeof sentences.$inferSelect[];
