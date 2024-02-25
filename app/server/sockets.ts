@@ -179,11 +179,22 @@ function newRound(io: T.WebSocketServer, socket: T.WebSocketServerSocket, room: 
 
                     io.to(room.room.id).emit('game_ended');
 
+                    let winnerScore = -1;
+                    let winnerId = '';
+                    for (const player of room.players) {
+                        if (player.scoreTotal > winnerScore) {
+                            winnerScore = player.scoreTotal;
+                            winnerId = player.id;
+                        }
+                    }
+
                     const promises: Promise<any>[] = [];
                     for (const player of room.players) {
                         promises.push(db
                             .update(t.users)
                             .set({
+                                gamesPlayed: sql<number>`${t.users.gamesPlayed} + 1`,
+                                gamesWon: winnerId === player.id ? sql<number>`${t.users.gamesWon} + 1` : sql<number>`${t.users.gamesWon}`,
                                 scoreLastGame: player.scoreTotal,
                                 scoreLifetime: sql<number>`${t.users.scoreLifetime} + ${player.scoreTotal}`,
                             })
