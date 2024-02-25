@@ -21,7 +21,7 @@ export default {
                     return {
                         width: value,
                         height: value,
-                    }
+                    };
                 },
                 'scrollbar': (value) => {
                     return {
@@ -29,24 +29,24 @@ export default {
                             width: value,
                             height: value,
                         },
-                    }
+                    };
                 },
                 'scrollbar-x': (value) => {
                     return {
                         '&::-webkit-scrollbar': {
                             width: value,
                         },
-                    }
+                    };
                 },
                 'scrollbar-y': (value) => {
                     return {
                         '&::-webkit-scrollbar': {
                             height: value,
                         },
-                    }
+                    };
                 },
-            }
-            matchUtilities(utilities, { values: theme('spacing') })
+            };
+            matchUtilities(utilities, { values: theme('spacing') });
 
             const scrollbarColors = {
                 'sb': (value) => {
@@ -54,34 +54,34 @@ export default {
                         '&::-webkit-scrollbar': {
                             backgroundColor: value,
                         },
-                    }
+                    };
                 },
                 'sb-hover': (value) => {
                     return {
                         '&::-webkit-scrollbar:hover, &::-webkit-scrollbar:active': {
                             backgroundColor: value,
                         },
-                    }
+                    };
                 },
                 'sb-thumb': (value) => {
                     return {
                         '&::-webkit-scrollbar-thumb': {
                             backgroundColor: value,
                         },
-                    }
+                    };
                 },
                 'sb-thumb-hover': (value) => {
                     return {
                         '&::-webkit-scrollbar-thumb:hover, &::-webkit-scrollbar-thumb:active': {
                             backgroundColor: value,
                         },
-                    }
+                    };
                 },
-            }
+            };
             matchUtilities(scrollbarColors, {
                 type: ['color'],
                 values: flattenColorPalette(theme('colors'))
-            })
+            });
 
             addComponents({
                 '.ring-dev': {
@@ -91,7 +91,7 @@ export default {
                     '--tw-ring-shadow': 'var(--tw-ring-inset) 0 0 0 calc(1px + var(--tw-ring-offset-width)) var(--tw-ring-color)',
                     'boxShadow': 'var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000)',
                 }
-            })
+            });
         })
     ],
-}
+};

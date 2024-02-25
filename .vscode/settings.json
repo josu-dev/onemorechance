@@ -10,5 +10,7 @@
     "svelte.plugin.svelte.format.config.singleQuote": true,
     "typescript.preferences.importModuleSpecifierEnding": "js",
     "typescript.preferences.quoteStyle": "single",
-    "svelte.plugin.svelte.defaultScriptLanguage": "ts"
+    "svelte.plugin.svelte.defaultScriptLanguage": "ts",
+    "javascript.format.semicolons": "insert",
+    "typescript.format.semicolons": "insert"
 }
