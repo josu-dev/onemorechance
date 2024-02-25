@@ -22,6 +22,7 @@
   import { audioPlayer } from '$lib/stores/audio.ts';
   import { decks } from '$lib/stores/decks.js';
   import { onFirstUserInteraction } from '$lib/utils/clientside.js';
+  import { toast } from '$lib/utils/clientside.ts';
   import { GAME_STATUS } from '$shared/constants.js';
   import { onMount } from 'svelte';
 
@@ -37,7 +38,13 @@
   $: pageTitle =
     ($roomStatus.isGameActive ? 'Jugando' : 'Esperando') + ` - One More Chance`;
 
+  $: if ($roomStatus.isClosed && $self.player.host) {
+    toast.success('La sala ha sido cerrada');
+    goto('/');
+  }
+
   $: if ($roomStatus.isRoomLeft) {
+    toast.success('Has salido de la sala');
     goto('/');
   }
 
