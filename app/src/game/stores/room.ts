@@ -103,15 +103,22 @@ export function createRoomActions(socket: SocketStore, self: SelfStore, room: Ro
 }
 
 export function attachRoomListeners(room: RoomStore, socket: SocketStore) {
-    socket.instance.on('room_updated', (data) => {
-        log.debug('room_updated', data);
-        room.mset(data.room);
-    });
-
     socket.instance.on('room_full', () => {
         log.debug('room_full');
+
         room.value.status = ROOM_STATUS_CLIENT.FULL;
         room.sync();
+    });
+
+    socket.instance.on('room_error', (e) => {
+        log.debug('room_error',e);
+
+        if (e.ev === 'room_create' || e.ev === 'room_join') {
+            if (e.err === 'room not found') {
+                room.value.status = ROOM_STATUS_CLIENT.NOT_FOUND;
+                room.sync();
+            }
+        }
     });
 }
 

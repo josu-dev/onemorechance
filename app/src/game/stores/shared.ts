@@ -79,9 +79,32 @@ export function attachSharedListeners(socket: SocketStore, user: UserStore, self
 
     });
 
+    socket.instance.on('room_updated', (data) => {
+        log.debug('room_updated', data);
+
+        const currentHostId = room.value.hostId;
+        room.mset(data.room);
+        if (currentHostId !== room.value.hostId) {
+            self.value.player.host = self.value.player.id === room.value.hostId;
+            self.sync();
+        }
+    });
+
     socket.instance.on('player_updated', (data) => {
         log.debug('player_updated', data);
         players.update(data.player);
+    });
+
+    socket.instance.on('player_current_updated', (data) => {
+        log.debug('player_updated', data);
+
+        for (const player of players.value) {
+            if (player.id === data.playerId) {
+                Object.assign(player.current, data.current);
+                players.sync();
+                break;
+            }
+        }
     });
 
     socket.instance.on('player_kicked', (data) => {

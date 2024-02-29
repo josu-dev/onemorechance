@@ -176,6 +176,7 @@ export type ServerToClientEvents = {
     player_left: (data: { playerId: string; }) => void;
     player_kicked: (data: { playerId: string; }) => void;
     player_disconnected: (data: { playerId: string; }) => void;
+    player_current_updated: (data: { playerId: string; current: Player['current']; }) => void;
 
     decks_update: (data: { decks: DeckIdentifier[]; }) => void;
 

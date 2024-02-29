@@ -14,6 +14,7 @@
   import IconUserconfig from '$lib/icons/IconUserconfig.svelte';
   import IconX from '$lib/icons/IconX.svelte';
   import type { DecksStore } from '$lib/stores/decks.ts';
+  import { log } from '$lib/utils/clientside.js';
   import { DECK_TYPE } from '$shared/constants.js';
   import { GAME } from '$shared/defaults.js';
   import { createEventDispatcher } from 'svelte';
@@ -105,7 +106,7 @@
   function selectDeck(id: string) {
     const newDeck = $decks.find((deck) => deck.id === id);
     if (!newDeck) {
-      console.error('Deck not found');
+      log.debug('Deck not found');
       return;
     }
 
@@ -164,13 +165,15 @@
   </header>
 
   <div
-    class="flex flex-col w-full max-w-[min(24rem,90vw)] md:max-w-[min(48rem,90vw)]"
+    class="flex flex-col w-full max-w-[min(32rem,90vw)] md:max-w-[min(56rem,90vw)]"
   >
     <div
       class="flex flex-col gap-4 max-w-full w-full md:grid md:grid-cols-12 md:gap-8 lg:md:gap-12 md:justify-around"
     >
       <div class="flex flex-col mb-4 md:col-span-7">
-        <h3 class="text-center text-3xl text-gray-100 mb-4">Jugadores</h3>
+        <h3 class="text-center text-3xl text-gray-100 mb-4">
+          Jugadores {$players.length}/{$game.settings.players}
+        </h3>
         <ul
           class="flex flex-col gap-2 text-gray-200 w-full md:h-[40vh] md:overflow-y-auto md:p-1"
         >
@@ -204,14 +207,16 @@
               <div class="flex items-center gap-2">
                 <label for="ready-{player.id}" class="sr-only">Listo</label>
                 {#if player.me}
-                  <input
-                    type="checkbox"
-                    id="ready-{player.id}"
-                    on:change={(e) => {
-                      dispatchToggleReady(e.currentTarget.checked);
+                  <button
+                    type="button"
+                    on:click={(e) => {
+                      dispatchToggleReady(!player.ready);
                     }}
-                    class="checkbox variant-primary square-6"
-                  />
+                    class="button w-20 px-0 py-0.5 text-base variant-primary"
+                    class:variant-success={player.ready}
+                  >
+                    {player.ready ? 'Listo' : 'No listo'}
+                  </button>
                 {:else}
                   {#if $self.player.host}
                     <ButtonIcon
@@ -236,7 +241,9 @@
         </ul>
       </div>
 
-      <div class="flex flex-col items-center mb-4 md:col-span-5">
+      <div
+        class="flex flex-col items-center mb-4 mx-auto w-full max-w-[min(24rem,90vw)] md:max-w-full md:col-span-5"
+      >
         <h3 class="text-3xl text-gray-100 mb-4">Partida</h3>
         <form
           on:submit={(e) => {
@@ -245,6 +252,21 @@
           }}
           class="flex flex-col gap-2 w-full text-gray-200"
         >
+          <div class="w-full">
+            <label class="flex items-center justify-between">
+              <span>Jugadores</span>
+              <input
+                type="number"
+                name="players"
+                max={GAME.MAX_PLAYERS}
+                min={GAME.MIN_PLAYERS}
+                step="1"
+                disabled={isGuest}
+                bind:value={settings.players}
+                class="input variant-primary w-20 ml-4"
+              />
+            </label>
+          </div>
           <div class="w-full">
             <label class="flex items-center justify-between">
               <span>Rondas</span>
@@ -292,6 +314,24 @@
                 on:change={(e) => {
                   settings.fillTimeSlot =
                     parseInt(e.currentTarget.value) * 1000;
+                }}
+                class="input variant-primary w-20 ml-4"
+              />
+            </label>
+          </div>
+          <div class="w-full">
+            <label class="flex items-center justify-between">
+              <span>T. para puntuar</span>
+              <input
+                type="number"
+                name="rateTime"
+                max={GAME.MAX_RATE_TIME / 1000}
+                min={GAME.MIN_RATE_TIME / 1000}
+                step="1"
+                disabled={isGuest}
+                value={settings.rateTime / 1000}
+                on:change={(e) => {
+                  settings.rateTime = parseInt(e.currentTarget.value) * 1000;
                 }}
                 class="input variant-primary w-20 ml-4"
               />
@@ -363,7 +403,7 @@
     </div>
 
     <div
-      class="flex flex-col gap-2 justify-around mt-4 md:flex-row-reverse md:justify-center md:gap-8 md:mt-8"
+      class="flex flex-wrap gap-4 justify-center mt-4 flex-row-reverse md:gap-8 md:mt-8 [&>button]:max-w-[min(12rem,90vw)] max-w"
     >
       {#if $self.player.host}
         <button
@@ -393,9 +433,12 @@
           Cerrar sala
         </button>
       {:else}
-        <p class="my-auto text-gray-300 text-xl text-center">
-          {playersAreReady ? 'Esperando al anfitrion' : 'Esperando listos'}
-        </p>
+        <button
+          type="button"
+          class="button variant-primary !max-w-max opacity-90 cursor-default hover:!ring-1"
+        >
+          {playersAreReady ? 'Esperando anfitrion' : 'Esperando listos'}
+        </button>
         <button
           type="button"
           on:click={askForLeaveRoom}

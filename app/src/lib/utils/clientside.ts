@@ -21,7 +21,7 @@ export function copyToClipboard(
 
 type AnyTuple = [] | [any, ...any[]];
 
-export function debounced<A extends AnyTuple, EA extends AnyTuple>(
+export function debounced<A extends AnyTuple, EA extends AnyTuple = []>(
     fn: (...args: [...A, ...EA]) => void, delay: number, ...extraArgs: EA
 ) {
     let timeoutId: ReturnType<typeof setTimeout> | undefined = undefined;
