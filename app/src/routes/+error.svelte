@@ -100,7 +100,7 @@
     </div>
 
     <div class="row-start-6 justify-self-center">
-      <a href="/" class="button variant-primary">Volver al inicio</a>
+      <a href="/" class="button variant-primary block">Volver al inicio</a>
     </div>
   </div>
 

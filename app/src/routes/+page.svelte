@@ -16,7 +16,9 @@
     onUpdated({ form }) {
       if (!form.valid) {
         toast.formLevelErrors(form.errors);
-        return;
+        if (!form.message?.user) {
+          return;
+        }
       }
 
       const _user = form.message.user;

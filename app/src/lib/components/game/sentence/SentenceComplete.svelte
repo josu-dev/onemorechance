@@ -33,8 +33,10 @@
 <div class="w-full my-auto">
   <div class="flex flex-col gap-2 w-full md:gap-4">
     {#each inputs as input (input.idx)}
+      <!-- content editable must be "" or "true", "plaintext-only" breaks on firefox -->
+      <!-- firebox no supports line-clamp properly :( -->
       <div
-        contenteditable="plaintext-only"
+        contenteditable
         role="textbox"
         tabindex="0"
         title="Completar espacio {input.idx + 1}"
@@ -64,8 +66,14 @@
             input.el?.blur();
             return;
           }
-          if (e.key !== 'Backspace') {
-            if (input.text.length === FILL_SENTENCE_MAX_LENGTH) {
+          if (
+            e.key !== 'Backspace' &&
+            input.text.length === FILL_SENTENCE_MAX_LENGTH
+          ) {
+            if (
+              !e.key.startsWith('Arrow') &&
+              !((e.ctrlKey || e.metaKey) && e.key === 'a')
+            ) {
               const selection = window.getSelection();
               if (selection?.isCollapsed) {
                 e.preventDefault();

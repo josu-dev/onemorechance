@@ -59,15 +59,15 @@ export const actions: Actions = {
         );
 
         cookies.set('userId', user.id, { path: '/' });
+        form.message = { user: user };
 
         const redirectTo = getRedirectTo(url);
         if (!redirectTo || !redirectTo.startsWith('/r/')) {
-            return message(form, { user: user });
+            return { form };
         }
-
         const roomId = redirectTo.slice(3);
         if (!isRoomId(roomId)) {
-            return message(form, { user: user });
+            return { form };
         }
 
         const room = await (locals.db
