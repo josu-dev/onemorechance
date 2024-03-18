@@ -7,7 +7,7 @@
     {
       name: 'Josue',
       roles: ['Developer', 'Game Developer', 'Game Designer'],
-      github: 'https://github.com/J-Josu',
+      github: 'https://github.com/josu-dev',
       avatar: 'https://avatars.githubusercontent.com/u/92873227?v=4',
     },
     {

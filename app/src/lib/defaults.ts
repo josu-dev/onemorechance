@@ -22,11 +22,11 @@ export const OPEN_GRAPH = {
     imageHeight: '630',
 };
 
-export const PROJECT_REPOSITORY = 'https://github.com/J-Josu/onemorechance';
+export const PROJECT_REPOSITORY = 'https://github.com/josu-dev/onemorechance';
 
 export const TOAST = {
     DURATION_ERROR: 5000,
     DURATION_INFO: 3500,
     DURATION_SUCCESS: 2500,
     DURATION_WARNING: 3500,
-}
+};
