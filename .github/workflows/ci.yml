@@ -16,7 +16,9 @@ permissions:
   security-events: write
 
 env:
-  RENDER_HOOK_URL: ${{ github.ref == 'refs/heads/main' && secrets.RENDER_HOOK_URL || secrets.RENDER_HOOK_URL_DEVELOP }}
+  # Disabled until we have a delevelop environment to deploy to
+  # RENDER_HOOK_URL: ${{ github.ref == 'refs/heads/main' && secrets.RENDER_HOOK_URL || secrets.RENDER_HOOK_URL_DEVELOP }}
+  RENDER_HOOK_URL: ${{ github.ref == 'refs/heads/main' && secrets.RENDER_HOOK_URL }}
 
 jobs:
   gitleaks:
